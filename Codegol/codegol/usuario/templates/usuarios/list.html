@@ -1,0 +1,56 @@
+<aside class="menu">
+    <a href="./pagina original.html" class="logo" aria-label="Logo Escuela de Fútbol Pinze">
+      <img src="./imagenes/logo.jpg" alt="Logo Escuela de Fútbol Pinze" />
+    </a>
+    <h2>⚽ Menú ⚽</h2>
+    <ul>
+      <li><a href="./registropag.html">Usuarios</a></li>
+      <li><a href="./entrenopag.html">Entrenamiento</a></li>
+      <li><a href="./inventariopag.html">Inventario</a></li>
+      <li><a href="./rendimientopag.html">Rendimiento</a></li>
+      <li><a href="./matriculapag.html">Matrícula</a></li>
+      <li><a href="./pagopag.html">Pago</a></li>
+    </ul>
+    <a href="./index.html" class="cerrar-sesion">Cerrar sesión</a>
+  </aside>
+
+  <div class="contenido">
+    <div class="barra-top">
+      <div class="barra-busqueda">
+        <input type="text" placeholder="Buscar usuario...">
+      </div>
+      <a href="{% url 'crear_usuario' %}" class="boton-registrar">Registrar nuevo usuario</a>
+    </div>
+
+    <table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Foto</th>
+      <th>Correo</th>
+      <th>Nombre completo</th>
+      <th>Identificación</th>
+      <th>Acciones</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    {% for usuario in usuarios %}
+    <td>{{ usuario.id_usuario }}</td>
+    <td>
+      {% if usuario.foto_perfil %}
+        <img src="{{ usuario.foto_perfil.url }}" height="100">
+      {% endif %}
+    </td>
+      <td>{{ usuario.correo }}</td>
+      <td>{{ usuario.nombre_completo }}</td>
+      <td>{{ usuario.num_identificacion }}</td>
+      <td class="acciones">
+        <button class="ver-mas" data-id="{{ usuario.id }}">Ver más</button>
+        <a class="actualizar" href="{% url 'editar_usuario' usuario.id_usuario %}">Actualizar</a>
+        <a class="eliminar" href="{% url 'eliminar' usuario.id_usuario %}" role="button">Eliminar</a>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
