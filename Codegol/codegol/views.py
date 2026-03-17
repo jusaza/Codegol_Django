@@ -10,3 +10,6 @@ def nosotros(request):
 
 def servicios(request):
     return render(request, 'servicios.html')
+    
+def pagina_original(request):
+    return render(request, 'pagina_original.html')
