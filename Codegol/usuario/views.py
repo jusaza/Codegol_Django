@@ -1,12 +1,16 @@
 from django.shortcuts import render, redirect
 from .models import Usuario
+from django.contrib.auth import authenticate, login as auth_login, logout
 from .forms import UsuarioForm
 
 # Create your views here.
 
 
-def login(request):
-    return render(request,"usuarios/login.html")
+def login_view(request):
+    if request.method == 'POST':
+        username = request.POST['documento']
+        password = request.POST['contrasena']
+        user = authenticate(request, username=username, password = password)
 
 def usuario(request):
     usuarios = Usuario.objects.all()
