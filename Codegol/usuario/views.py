@@ -1,23 +1,36 @@
 from django.shortcuts import render, redirect
-from .models import Usuario
-from django.contrib.auth import authenticate, login as auth_login
 from django.contrib import messages
-from .forms import UsuarioForm
+from .models import Usuario
+from .forms import UsuarioForm, LoginForm
 
 # Create your views here.
 
 def login_view(request):
-    if request.method == 'POST':
-        username = request.POST['documento']
-        password = request.POST['contrasena']
-        user = authenticate(request, username=username, password = password)
+    form = LoginForm()
 
-        if user is not None:
-            auth_login(request, user)
-            return redirect('usuario')
-        else:
-            messages.error(request, 'Credenciales Incorrectas')
-        return render(request, 'login.html')
+    if request.method == "POST":
+        form = LoginForm(request.POST)
+
+        if form.is_valid():
+            documento = form.cleaned_data["documento"]
+            contrasena = form.cleaned_data["contrasena"]
+
+            try:
+                usuario = Usuario.objects.get(
+                    num_identificacion = documento,
+                    contrasena = contrasena
+                )
+
+                request.session["usuario_id"] = usuario.id_usuario    #Nombres personalizados para guardar la sesion ejemplo [usuario_id] y despues va el campo de la base de datos.
+                request.session["nombre"] = usuario.nombre_completo
+
+                return redirect("usuario")
+            
+            except Usuario.DoesNotExist:
+                messages.error(request, "Documento o contraseña incorrectos")
+                return redirect("login")
+            
+    return render(request, "login.html", {"form" : form})
 
 def usuario(request):
     usuarios = Usuario.objects.all()

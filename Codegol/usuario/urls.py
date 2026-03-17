@@ -5,7 +5,7 @@ from django.conf import settings
 from django.contrib.staticfiles.urls import static
 
 urlpatterns = [
-    path('login', views.login_view, name='login'),
+    path('login/', views.login_view, name='login'),
     path('usuario', views.usuario, name='usuario'),
     path('usuario/nuevo', views.crear_usuario, name="crear_usuario"),
     path('usuario/especifica/<int:id>', views.consulta_especifica_usuario, name="consulta_especifica_usuario"),
