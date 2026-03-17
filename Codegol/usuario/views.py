@@ -1,16 +1,23 @@
 from django.shortcuts import render, redirect
 from .models import Usuario
-from django.contrib.auth import authenticate, login as auth_login, logout
+from django.contrib.auth import authenticate, login as auth_login
+from django.contrib import messages
 from .forms import UsuarioForm
 
 # Create your views here.
-
 
 def login_view(request):
     if request.method == 'POST':
         username = request.POST['documento']
         password = request.POST['contrasena']
         user = authenticate(request, username=username, password = password)
+
+        if user is not None:
+            auth_login(request, user)
+            return redirect('usuario')
+        else:
+            messages.error(request, 'Credenciales Incorrectas')
+        return render(request, 'login.html')
 
 def usuario(request):
     usuarios = Usuario.objects.all()
