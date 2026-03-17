@@ -1,0 +1,217 @@
+.contenido {
+  padding: 20px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.barra-top {
+  width: 90%;
+  max-width: 1100px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.barra-busqueda {
+  flex: 1;
+}
+
+.barra-busqueda input {
+  width: 100%;
+  padding: 10px;
+  border: 2px solid #0b1649;
+  border-radius: 5px;
+  font-size: 16px;
+  box-sizing: border-box;
+}
+
+/* Botón de registrar */
+.boton-registrar {
+  background-color: #001f3f;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 600;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  text-decoration: none;
+  margin-left: 15px;
+}
+
+.boton-registrar:hover {
+  background-color: #0074d9;
+  transform: translateY(-2px);
+}
+
+/* Estilo general de la tabla */
+table {
+  width: 90%;
+  max-width: 1100px;
+  border-collapse: collapse;
+  background: white;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+/* Celdas de encabezado y datos */
+th, td {
+  padding: 12px 15px;
+  text-align: center;
+  vertical-align: middle;
+  border-bottom: none;
+  box-sizing: border-box;
+  line-height: 1.4;
+}
+
+/* Encabezados de tabla */
+th {
+  background-color: #0b1649;
+  color: white;
+}
+
+/* Efecto hover en filas */
+tr:hover {
+  background-color: #f1f1f1;
+}
+
+/* Contenedor para los botones de acción */
+.acciones {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}
+
+.acciones button {
+  margin: 0;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgb(32, 117, 70);
+}
+
+.acciones .actualizar {
+  background-color: #0074d9;
+  color: white;
+}
+
+.acciones .eliminar {
+  background-color: #ff4136;
+  color: white;
+}
+
+.acciones button:hover {
+  opacity: 0.9;
+}
+
+
+.ventana-flotante {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  display: none;
+  max-width: 800px;
+  width: 90%;
+  display: none;
+  flex-direction: row;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+.ventana-flotante.active {
+  display: flex;
+}
+
+.ventana-flotante .grafico {
+  flex: 1;
+}
+
+.ventana-flotante .info {
+  flex: 1;
+}
+
+.ventana-flotante canvas {
+  width: 100%;
+  height: auto;
+  max-width: 300px;
+}
+
+.ventana-flotante ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.ventana-flotante li {
+  margin-bottom: 10px;
+  font-size: 15px;
+  text-align: left;
+  color: #001f3f;
+}
+
+
+form.registro-rendimiento {
+  background: #fff;
+  padding: 20px;
+  margin: 20px auto;
+  max-width: 800px;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+form.registro-rendimiento input, select, button {
+  padding: 8px;
+  font-size: 1em;
+  flex: 1 1 45%;
+}
+
+form.registro-rendimiento button {
+  background-color: #0f5897;
+  color: white;
+  border: none;
+  cursor: pointer;
+  flex: 1 1 100%;
+}
+
+
+.grafica-container {
+  width: 100%;
+  max-width: 500px;
+  margin: 30px auto;
+  background: #fff;
+  padding: 20px;
+  border-radius: 15px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+#graficaRadar {
+  width: 100%;
+  height: auto;
+}
+
+
+h3.titulo-formulario {
+  text-align: center;
+  margin-top: 20px;
+}
