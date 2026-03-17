@@ -24,13 +24,17 @@ def login_view(request):
                 request.session["usuario_id"] = usuario.id_usuario    #Nombres personalizados para guardar la sesion ejemplo [usuario_id] y despues va el campo de la base de datos.
                 request.session["nombre"] = usuario.nombre_completo
 
-                return redirect("usuario")
+                return redirect("pagina_original")
             
             except Usuario.DoesNotExist:
                 messages.error(request, "Documento o contraseña incorrectos")
                 return redirect("login")
             
     return render(request, "login.html", {"form" : form})
+
+def logout_view(request):
+    request.session.flush()
+    return redirect("login")
 
 def usuario(request):
     usuarios = Usuario.objects.all()

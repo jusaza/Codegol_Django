@@ -16,25 +16,28 @@
     <h2>⚽ Menú ⚽</h2>
     <ul>
       <li>
-        <a href="#">Usuarios</a>
-      <li>
-        <a href="">Entrenamiento</a>
-      <li>
-        <a href="">Inventario</a>
+        <a href="{% url 'usuario' %}">Usuarios</a>
       </li>
       <li>
-        <a href="">Rendimiento</a>
+        <a href="#">Entrenamiento</a>
       </li>
       <li>
-        <a href="">Matrícula</a>
+        <a href="#">Inventario</a>
+      </li>
       <li>
-        <a href="">Pago</a>
+        <a href="#">Rendimiento</a>
+      </li>
+      <li>
+        <a href="#">Matrícula</a>
+      </li>
+      <li>
+        <a href="#">Pago</a>
       </li>
     </ul>
-    <a href="" class="cerrar-sesion">Cerrar sesión</a>
+
+    <a href="{% url 'logout' %}" class="cerrar-sesion">Cerrar sesión</a>
   </aside>
 
-  
 {% block content %}
 {% endblock %}
     
