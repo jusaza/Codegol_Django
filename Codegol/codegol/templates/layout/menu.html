@@ -1,0 +1,42 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{% block title %}Escuela de Fútbol Pinze{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'css/style_pag_prin.css' %}">
+</head>
+<body>
+  <aside class="menu">
+    <a href="pagina original.html" class="logo" aria-label="Logo Escuela de Fútbol Pinze">
+      <img src="{% static 'imagenes/logo.jpg' %}" alt="Logo Escuela de Fútbol Pinze" />
+    </a>
+
+    <h2>⚽ Menú ⚽</h2>
+    <ul>
+      <li>
+        <a href="#">Usuarios</a>
+      <li>
+        <a href="">Entrenamiento</a>
+      <li>
+        <a href="">Inventario</a>
+      </li>
+      <li>
+        <a href="">Rendimiento</a>
+      </li>
+      <li>
+        <a href="">Matrícula</a>
+      <li>
+        <a href="">Pago</a>
+      </li>
+    </ul>
+    <a href="" class="cerrar-sesion">Cerrar sesión</a>
+  </aside>
+
+  
+{% block content %}
+{% endblock %}
+    
+</body>
+</html>
