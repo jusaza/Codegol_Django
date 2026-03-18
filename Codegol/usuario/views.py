@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
-from .models import Usuario
+from .models import Usuario, DetallesUsuarioRol
 from .forms import UsuarioForm, LoginForm
 
 # Create your views here.
@@ -21,8 +21,14 @@ def login_view(request):
                     contrasena = contrasena
                 )
 
+                roles = DetallesUsuarioRol.objects.filter(
+                    id_usuario=usuario).select_related("id_rol")
+
+                lista_roles = [r.id_rol.rol_usuario for r in roles]
+
                 request.session["usuario_id"] = usuario.id_usuario    #Nombres personalizados para guardar la sesion ejemplo [usuario_id] y despues va el campo de la base de datos.
                 request.session["nombre"] = usuario.nombre_completo
+                request.session["roles"] = lista_roles
 
                 return redirect("pagina_original")
             

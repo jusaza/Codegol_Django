@@ -119,3 +119,48 @@ class Usuario(models.Model):
 
     def __str__(self):
         return self.nombre_completo
+
+
+class Rol(models.Model):
+
+    id_rol = models.AutoField(
+        primary_key=True
+    )
+
+    estado = models.BooleanField(
+        default=True
+    )
+
+    rol_usuario = models.CharField(
+        max_length=255
+    )
+
+    class Meta:
+        db_table = "rol"
+
+    def __str__(self):
+        return self.rol_usuario
+    
+
+class DetallesUsuarioRol(models.Model):
+
+    id_usuario = models.ForeignKey(
+        Usuario,
+        on_delete=models.CASCADE,
+        db_column="id_usuario"
+    )
+
+    id_rol = models.ForeignKey(
+        Rol,
+        on_delete=models.CASCADE,
+        db_column="id_rol"
+    )
+
+    class Meta:
+        db_table = "detalles_usuario_rol"
+        unique_together = ("id_usuario", "id_rol")
+
+roles = models.ManyToManyField(
+    Rol,
+    through='DetallesUsuarioRol'
+)
