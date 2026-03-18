@@ -13,3 +13,6 @@ def servicios(request):
     
 def pagina_original(request):
     return render(request, 'pagina_original.html')
+
+def error400(request):
+    return render(request, '400.html')

@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from .models import Usuario, DetallesUsuarioRol
 from .forms import UsuarioForm, LoginForm
+from .decorators import rol_requerido
 
 # Create your views here.
 
@@ -42,6 +43,7 @@ def logout_view(request):
     request.session.flush()
     return redirect("login")
 
+@rol_requerido(["Entrenador"])
 def usuario(request):
     usuarios = Usuario.objects.all()
     return render(request, "usuarios/list.html", {'usuarios' : usuarios}) #Como decir Index.html del modulo de Usuarios.

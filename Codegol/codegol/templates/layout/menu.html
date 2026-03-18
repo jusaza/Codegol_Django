@@ -15,9 +15,11 @@
 
     <h2>⚽ Menú ⚽</h2>
     <ul>
+      {% if "Administrador" in roles %}
       <li>
         <a href="{% url 'usuario' %}">Usuarios</a>
       </li>
+      {% endif %}
       <li>
         <a href="#">Entrenamiento</a>
       </li>
