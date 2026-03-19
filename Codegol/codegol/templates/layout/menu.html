@@ -19,7 +19,7 @@
 
     <h2>⚽ Menú ⚽</h2>
     <ul>
-      {% if "Administrador" in roles %}
+      {% if "Administrador" in request.session.roles or "Entrenador" in request.session.roles %}
       <li>
         <a href="{% url 'usuario' %}">Usuarios</a>
       </li>

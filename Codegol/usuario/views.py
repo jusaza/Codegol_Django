@@ -31,7 +31,10 @@ def login_view(request):
                 request.session["nombre"] = usuario.nombre_completo
                 request.session["roles"] = lista_roles
 
+                print(lista_roles)
+
                 return redirect("pagina_original")
+            
             
             except Usuario.DoesNotExist:
                 messages.error(request, "Documento o contraseña incorrectos")
@@ -43,7 +46,6 @@ def logout_view(request):
     request.session.flush()
     return redirect("login")
 
-@rol_requerido(["Entrenador"])
 def usuario(request):
     usuarios = Usuario.objects.all()
     return render(request, "usuarios/list.html", {'usuarios' : usuarios}) #Como decir Index.html del modulo de Usuarios.
