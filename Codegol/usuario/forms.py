@@ -1,7 +1,11 @@
 from django import forms
-from .models import Usuario
+from .models import Usuario,Rol
 
 class UsuarioForm(forms.ModelForm):
+    roles = forms.ModelMultipleChoiceField(
+        queryset=Rol.objects.all(),
+        widget=forms.SelectMultiple
+        )
     class Meta:
         model = Usuario
         widgets = {

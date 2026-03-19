@@ -39,7 +39,9 @@
         <td>{{ usuario.id_usuario }}</td>
         <td>
           {% if usuario.foto_perfil %}
-            <img src="{{ usuario.foto_perfil.url }}" height="100">
+            <img src="{{ usuario.foto_perfil.url }}" height="50">
+          {% else %}
+            <img src="/static/imagenes/default.png" height="50">
           {% endif %}
         </td>
         <td>{{ usuario.correo }}</td>

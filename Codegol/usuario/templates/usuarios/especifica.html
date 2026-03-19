@@ -1,0 +1,58 @@
+{% extends 'layout/menu.html' %}
+{% load static %}
+
+{% block content %}
+
+<div class="contenedor">
+
+    <h2>Detalle del Usuario</h2>
+
+    <div class="card-usuario">
+
+        <p><strong>Correo:</strong> {{ usuario.correo }}</p>
+        <p><strong>Nombre Completo:</strong> {{ usuario.nombre_completo }}</p>
+        <p><strong>N° Identificación:</strong> {{ usuario.num_identificacion }}</p>
+
+        <p><strong>Tipo Documento:</strong> {{ usuario.get_tipo_documento_display }}</p>
+
+        <p><strong>Teléfono 1:</strong> {{ usuario.telefono_1 }}</p>
+        <p><strong>Teléfono 2:</strong> {{ usuario.telefono_2 }}</p>
+
+        <p><strong>Dirección:</strong> {{ usuario.direccion }}</p>
+
+        <p><strong>Género:</strong> {{ usuario.get_genero_display }}</p>
+
+        <p><strong>Fecha Nacimiento:</strong> {{ usuario.fecha_nacimiento }}</p>
+        <p><strong>Lugar Nacimiento:</strong> {{ usuario.lugar_nacimiento }}</p>
+
+        <p><strong>Grupo Sanguíneo:</strong> {{ usuario.get_grupo_sanguineo_display }}</p>
+
+        <p><strong>Estado:</strong> {{ usuario.estado }}</p>
+
+        {% if usuario.foto_perfil %}
+            <p><strong>Foto:</strong></p>
+            <img src="{{ usuario.foto_perfil.url }}" width="150">
+        {% endif %}
+
+        <hr>
+
+        <p><strong>Roles:</strong></p>
+        <ul>
+            {% for detalle in usuario.detallesusuariorol_set.all %}
+                <li>{{ detalle.id_rol.rol_usuario }}</li>
+            {% empty %}
+                <li>No tiene roles asignados</li>
+            {% endfor %}
+        </ul>
+
+    </div>
+
+    <br>
+
+    <a href="{% url 'usuario' %}">
+        <button type="button">Volver</button>
+    </a>
+
+</div>
+
+{% endblock %}
