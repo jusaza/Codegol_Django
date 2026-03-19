@@ -4,7 +4,7 @@ from .models import Usuario
 class UsuarioForm(forms.ModelForm):
     class Meta:
         model = Usuario
-        fields = '__all__'
+        exclude = ['estado', 'id_usuario_registro']
 
 class LoginForm(forms.Form):
         documento = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Documento'}))
