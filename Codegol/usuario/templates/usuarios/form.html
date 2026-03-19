@@ -1,36 +1,46 @@
+<div class="login-box" role="main">
+
 <form enctype="multipart/form-data" method="post">
   {% csrf_token %}
   {% for campo in formulario %}
 
-  <div class="Formgrupo">
-    <label>{{ campo.label }}:</label>
+<div class="Formgrupo">
+  <label>{{ campo.label }}:</label>
 
-    {% if campo.field.choices %}
-      <select name="{{ campo.name }}">
-        {% for valor, texto in campo.field.choices %}
-          <option value="{{ valor }}">{{ texto }}</option>
-        {% endfor %}
-      </select>
-    {% else %}
+  {% if campo.field.choices %}
+    <select name="{{ campo.name }}">
+      {% for valor, texto in campo.field.choices %}
+        <option value="{{ valor }}">{{ texto }}</option>
+      {% endfor %}
+    </select>
+  {% else %}
 
     {% if campo.field.widget.input_type == 'file' and campo.value %}
-    <img src="{{ MEDIA_URL}}/imagenes/{{ campo.value}}" width="100" alt="imagenPerfil"><br>
+      <img src="{{ MEDIA_URL}}/imagenes/{{ campo.value}}" width="100"><br>
     {% endif %}
 
-      <input 
-        type="{{ campo.field.widget.input_type }}"
-        name="{{ campo.name }}"
-        value="{{ campo.value|default:'' }}"
-        placeholder="{{ campo.label }}"
-        value="{{ campo.value | default:'' }}">
+    <input 
+      type="{{ campo.field.widget.input_type }}"
+      name="{{ campo.name }}"
+      value="{{ campo.value|default:'' }}"
+      placeholder="{{ campo.label }}">
+  {% endif %}
+
+  <!-- ✅ AQUÍ -->
+  <div class="error">{{ campo.errors }}</div>
+
+</div>
+
+{% endfor %}
+  <button type="submit" value="Registrar">
+    {% if usuario %}
+      Actualizar Usuario
+    {% else %}
+      Guardar Usuario
     {% endif %}
+  </button>
 
-  </div>
 
-  <div>{{ campo.errors }}</div>
-
-  {% endfor %}
-
-  <input type="submit" value="Registrar">
-  <a href="{% url 'usuario' %}" role="button">Cancelar</a>
+  <!--<a href="{% url 'usuario' %}" role="button">Cancelar</a>-->
 </form>
+</div>
