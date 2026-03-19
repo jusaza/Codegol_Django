@@ -4,6 +4,9 @@ from .models import Usuario
 class UsuarioForm(forms.ModelForm):
     class Meta:
         model = Usuario
+        widgets = {
+            'fecha_nacimiento': forms.DateInput(attrs={'type': 'date'})
+        }
         exclude = ['estado', 'id_usuario_registro']
 
 class LoginForm(forms.Form):
