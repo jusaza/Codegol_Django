@@ -55,7 +55,7 @@ def crear_usuario(request):
     if formulario.is_valid():
         formulario.save()
         return redirect('usuario')
-    return render(request, "usuarios/form.html" , {'formulario' : formulario})
+    return render(request, "usuarios/crear.html" , {'formulario' : formulario})
 
 def consulta_especifica_usuario(request, id):
     usuario = Usuario.objects.get(id_usuario=id)
@@ -67,7 +67,7 @@ def editar_usuario(request, id):
     if formulario.is_valid() and request.POST:
         formulario.save()
         return redirect('usuario')
-    return render(request, "usuarios/form.html", {'formulario' : formulario})
+    return render(request, "usuarios/editar.html", {'formulario' : formulario})
 
 def eliminar_usuario(request, id):
     usuario = Usuario.objects.get(id_usuario=id)
