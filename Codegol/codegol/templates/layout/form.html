@@ -5,7 +5,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>{% block title %}Escuela de Fútbol Pinze{% endblock %}</title>
-  <link rel="stylesheet" href="{% static 'css/styles_inicio_sesion.css' %}">
+
+  {% block extra_css %}
+  {% endblock %}
 </head>
 <body>
 

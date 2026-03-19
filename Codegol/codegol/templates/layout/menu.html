@@ -5,11 +5,15 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>{% block title %}Escuela de Fútbol Pinze{% endblock %}</title>
+
   <link rel="stylesheet" href="{% static 'css/style_pag_prin.css' %}">
+
+  {% block extra_css %}
+  {% endblock %}
 </head>
 <body>
   <aside class="menu">
-    <a href="pagina original.html" class="logo" aria-label="Logo Escuela de Fútbol Pinze">
+    <a href="{% url 'pagina_original' %}" class="logo" aria-label="Logo Escuela de Fútbol Pinze">
       <img src="{% static 'imagenes/logo.jpg' %}" alt="Logo Escuela de Fútbol Pinze" />
     </a>
 
@@ -21,7 +25,7 @@
       </li>
       {% endif %}
       <li>
-        <a href="#">Entrenamiento</a>
+        <a href="{% url 'lista_entrenamientos' %}">Entrenamiento</a>
       </li>
       <li>
         <a href="#">Inventario</a>

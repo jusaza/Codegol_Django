@@ -1,6 +1,10 @@
 {% extends "layout/form.html" %}
 {% load static %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/styles_inicio_sesion.css' %}">
+{% endblock %}
+
 {% block title %}
 Iniciar sesión
 {% endblock %}
