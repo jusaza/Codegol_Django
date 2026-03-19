@@ -31,7 +31,10 @@ def login_view(request):
                 request.session["nombre"] = usuario.nombre_completo
                 request.session["roles"] = lista_roles
 
+                print(lista_roles)
+
                 return redirect("pagina_original")
+            
             
             except Usuario.DoesNotExist:
                 messages.error(request, "Documento o contraseña incorrectos")
