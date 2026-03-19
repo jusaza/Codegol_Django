@@ -29,4 +29,5 @@ urlpatterns = [
     path('400/', views.error400, name='error400'),
 
     path('entrenamientos/', include('entrenamientos.urls')),
+    path('inventario/', include('inventario.urls')),
 ]
