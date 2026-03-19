@@ -61,6 +61,15 @@
             </a>
           </button>
         </td>
+
+         <td class="acciones">
+          <button class="ver">
+            <a style="text-decoration: none; color: white;"
+               href="{% url 'consulta_especifica_usuario' usuario.id_usuario %}"> <!--La ruta sale de como se llamo-->
+               Ver mas
+            </a>
+          </button>
+          </td>
       </tr>
       {% empty %}
       <tr>
