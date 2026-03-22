@@ -27,7 +27,7 @@ def crear_inventario(request):
         Inventario.objects.create(
             nombre_articulo=nombre,
             descripcion=descripcion,
-            estado=True  # 👈 siempre activo al crear
+            estado=True 
         )
 
         return redirect('lista_inventario')

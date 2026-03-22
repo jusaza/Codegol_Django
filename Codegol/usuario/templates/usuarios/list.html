@@ -39,7 +39,9 @@
         <td>{{ usuario.id_usuario }}</td>
         <td>
           {% if usuario.foto_perfil %}
-            <img src="{{ usuario.foto_perfil.url }}" height="100">
+            <img src="{{ usuario.foto_perfil.url }}" height="50">
+          {% else %}
+            <img src="/static/imagenes/default.png" height="50">
           {% endif %}
         </td>
         <td>{{ usuario.correo }}</td>
@@ -61,6 +63,15 @@
             </a>
           </button>
         </td>
+
+         <td class="acciones">
+          <button class="ver">
+            <a style="text-decoration: none; color: white;"
+               href="{% url 'consulta_especifica_usuario' usuario.id_usuario %}"> <!--La ruta sale de como se llamo-->
+               Ver mas
+            </a>
+          </button>
+          </td>
       </tr>
       {% empty %}
       <tr>

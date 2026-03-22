@@ -102,6 +102,11 @@ tr:hover {
   color: rgb(32, 117, 70);
 }
 
+.acciones .ver {
+  background-color: #21c704;
+  color: white;
+}
+
 .acciones .actualizar {
   background-color: #0074d9;
   color: white;
