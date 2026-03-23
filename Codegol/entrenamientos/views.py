@@ -59,3 +59,4 @@ def eliminar_entrenamiento(request, id):
     entrenamiento.save()
 
     return redirect('lista_entrenamientos')
+

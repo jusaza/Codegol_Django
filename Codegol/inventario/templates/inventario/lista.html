@@ -57,6 +57,14 @@
             </a>
           </button>
         </td>
+        <td class = "acciones">
+            <button class="actualizar" style="background-color: green;">
+                <a style="text-decoration: none; color: white;"
+                    href="{% url 'lista_movimientos' inventario.id_inventario %}">
+                Ver movimientos
+                </a>
+            </button>
+        </td>
       </tr>
       {% empty %}
       <tr>

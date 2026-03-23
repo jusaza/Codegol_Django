@@ -12,10 +12,24 @@
 <body>
 
   <header>
-    <a href="{% url 'inicio' %}" class="logo" aria-label="Logo Escuela de Fútbol Pinze">
+    <a href="
+        {% if request.path == '/login/' %}
+            {% url 'inicio' %}
+        {% else %}
+            {{ request.META.HTTP_REFERER|default:'/' }}
+        {% endif %}
+        "" class="logo" aria-label="Logo Escuela de Fútbol Pinze">
       <img src="{% static 'imagenes/logo.jpg' %}" alt="Logo Escuela de Fútbol Pinze" />
     </a>
-    <a href="{% url 'inicio' %}" class="volver">Volver</a>
+    <a href="
+        {% if request.path == '/login/' %}
+            {% url 'inicio' %}
+        {% else %}
+            {{ request.META.HTTP_REFERER|default:'/' }}
+        {% endif %}
+        " class="volver">
+    Volver
+    </a>
   </header>
 {% block content %}
 {% endblock %}

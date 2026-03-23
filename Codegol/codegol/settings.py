@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'usuario',
     'entrenamientos',
     'inventario',
+    'movimiento_inventario', 
     'codegol',
 ]
 
