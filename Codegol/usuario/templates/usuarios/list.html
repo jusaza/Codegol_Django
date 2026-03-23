@@ -39,9 +39,9 @@
         <td>{{ usuario.id_usuario }}</td>
         <td>
           {% if usuario.foto_perfil %}
-            <img src="{{ usuario.foto_perfil.url }}" height="50">
+            <img src="{{ usuario.foto_perfil.url }}" height="60">
           {% else %}
-            <img src="/static/imagenes/default.png" height="50">
+            <img src="/static/imagenes/default.png" height="60">
           {% endif %}
         </td>
         <td>{{ usuario.correo }}</td>
@@ -55,14 +55,13 @@
                Actualizar
             </a>
           </button>
-
+          
           <button class="eliminar">
             <a style="text-decoration: none; color: white;"
                href="{% url 'eliminar' usuario.id_usuario %}">
                Eliminar
             </a>
           </button>
-        </td>
 
          <td class="acciones">
           <button class="ver">

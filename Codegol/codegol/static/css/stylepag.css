@@ -64,7 +64,7 @@ th, td {
   padding: 12px 15px;
   text-align: center;
   vertical-align: middle;
-  border-bottom: none;
+  border-bottom: 1px solid #ddd;
   box-sizing: border-box;
   line-height: 1.4;
 }
@@ -219,4 +219,79 @@ form.registro-rendimiento button {
 h3.titulo-formulario {
   text-align: center;
   margin-top: 20px;
+}
+
+.tabla-usuario {
+  width: 90%;
+  max-width: 800px;
+  margin: auto;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+  overflow: hidden;
+}
+
+.tabla-usuario table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.tabla-usuario th {
+  background-color: #0b1649;
+  color: white;
+  padding: 15px;
+  font-size: 18px;
+}
+
+.tabla-usuario td {
+  padding: 12px 15px;
+  border-bottom: 1px solid #eee;
+  text-align: left;
+}
+
+.tabla-usuario tr:hover {
+  background-color: #f5f7fa;
+}
+
+/* Primera columna (etiquetas) */
+.tabla-usuario td:first-child {
+  font-weight: 600;
+  color: #0b1649;
+  width: 35%;
+}
+
+/* Imagen */
+.foto-usuario {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 2px solid #0b1649;
+}
+
+/* Roles */
+.lista-roles {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.lista-roles li {
+  margin-bottom: 5px;
+}
+
+/* Botón volver */
+.btn-volver {
+  display: inline-block;
+  background-color: #001f3f;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: 600;
+  transition: 0.3s;
+}
+
+.btn-volver:hover {
+  background-color: #0074d9;
+  transform: translateY(-2px);
 }

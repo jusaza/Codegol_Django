@@ -1,58 +1,64 @@
-{% extends 'layout/menu.html' %}
-{% load static %}
+{% extends 'layout/menu.html' %} 
 
-{% block content %}
+{% load static %} 
+
+
 
 <div class="contenedor">
 
     <h2>Detalle del Usuario</h2>
 
-    <div class="card-usuario">
+    <div class="tabla-usuario">
 
-        <p><strong>Correo:</strong> {{ usuario.correo }}</p>
-        <p><strong>Nombre Completo:</strong> {{ usuario.nombre_completo }}</p>
-        <p><strong>N° Identificación:</strong> {{ usuario.num_identificacion }}</p>
+        <table>
+            <tr>
+                <th>Campo</th>
+                <th>Información</th>
+            </tr>
 
-        <p><strong>Tipo Documento:</strong> {{ usuario.get_tipo_documento_display }}</p>
+            <tr><td>Correo</td><td>{{ usuario.correo }}</td></tr>
+            <tr><td>Nombre Completo</td><td>{{ usuario.nombre_completo }}</td></tr>
+            <tr><td>N° Identificación</td><td>{{ usuario.num_identificacion }}</td></tr>
+            <tr><td>Tipo Documento</td><td>{{ usuario.get_tipo_documento_display }}</td></tr>
+            <tr><td>Teléfono 1</td><td>{{ usuario.telefono_1 }}</td></tr>
+            <tr><td>Teléfono 2</td><td>{{ usuario.telefono_2 }}</td></tr>
+            <tr><td>Dirección</td><td>{{ usuario.direccion }}</td></tr>
+            <tr><td>Género</td><td>{{ usuario.get_genero_display }}</td></tr>
+            <tr><td>Fecha Nacimiento</td><td>{{ usuario.fecha_nacimiento }}</td></tr>
+            <tr><td>Lugar Nacimiento</td><td>{{ usuario.lugar_nacimiento }}</td></tr>
+            <tr><td>Grupo Sanguíneo</td><td>{{ usuario.get_grupo_sanguineo_display }}</td></tr>
+            <tr><td>Estado</td><td>{{ usuario.estado }}</td></tr>
 
-        <p><strong>Teléfono 1:</strong> {{ usuario.telefono_1 }}</p>
-        <p><strong>Teléfono 2:</strong> {{ usuario.telefono_2 }}</p>
+            <tr>
+                <td>Foto</td>
+                <td>
+                    {% if usuario.foto_perfil %}
+                        <img src="{{ usuario.foto_perfil.url }}" class="foto-usuario">
+                    {% else %}
+                        <img src="{% static 'img/default.png' %}" class="foto-usuario">
+                    {% endif %}
+                </td>
+            </tr>
 
-        <p><strong>Dirección:</strong> {{ usuario.direccion }}</p>
+            <tr>
+                <td>Roles</td>
+                <td>
+                    <ul class="lista-roles">
+                        {% for detalle in usuario.detallesusuariorol_set.all %}
+                            <li>{{ detalle.id_rol.rol_usuario }}</li>
+                        {% empty %}
+                            <li>No tiene roles asignados</li>
+                        {% endfor %}
+                    </ul>
+                </td>
+            </tr>
 
-        <p><strong>Género:</strong> {{ usuario.get_genero_display }}</p>
-
-        <p><strong>Fecha Nacimiento:</strong> {{ usuario.fecha_nacimiento }}</p>
-        <p><strong>Lugar Nacimiento:</strong> {{ usuario.lugar_nacimiento }}</p>
-
-        <p><strong>Grupo Sanguíneo:</strong> {{ usuario.get_grupo_sanguineo_display }}</p>
-
-        <p><strong>Estado:</strong> {{ usuario.estado }}</p>
-
-        {% if usuario.foto_perfil %}
-            <p><strong>Foto:</strong></p>
-            <img src="{{ usuario.foto_perfil.url }}" width="150">
-        {% endif %}
-
-        <hr>
-
-        <p><strong>Roles:</strong></p>
-        <ul>
-            {% for detalle in usuario.detallesusuariorol_set.all %}
-                <li>{{ detalle.id_rol.rol_usuario }}</li>
-            {% empty %}
-                <li>No tiene roles asignados</li>
-            {% endfor %}
-        </ul>
+        </table>
 
     </div>
 
     <br>
 
-    <a href="{% url 'usuario' %}">
-        <button type="button">Volver</button>
-    </a>
+    <a href="{% url 'usuario' %}" class="btn-volver">Volver</a>
 
 </div>
-
-{% endblock %}
