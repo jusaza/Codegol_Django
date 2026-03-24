@@ -130,5 +130,5 @@ STATICFILES_DIRS = [
     BASE_DIR / 'codegol' / 'static',
 ]
 
-MEDIA_ROOT = os.path.join(BASE_DIR, '')
-MEDIA_URL = '/imagenes/'
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
