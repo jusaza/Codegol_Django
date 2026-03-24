@@ -20,4 +20,12 @@ class LoginForm(forms.Form):
 class DocumentoForm(forms.ModelForm):
     class Meta:
         model = Documentos
-        fields = ['archivo', 'nombre']
+        fields = ['tipo_documento','archivo', 'nombre', 'observaciones']
+        widgets = {
+             'tipo_documento': forms.Select(attrs={'class': 'form-control'})
+        }
+
+class EditarPerfil(forms.ModelForm):
+    class Meta:
+        model = Usuario
+        fields = ["nombre_completo", "correo", "num_identificacion", "foto_perfil"]

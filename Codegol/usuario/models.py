@@ -159,8 +159,22 @@ class DetallesUsuarioRol(models.Model):
 
 
 class Documentos(models.Model):
+    DOCUMENTACION = [
+        ('DNI', 'Documento de Identidad (DNI/CC/TI)'),
+        ('PASAPORTE', 'Pasaporte'),
+        ('LICENCIA_MEDICA', 'Licencia Médica o Certificado de Salud'),
+        ('FOTO', 'Fotografía Reciente'),
+        ('AUTORIZACION', 'Autorización de Representante Legal'),
+        ('CONSTANCIA_ESTUDIO', 'Constancia de Estudio o Escolaridad'),
+        ('CONTRATO', 'Contrato de Inscripción o Membresía'),
+        ('SEGURO', 'Póliza de Seguro Médico o Deportiva'),
+        ('OTRO', 'Otro Documento'),
+    ]
+
     id_archivo = models.AutoField(primary_key=True)
     archivo = models.FileField(upload_to='documentos/')
-    nombre = models.CharField(max_length=255)
+    tipo_documento = models.CharField(max_length=50, choices=DOCUMENTACION)  
+    nombre = models.CharField(max_length=255)  # 
+    observaciones = models.CharField(max_length=255, default='N.A')
     fecha_subida = models.DateTimeField(auto_now_add=True)
     usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE)
