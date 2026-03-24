@@ -115,21 +115,6 @@ def editar_usuario(request, id):
         return redirect('usuario')
     return render(request, "usuarios/usuario_form.html", {'formulario' : formulario})
 
-def editar_mi_perfil(request):
-    usuario_id = request.session.get("usuario_id")
-    if not usuario_id:
-        return redirect("login")  
-    usuario = Usuario.objects.get(id_usuario=usuario_id)
-    if request.method == "POST":
-        formulario = EditarPerfil(request.POST, request.FILES, instance=usuario)
-        if form.is_valid():
-            form.save()
-            request.session["nombre"] = usuario.nombre_completo
-            return redirect("editar_mi_perfil") 
-    else:
-        form = EditarPerfil(instance=usuario)
-    return render(request, "usuarios/editar_perfil.html", {"formulario": formulario})
-
 def reactivar_usuario(request, id):
     usuario = Usuario.objects.get(id_usuario=id)
     usuario.estado = True
