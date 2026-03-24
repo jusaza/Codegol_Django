@@ -25,13 +25,11 @@
         <button type="submit">Filtrar</button>
       </form>
     </div>
-    <a href="{% url 'crear_usuario' %}" class="boton-registrar">
-      Registrar nuevo usuario
-    </a>
-    <a href="{% url 'usuarios_inactivos' %}" class="boton-registrar">
-      Usuarios inactivos
+    <a href="{% url 'usuario' %}" class="boton-registrar">
+      Volver a usuarios activos
     </a>
   </div>
+  <h2>Usuarios Inactivos</h2>
   <table>
     <thead>
       <tr>
@@ -59,28 +57,14 @@
         <td>{{ usuario.num_identificacion }}</td>
 
         <td class="acciones">
-          <button class="documento">
-            <a style="text-decoration: none; color: white;"
-               href="{% url 'documentos' usuario.id_usuario %}"> 
-               Documentos
-            </a>
-          </button>
-
-          <button class="actualizar">
-            <a style="text-decoration: none; color: white;"
-               href="{% url 'editar_usuario' usuario.id_usuario %}">
-               Actualizar
-            </a>
-          </button>
-          
-          <button class="eliminar">
-            <a style="text-decoration: none; color: white;"
-               href="{% url 'eliminar_usuario' usuario.id_usuario %}">
-               Eliminar
-            </a>
-          </button>
-
           <button class="ver">
+            <a style="text-decoration: none; color: white;"
+               href="{% url 'reactivar_usuario' usuario.id_usuario %}">
+               Reactivar
+            </a>
+          </button>
+
+          <button class="eliminar">
             <a style="text-decoration: none; color: white;"
                href="{% url 'consulta_especifica_usuario' usuario.id_usuario %}">
                Ver más
@@ -90,7 +74,7 @@
       </tr>
       {% empty %}
       <tr>
-        <td colspan="6">No hay usuarios registrados</td>
+        <td colspan="6">No hay usuarios inactivos</td>
       </tr>
       {% endfor %}
     </tbody>

@@ -13,6 +13,9 @@ urlpatterns = [
     path('usuario/documento/eliminar/<int:id>/', views.borrar_documento, name='borrar_documento'),
     path('usuario/especifica/<int:id>', views.consulta_especifica_usuario, name="consulta_especifica_usuario"),
     path('usuario/editar/<int:id>', views.editar_usuario, name="editar_usuario"),
-    path('eliminar/<int:id>', views.eliminar_usuario, name="eliminar"),
+    path("usuario/mi-perfil/editar/", views.editar_mi_perfil, name="editar_mi_perfil"),
+    path('eliminar/<int:id>', views.eliminar_usuario, name="eliminar_usuario"),
+    path('reactivar/<int:id>', views.reactivar_usuario, name="reactivar_usuario"),
+    path('usuario/inactivos/', views.usuarios_inactivos, name='usuarios_inactivos'),
 
 ] + static(settings.MEDIA_URL, document_root = settings.MEDIA_ROOT)

@@ -68,16 +68,12 @@
               {% endif %}
           </td>
             <td>{{ m.fecha|date:"d/m/Y H:i" }}</td>
-
-            <!-- 🔥 INPUT EDITABLE -->
             <td>
                 <input type="text"
                        value="{{ m.observaciones }}"
                        class="obs"
                        data-id="{{ m.id_movimiento }}">
             </td>
-
-            <!-- 👤 USUARIO -->
             <td>
                 {{ m.usuario.nombre_completo }} <br>
                 {{ m.usuario.num_identificacion }}

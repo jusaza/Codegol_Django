@@ -1,8 +1,9 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from .models import Usuario, DetallesUsuarioRol, Documentos
-from .forms import UsuarioForm, LoginForm, DocumentoForm
+from .models import Usuario, DetallesUsuarioRol, Documentos, Rol
+from .forms import UsuarioForm, LoginForm, DocumentoForm, EditarPerfil
 from .decorators import rol_requerido
+from django.db.models import Q
 
 # Create your views here.
 
@@ -48,8 +49,22 @@ def logout(request):
 
 @rol_requerido(["Administrador", "Entrenador"])
 def usuario(request):
-    usuarios = Usuario.objects.all()
-    return render(request, "usuarios/list.html", {'usuarios' : usuarios}) #Como decir Index.html del modulo de Usuarios.
+    usuarios = Usuario.objects.filter(estado=True)
+    busqueda = request.GET.get('busqueda', '')
+    rol_id = request.GET.get('rol', '')
+    if busqueda:
+        usuarios = usuarios.filter(
+            Q(nombre_completo__icontains=busqueda) | Q(correo__icontains=busqueda) | Q(num_identificacion__exact=busqueda if busqueda.isdigit() else None))
+    if rol_id:
+        # Filtramos usando la tabla intermedia de roles
+        usuarios = usuarios.filter(roles__id_rol=rol_id).distinct()
+    roles = Rol.objects.filter(estado=True)
+    return render(request, "usuarios/list.html", {
+        'usuarios': usuarios,
+        'roles': roles,
+        'busqueda': busqueda,
+        'rol_id': rol_id
+    })
 
 def documentos(request,id):
     usuario = Usuario.objects.get(id_usuario=id)
@@ -63,7 +78,7 @@ def documentos(request,id):
             return redirect('documentos', id=usuario.id_usuario)
     else:
         formulario = DocumentoForm()
-    return render(request, 'usuarios/documentos.html', {'formulario': formulario, 'documentos': documentos,})
+    return render(request, 'usuarios/documentos.html', {'formulario': formulario, 'documentos': documentos, 'usuario': usuario})
 
 def borrar_documento(request, id):
     usuario_id = request.session.get("usuario_id")
@@ -87,7 +102,8 @@ def crear_usuario(request):
 
 def consulta_especifica_usuario(request, id):
     usuario = Usuario.objects.get(id_usuario=id)
-    return render(request, "usuarios/especifica.html", {'usuario' : usuario})
+    roles_usuario = list(usuario.roles.values_list('id_rol', flat=True))
+    return render(request, "usuarios/especifica.html", {'usuario' : usuario, 'roles_usuario' : roles_usuario})
 
 def editar_usuario(request, id):
     usuario = Usuario.objects.get(id_usuario=id)
@@ -99,7 +115,45 @@ def editar_usuario(request, id):
         return redirect('usuario')
     return render(request, "usuarios/usuario_form.html", {'formulario' : formulario})
 
+def editar_mi_perfil(request):
+    usuario_id = request.session.get("usuario_id")
+    if not usuario_id:
+        return redirect("login")  
+    usuario = Usuario.objects.get(id_usuario=usuario_id)
+    if request.method == "POST":
+        formulario = EditarPerfil(request.POST, request.FILES, instance=usuario)
+        if form.is_valid():
+            form.save()
+            request.session["nombre"] = usuario.nombre_completo
+            return redirect("editar_mi_perfil") 
+    else:
+        form = EditarPerfil(instance=usuario)
+    return render(request, "usuarios/editar_perfil.html", {"formulario": formulario})
+
+def reactivar_usuario(request, id):
+    usuario = Usuario.objects.get(id_usuario=id)
+    usuario.estado = True
+    usuario.save()
+    return redirect('usuario')
+
 def eliminar_usuario(request, id):
     usuario = Usuario.objects.get(id_usuario=id)
-    usuario.delete()
+    usuario.estado = False
+    usuario.save()
     return redirect('usuario')
+
+def usuarios_inactivos(request):
+    busqueda = request.GET.get('busqueda', '')
+    rol_id = request.GET.get('rol', '')
+    usuarios = Usuario.objects.filter(estado=False)
+    if busqueda:
+        usuarios = usuarios.filter(nombre_completo__icontains=busqueda)
+    if rol_id:
+        usuarios = usuarios.filter(roles__id_rol=rol_id).distinct()
+    roles = Rol.objects.all()
+    return render(request, 'usuarios/inactivos.html', {
+        'usuarios': usuarios,
+        'roles': roles,
+        'busqueda': busqueda,
+        'rol_id': rol_id
+    })
