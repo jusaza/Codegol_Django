@@ -1,0 +1,75 @@
+{% extends 'layout/menu.html' %} 
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/stylepag.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<div class="contenido">
+
+  <br>
+
+  <div class="barra-top">
+    <div class="barra-busqueda">
+        <form method="get">
+            <input type="text" name="q"
+                placeholder="Buscar pago..."
+                value="{{ query|default:'' }}">
+        </form>
+    </div>
+
+    <a href="{% url 'crear_pago' %}" class="boton-registrar">
+      Registrar pago
+    </a>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Concepto</th>
+        <th>Fecha</th>
+        <th>Método</th>
+        <th>Valor Total</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      {% for pago in pagos %}
+      <tr>
+        <td>{{ pago.id }}</td>
+        <td>{{ pago.concepto_pago }}</td>
+        <td>{{ pago.fecha_pago }}</td>
+        <td>{{ pago.metodo_pago }}</td>
+        <td>{{ pago.valor_total }}</td>
+
+        <td class="acciones">
+          <button class="actualizar">
+            <a style="text-decoration: none; color: white;"
+               href="{% url 'editar_pago' pago.id %}">
+               Actualizar
+            </a>
+          </button>
+
+          <button class="eliminar">
+            <a style="text-decoration: none; color: white;"
+               href="{% url 'eliminar_pago' pago.id %}">
+               Eliminar
+            </a>
+          </button>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="6">No hay pagos registrados</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+</div>
+
+{% endblock %}

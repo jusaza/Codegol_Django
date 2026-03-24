@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'inventario',
     'movimiento_inventario', 
     'codegol',
+    'pago',
 ]
 
 MIDDLEWARE = [
