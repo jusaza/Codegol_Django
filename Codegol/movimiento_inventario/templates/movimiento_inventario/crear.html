@@ -1,0 +1,39 @@
+{% extends 'layout/form.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/style_forms.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<div class="login-box" role="main">
+
+  <h1>Registrar entrada</h1>
+
+  <form method="post">
+    {% csrf_token %}
+
+    <div class="Formgrupo">
+      <label>Cantidad</label>
+      <input type="number" name="cantidad"
+             placeholder="Ingrese la cantidad" required>
+    </div>
+
+    <div class="Formgrupo">
+      <label>Observación</label>
+      <input type="text" name="observaciones"
+             placeholder="Opcional">
+    </div>
+
+    <br>
+
+    <button type="submit">
+      Registrar entrada
+    </button>
+
+  </form>
+
+</div>
+
+{% endblock %}
