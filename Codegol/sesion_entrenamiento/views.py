@@ -62,7 +62,7 @@ def crear_sesion(request, id_entrenamiento):
     # 🔥 PRIORIDAD: ADMIN
     if "Administrador" in roles:
         entrenadores = Usuario.objects.filter(
-            detallesusuariorol__id_rol__rol_usuario="Entrenador"
+            roles__rol_usuario="Entrenador"
         )
 
     # 🔥 SI ES ENTRENADOR
@@ -116,7 +116,7 @@ def editar_sesion(request, id):
     # 🔥 ADMIN puede cambiar entrenador
     if "Administrador" in roles:
         entrenadores = Usuario.objects.filter(
-            detallesusuariorol__id_rol__rol_usuario="Entrenador"
+            roles__rol_usuario="Entrenador"
         )
 
     # 🔥 ENTRENADOR solo se asigna a sí mismo
