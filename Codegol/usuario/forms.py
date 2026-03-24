@@ -1,10 +1,10 @@
 from django import forms
-from .models import Usuario,Rol
+from .models import Usuario,Rol,Documentos
 
 class UsuarioForm(forms.ModelForm):
     roles = forms.ModelMultipleChoiceField(
         queryset=Rol.objects.all(),
-        widget=forms.SelectMultiple
+        widget=forms.CheckboxSelectMultiple()
         )
     class Meta:
         model = Usuario
@@ -16,3 +16,8 @@ class UsuarioForm(forms.ModelForm):
 class LoginForm(forms.Form):
         documento = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Documento'}))
         contrasena = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': 'Contraseña'}))
+
+class DocumentoForm(forms.ModelForm):
+    class Meta:
+        model = Documentos
+        fields = ['archivo', 'nombre']

@@ -1,0 +1,63 @@
+{% extends 'layout/form.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/style_forms.css' %}">
+<link rel="stylesheet" href="{% static 'css/stylepag.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<h2>Documentos</h2>
+
+<div class="login-box" role="main">
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {% for campo in formulario %}
+        <div class="Formgrupo">
+            <label for="{{ campo.label }}"></label>
+            <input type="{{ campo.field.widget.input_type }}"
+            name="{{ campo.name }}"
+            placeholder="{{ campo.label }}" />
+        </div>
+    {% endfor %} 
+        <button type="submit">Subir</button>
+    </form><br><br>
+<hr><br>
+<h2>Archivos Subidos</h2><br>
+
+{% if documentos %}
+    <table>
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for doc in documentos %}
+                <tr>
+                    <td>{{ doc.nombre }}</td>
+                    <td class="acciones">
+                        <button class="ver">
+                        {% if doc.archivo %}
+                            <a style="text-decoration: none; color: white;" href="{{ doc.archivo.url }}" target="_blank">Ver</a>
+                            </button>
+                        {% else %}
+                            No hay archivo
+                        {% endif %}
+                    
+                    <td class="acciones">
+                        <button class="eliminar">
+                            <a style="text-decoration: none; color: white;" href="{% url 'borrar_documento' doc.id_archivo %}">Eliminar</a>
+                        </button>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>No hay archivos</p>
+{% endif %}
+
+{% endblock %}

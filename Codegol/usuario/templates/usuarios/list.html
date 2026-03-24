@@ -49,6 +49,14 @@
         <td>{{ usuario.num_identificacion }}</td>
 
         <td class="acciones">
+          <button class="documento">
+            <a style="text-decoration: none; color: white;"
+               href="{% url 'documentos' usuario.id_usuario %}"> 
+               Documentos
+            </a>
+          </button>
+
+        <td class="acciones">
           <button class="actualizar">
             <a style="text-decoration: none; color: white;"
                href="{% url 'editar_usuario' usuario.id_usuario %}">
