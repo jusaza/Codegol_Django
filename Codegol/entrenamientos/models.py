@@ -1,4 +1,5 @@
 from django.db import models
+
 # Create your models here.
 class Entrenamiento(models.Model):
     id_entrenamiento = models.AutoField(primary_key=True)
