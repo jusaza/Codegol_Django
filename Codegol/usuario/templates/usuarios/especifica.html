@@ -162,9 +162,9 @@
             </tr>
         </table>
     </div>
-
     <br>
     <a href="{% url 'usuario' %}" class="btn-volver">Volver</a>
     <a href="{% url 'editar_usuario' usuario.id_usuario %}" class="btn-volver">Editar Información</a>
+    <a href="{% url 'documentos' usuario.id_usuario %}" class="btn-volver">Documentos</a>
 </div>
 {% endblock %}
