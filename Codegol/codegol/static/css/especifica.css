@@ -55,7 +55,7 @@
     height: 120px;
     object-fit: cover;
     border-radius: 50%;
-    border: 3px solid #4CAF50;
+    border: 3px solid #001f3f;
 }
 
 /* Botón volver */
@@ -63,15 +63,33 @@
     display: inline-block;
     margin-top: 20px;
     padding: 10px 20px;
-    background-color: #0016c0;
+    background-color: #45a049;
     color: white;
     text-decoration: none;
     border-radius: 8px;
     transition: background-color 0.3s ease;
 }
 
-.btn-volver:hover {
-    background-color: #45a049;
+.btn-editar {
+    display: inline-block;
+    margin-top: 20px;
+    padding: 10px 20px;
+    background-color: #0074d9;
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    transition: background-color 0.3s ease;
+}
+
+.btn-documentos {
+    display: inline-block;
+    margin-top: 20px;
+    padding: 10px 20px;
+    background-color: #ed1653;
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    transition: background-color 0.3s ease;
 }
 
 /* Responsive para móviles */
