@@ -1,0 +1,55 @@
+{% extends 'layout/form.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/style_forms.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<div class="login-box" role="main">
+
+  <h1>Editar Matrícula</h1>
+
+  <form method="POST">
+    {% csrf_token %}
+
+    <div class="Formgrupo">
+      <label>Fecha inicio:</label>
+      <input type="date" name="fecha_inicio" value="{{ matricula.fecha_inicio|date:'Y-m-d' }}">
+    </div>
+
+    <div class="Formgrupo">
+      <label>Fecha fin:</label>
+      <input type="date" name="fecha_fin" value="{{ matricula.fecha_fin|date:'Y-m-d' }}">
+    </div>
+
+    
+    <div class="Formgrupo">
+      <label>Nivel:</label>
+      <select name="nivel">
+        <option value="Alto" {% if matricula.nivel == "Alto" %}selected{% endif %}>Alto</option>
+        <option value="Medio" {% if matricula.nivel == "Medio" %}selected{% endif %}>Medio</option>
+        <option value="Bajo" {% if matricula.nivel == "Bajo" %}selected{% endif %}>Bajo</option>
+      </select>
+    </div>
+
+    <div class="Formgrupo">
+      <label>Observaciones:</label>
+      <input type="text" name="observaciones" value="{{ matricula.observaciones }}">
+    </div>
+
+    <div class="Formgrupo">
+      <label></label>
+      <input type="hidden" name="fecha_matricula" value="{{ matricula.fecha_matricula|date:'Y-m-d' }}">
+    </div>
+
+    <br>
+
+    <button type="submit">Guardar</button>
+
+  </form>
+
+</div>
+
+{% endblock %}

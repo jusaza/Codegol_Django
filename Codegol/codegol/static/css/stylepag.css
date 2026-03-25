@@ -295,3 +295,23 @@ h3.titulo-formulario {
   background-color: #0074d9;
   transform: translateY(-2px);
 }
+
+.campo {
+    margin-bottom: 15px;
+    display: flex;
+    flex-direction: column;
+}
+
+.acciones {
+    margin-top: 20px;
+    display: flex;
+    gap: 10px;
+}
+
+.boton-cancelar {
+    background-color: #6c757d;
+    color: white;
+    padding: 8px 15px;
+    text-decoration: none;
+    border-radius: 5px;
+}
