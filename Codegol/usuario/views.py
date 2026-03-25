@@ -53,18 +53,12 @@ def usuario(request):
     busqueda = request.GET.get('busqueda', '')
     rol_id = request.GET.get('rol', '')
     if busqueda:
-        usuarios = usuarios.filter(
-            Q(nombre_completo__icontains=busqueda) | Q(correo__icontains=busqueda) | Q(num_identificacion__exact=busqueda if busqueda.isdigit() else None))
+        usuarios = usuarios.filter(Q(nombre_completo__icontains=busqueda) | Q(correo__icontains=busqueda) | Q(num_identificacion__exact=busqueda if busqueda.isdigit() else None))
     if rol_id:
         # Filtramos usando la tabla intermedia de roles
         usuarios = usuarios.filter(roles__id_rol=rol_id).distinct()
     roles = Rol.objects.filter(estado=True)
-    return render(request, "usuarios/list.html", {
-        'usuarios': usuarios,
-        'roles': roles,
-        'busqueda': busqueda,
-        'rol_id': rol_id
-    })
+    return render(request, "usuarios/list.html", {'usuarios': usuarios,'roles': roles,'busqueda': busqueda,'rol_id': rol_id})
 
 def documentos(request,id):
     usuario = Usuario.objects.get(id_usuario=id)
@@ -137,8 +131,4 @@ def usuarios_inactivos(request):
         usuarios = usuarios.filter(roles__id_rol=rol_id).distinct()
     roles = Rol.objects.all()
     return render(request, 'usuarios/inactivos.html', {
-        'usuarios': usuarios,
-        'roles': roles,
-        'busqueda': busqueda,
-        'rol_id': rol_id
-    })
+        'usuarios': usuarios,'roles': roles,'busqueda': busqueda,'rol_id': rol_id})

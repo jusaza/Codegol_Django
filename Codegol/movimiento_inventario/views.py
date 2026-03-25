@@ -7,8 +7,6 @@ from django.http import JsonResponse
 import unicodedata
 from django.http import HttpResponse
 
-
-# 🔥 limpiar texto (quita tildes)
 def limpiar_texto(texto):
     return ''.join(
         c for c in unicodedata.normalize('NFD', texto)
@@ -31,7 +29,6 @@ def lista_movimientos(request, id_inventario):
 
     solo_devoluciones = False
 
-    # 🔎 FILTRO INTELIGENTE
     if query:
         query_limpio = limpiar_texto(query)
 
