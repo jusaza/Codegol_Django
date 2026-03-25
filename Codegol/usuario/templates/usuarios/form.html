@@ -7,7 +7,19 @@
 <div class="Formgrupo">
   <label>{{ campo.label }}:</label>
 
-  {% if campo.field.choices %}
+  {% if campo.name == 'roles' %}
+    {% for opcion in campo.field.queryset %}
+      <label>
+        <input 
+          type="checkbox" 
+          name="{{ campo.name }}" 
+          value="{{ opcion.pk }}"
+          {% if opcion.pk in campo.value %}checked{% endif %}>
+        {{ opcion }}
+      </label><br>
+    {% endfor %}
+
+  {% elif campo.field.choices %}
     <select name="{{ campo.name }}">
       {% for valor, texto in campo.field.choices %}
         <option value="{{ valor }}"
@@ -19,7 +31,7 @@
   {% else %}
 
     {% if campo.field.widget.input_type == 'file' and campo.value %}
-      <img src="{{ MEDIA_URL}}/imagenes/{{ campo.value}}" width="100"><br>
+      <img src="{{MEDIA_URL}}/media/{{ campo.value}}" width="100"><br>
     {% endif %}
 
     <input 

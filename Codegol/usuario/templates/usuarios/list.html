@@ -8,19 +8,30 @@
 {% block content %}
 
 <div class="contenido">
-
   <br>
-
   <div class="barra-top">
     <div class="barra-busqueda">
-      <input type="text" placeholder="Buscar usuario...">
-    </div>
+      <form method="get" style="display:flex; gap:10px; align-items:center;">
+        <input type="text" name="busqueda" placeholder="Buscar usuario..." value="{{ busqueda }}">
 
+        <select name="rol">
+          <option value="">Todos los roles</option>
+          {% for rol in roles %}
+            <option value="{{ rol.id_rol }}" {% if rol.id_rol|stringformat:"s" == rol_id %}selected{% endif %}>
+              {{ rol.rol_usuario }}
+            </option>
+          {% endfor %}
+        </select>
+        <button type="submit">Filtrar</button>
+      </form>
+    </div>
     <a href="{% url 'crear_usuario' %}" class="boton-registrar">
       Registrar nuevo usuario
     </a>
+    <a href="{% url 'usuarios_inactivos' %}" class="boton-registrar">
+      Usuarios inactivos
+    </a>
   </div>
-
   <table>
     <thead>
       <tr>
@@ -32,7 +43,6 @@
         <th>Acciones</th>
       </tr>
     </thead>
-
     <tbody>
       {% for usuario in usuarios %}
       <tr>
@@ -49,6 +59,13 @@
         <td>{{ usuario.num_identificacion }}</td>
 
         <td class="acciones">
+          <button class="documento">
+            <a style="text-decoration: none; color: white;"
+               href="{% url 'documentos' usuario.id_usuario %}"> 
+               Documentos
+            </a>
+          </button>
+
           <button class="actualizar">
             <a style="text-decoration: none; color: white;"
                href="{% url 'editar_usuario' usuario.id_usuario %}">
@@ -58,19 +75,18 @@
           
           <button class="eliminar">
             <a style="text-decoration: none; color: white;"
-               href="{% url 'eliminar' usuario.id_usuario %}">
+               href="{% url 'eliminar_usuario' usuario.id_usuario %}">
                Eliminar
             </a>
           </button>
 
-         <td class="acciones">
           <button class="ver">
             <a style="text-decoration: none; color: white;"
-               href="{% url 'consulta_especifica_usuario' usuario.id_usuario %}"> <!--La ruta sale de como se llamo-->
-               Ver mas
+               href="{% url 'consulta_especifica_usuario' usuario.id_usuario %}">
+               Ver más
             </a>
           </button>
-          </td>
+        </td>
       </tr>
       {% empty %}
       <tr>
@@ -79,7 +95,5 @@
       {% endfor %}
     </tbody>
   </table>
-
 </div>
-
 {% endblock %}

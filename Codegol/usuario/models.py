@@ -2,8 +2,6 @@ from django.db import models
 
 # Create your models here.
 
-from django.db import models
-
 class Usuario(models.Model):
 
     TIPO_DOCUMENTO = [
@@ -106,12 +104,9 @@ class Usuario(models.Model):
         related_name='usuario_registrado_por'
     )
 
-    id_responsable = models.ForeignKey(
-        'self',
-        on_delete=models.PROTECT,
-        null=True,
-        blank=True,
-        related_name='usuario_responsable'
+    roles = models.ManyToManyField(
+        'Rol',
+        through='DetallesUsuarioRol'
     )
 
     class Meta:
@@ -147,20 +142,39 @@ class DetallesUsuarioRol(models.Model):
     id_usuario = models.ForeignKey(
         Usuario,
         on_delete=models.CASCADE,
-        db_column="id_usuario"
+        db_column="id_usuario",
+        related_name="usuario"
     )
 
     id_rol = models.ForeignKey(
         Rol,
         on_delete=models.CASCADE,
-        db_column="id_rol"
+        db_column="id_rol",
+        related_name="rol"
     )
 
     class Meta:
         db_table = "detalles_usuario_rol"
         unique_together = ("id_usuario", "id_rol")
 
-roles = models.ManyToManyField(
-    Rol,
-    through='DetallesUsuarioRol'
-)
+
+class Documentos(models.Model):
+    DOCUMENTACION = [
+        ('DNI', 'Documento de Identidad (DNI/CC/TI)'),
+        ('PASAPORTE', 'Pasaporte'),
+        ('LICENCIA_MEDICA', 'Licencia Médica o Certificado de Salud'),
+        ('FOTO', 'Fotografía Reciente'),
+        ('AUTORIZACION', 'Autorización de Representante Legal'),
+        ('CONSTANCIA_ESTUDIO', 'Constancia de Estudio o Escolaridad'),
+        ('CONTRATO', 'Contrato de Inscripción o Membresía'),
+        ('SEGURO', 'Póliza de Seguro Médico o Deportiva'),
+        ('OTRO', 'Otro Documento'),
+    ]
+
+    id_archivo = models.AutoField(primary_key=True)
+    archivo = models.FileField(upload_to='documentos/')
+    tipo_documento = models.CharField(max_length=50, choices=DOCUMENTACION)  
+    nombre = models.CharField(max_length=255)  # 
+    observaciones = models.CharField(max_length=255, default='N.A')
+    fecha_subida = models.DateTimeField(auto_now_add=True)
+    usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE)

@@ -58,6 +58,16 @@
           </a>
           </button>
         </td>
+          <td class = "acciones">
+              <button class="actualizar" style="background-color: green;">
+                <a style="text-decoration: none; color: white;"
+                  href="{% url 'lista_sesiones' entrenamiento.id_entrenamiento %}">
+                  Ver sesiones
+                </a>
+              </button>
+            </td>
+
+            
       </tr>
       {% empty %}
       <tr>

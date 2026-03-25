@@ -12,12 +12,20 @@ class MovimientoInventario(models.Model):
     id_movimiento = models.AutoField(primary_key=True)
     inventario = models.ForeignKey(Inventario, on_delete=models.CASCADE)
     usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE)
-    id_sesion = models.IntegerField(null=True, blank=True)  # simple por ahora
 
     tipo_movimiento = models.CharField(max_length=20, choices=TIPO_CHOICES)
     cantidad = models.IntegerField()
     fecha = models.DateTimeField(auto_now_add=True)
     observaciones = models.CharField(max_length=100, null=True, blank=True)
+
+    # 🔥 CLAVE NUEVA
+    movimiento_padre = models.ForeignKey(
+        'self',
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='devoluciones'
+    )
 
     class Meta:
         db_table = 'movimiento_inventario'

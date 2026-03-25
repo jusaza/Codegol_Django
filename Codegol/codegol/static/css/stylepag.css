@@ -107,6 +107,11 @@ tr:hover {
   color: white;
 }
 
+.acciones .documento {
+  background-color: #ed1653;
+  color: white;
+}
+
 .acciones .actualizar {
   background-color: #0074d9;
   color: white;
