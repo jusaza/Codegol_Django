@@ -35,7 +35,9 @@
         <th>Fecha Fin</th>
         <th>Fecha Matricula</th>
         <th>Observaciones</th>
+        <th>Categoría</th>
         <th>Acciones</th>
+        
       </tr>
     </thead>
 
@@ -49,27 +51,41 @@
         <td>{{ m.fecha_fin }}</td>
         <td>{{ m.fecha_matricula }}</td>
         <td>{{ m.observaciones}}</td>
+        <td>{{ m.categoria_actual }}</td>
 
 
         <td class="acciones">
           <button class="actualizar">
-            <a style="text-decoration: none; color: white;"
-               href="{% url 'editar_matricula' m.id %}">
-               Actualizar
+            <a href="{% url 'editar_matricula' m.id %}"
+            title="Haz clic aquí para asignar una categoría">
+               🔄
             </a>
           </button>
 
           <button class="eliminar">
-            <a style="text-decoration: none; color: white;"
-               href="{% url 'eliminar_matricula' m.id %}">
-               Eliminar
+            <a href="{% url 'eliminar_matricula' m.id %}" 
+            style="text-decoration: none; color: white;" 
+            title="Haz clic aquí para eliminar la matrícula">
+            ❌
             </a>
           </button>
+          <button style="background-color: purple;">
+          <a style="text-decoration: none; color: white;"
+           href="{% url 'asignar_categoria' m.id %}">
+            Asignar categoría
+          </a>
+        </button>
+        <button style="background-color: green;">
+        <a style="text-decoration: none; color: white;"
+        href="{% url 'historial_categoria' m.id %}">
+        Ver historial
+        </a>
+        </button>
         </td>
       </tr>
       {% empty %}
       <tr>
-        <td colspan="6">No hay matrículas registradas</td>
+        <td colspan="9">No hay matrículas registradas</td>
       </tr>
       {% endfor %}
     </tbody>

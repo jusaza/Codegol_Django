@@ -1,7 +1,9 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import Matricula
+from .models import Matricula, HistorialCategoria
 from usuario.models import Usuario
-from django.shortcuts import render, get_object_or_404, redirect
+from categoria.models import Categoria
+from datetime import date
+from .models import Matricula, HistorialCategoria
 
 
 # LISTAR
@@ -15,6 +17,19 @@ def lista_matricula(request):
         )
     else:
         matriculas = Matricula.objects.filter(estado=True)
+
+    
+    for m in matriculas:
+        # Obtener el historial activo más reciente
+        ultima = HistorialCategoria.objects.filter(
+            id_matricula=m,
+            estado=True
+        ).order_by('-fecha_registro', '-id_historial').first() 
+
+        if ultima:
+            m.categoria_actual = ultima.id_categoria.nombre_categoria
+        else:
+            m.categoria_actual = "Sin categoría"
 
     return render(request, 'matricula/lista.html', {
         'matriculas': matriculas,
@@ -40,7 +55,6 @@ def crear_matricula(request):
                 'error': 'Debe seleccionar un jugador'
             })
 
-        # 🔥 CORRECCIÓN
         jugador = Usuario.objects.get(id_usuario=id_jugador)
 
         Matricula.objects.create(
@@ -65,27 +79,60 @@ def editar_matricula(request, id):
     matricula = get_object_or_404(Matricula, id=id)
 
     if request.method == 'POST':
-        matricula.fecha_inicio = request.POST['fecha_inicio']
-        matricula.fecha_fin = request.POST['fecha_fin']
-        matricula.fecha_matricula = request.POST['fecha_matricula']
-        matricula.nivel = request.POST['nivel']
-        matricula.observaciones = request.POST['observaciones']
+        matricula.fecha_inicio = request.POST.get('fecha_inicio')
+        matricula.fecha_fin = request.POST.get('fecha_fin')
+        matricula.fecha_matricula = request.POST.get('fecha_matricula')
+        matricula.nivel = request.POST.get('nivel')
+        matricula.observaciones = request.POST.get('observaciones')
 
         matricula.save()
 
-        # 🔥 ESTA ES LA CLAVE
-        return redirect('/matricula/')  
+        return redirect('lista_matricula')
 
     return render(request, 'matricula/editar.html', {
         'matricula': matricula
     })
 
 
-
-# ELIMINAR
 def eliminar_matricula(request, id):
-    matricula = get_object_or_404(Matricula, pk=id)
+    matricula = get_object_or_404(Matricula, id=id)
     matricula.estado = False
     matricula.save()
 
     return redirect('lista_matricula')
+
+
+
+def asignar_categoria(request, id):
+    matricula = get_object_or_404(Matricula, id=id)
+    categorias = Categoria.objects.filter(estado=True)
+
+    if request.method == 'POST':
+        id_categoria = request.POST.get('categoria')
+
+        if id_categoria:
+            HistorialCategoria.objects.create(
+                id_matricula=matricula,
+                id_categoria_id=id_categoria,
+                fecha_registro=date.today(),
+                estado=True
+            )
+
+        return redirect('lista_matricula')
+
+    return render(request, 'matricula/asignar_categoria.html', {
+        'matricula': matricula,
+        'categorias': categorias
+    })
+
+def ver_historial_categoria(request, id):
+    matricula = get_object_or_404(Matricula, id=id)
+
+    historial = HistorialCategoria.objects.filter(
+        id_matricula=matricula
+    ).order_by('-fecha_registro')
+
+    return render(request, 'matricula/historial_categoria.html', {
+        'matricula': matricula,
+        'historial': historial
+    })

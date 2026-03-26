@@ -1,0 +1,27 @@
+<div class="login-box" style="max-width: 400px; margin: 50px auto; padding: 20px; background: #f9f9f9; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+
+  <h1 style="text-align: center; color: #6b5b95; margin-bottom: 20px;">Asignar Categoría</h1>
+
+  <form method="POST">
+    {% csrf_token %}
+
+    <p style="text-align: center; font-weight: bold;">
+      Matrícula: {{ matricula.id }}
+    </p>
+
+    <div class="Formgrupo" style="margin-bottom: 20px;">
+      <label style="display: block; margin-bottom: 8px; font-weight: bold;">Categoría</label>
+      <select name="categoria" required style="width: 100%; padding: 8px 12px; border-radius: 6px; border: 1px solid #ccc;">
+        <option value="">Seleccione</option>
+        {% for c in categorias %}
+          <option value="{{ c.id_categoria }}">{{ c.nombre_categoria }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <button type="submit">
+      Guardar asignación
+    </button>
+
+  </form>
+</div>

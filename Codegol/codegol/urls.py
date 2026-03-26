@@ -18,6 +18,7 @@ from django.contrib import admin
 from django.urls import path
 from django.urls import include
 
+
 from . import views
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -35,6 +36,8 @@ urlpatterns = [
     path('matricula/', include('matricula.urls')),
 
     path('pago/', include('pago.urls')),
+
+    path('categoria/', include('categoria.urls')),
 
 ]
 
