@@ -4,27 +4,29 @@ from usuario.models import Usuario
 from categoria.models import Categoria
 from datetime import date
 from .models import Matricula, HistorialCategoria
+from django.db.models import Q
 
 
-# LISTAR
 def lista_matricula(request):
     query = request.GET.get('q')
 
+    # Filtrar por nombre del jugador o ID de matrícula
     if query:
         matriculas = Matricula.objects.filter(
-            id_jugador__nombre_completo__icontains=query,
             estado=True
+        ).filter(
+            Q(id_jugador__nombre_completo__icontains=query) |
+            Q(id__icontains=query)
         )
     else:
         matriculas = Matricula.objects.filter(estado=True)
 
-    
+    # Agregar categoría actual para mostrar
     for m in matriculas:
-        # Obtener el historial activo más reciente
         ultima = HistorialCategoria.objects.filter(
             id_matricula=m,
             estado=True
-        ).order_by('-fecha_registro', '-id_historial').first() 
+        ).order_by('-fecha_registro', '-id_historial').first()
 
         if ultima:
             m.categoria_actual = ultima.id_categoria.nombre_categoria

@@ -15,7 +15,7 @@
     <div class="barra-busqueda">
         <form method="get">
             <input type="text" name="q"
-                placeholder="Buscar jugador..."
+                placeholder="Buscar jugador, ID o categoría..."
                 value="{{ query|default:'' }}">
         </form>
     </div>
@@ -57,7 +57,7 @@
         <td class="acciones">
           <button class="actualizar">
             <a href="{% url 'editar_matricula' m.id %}"
-            title="Haz clic aquí para asignar una categoría">
+            title="Haz clic aquí para actualizar una matricula">
                🔄
             </a>
           </button>
