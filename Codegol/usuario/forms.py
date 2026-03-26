@@ -28,4 +28,4 @@ class DocumentoForm(forms.ModelForm):
 class EditarPerfil(forms.ModelForm):
     class Meta:
         model = Usuario
-        fields = ["nombre_completo", "correo", "num_identificacion", "foto_perfil"]
+        fields = ["correo", "contrasena", "num_identificacion", "telefono_1", "telefono_2", "direccion", "foto_perfil"]
