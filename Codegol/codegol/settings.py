@@ -44,6 +44,8 @@ INSTALLED_APPS = [
     'inventario',
     'movimiento_inventario', 
     'matricula',
+    'asistencia',
+    'rendimiento',
     'categoria',
     'codegol',
     'pago',

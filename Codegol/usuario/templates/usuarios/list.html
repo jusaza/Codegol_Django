@@ -9,6 +9,7 @@
 
 <div class="contenido">
   <br>
+
   <div class="barra-top">
     <div class="barra-busqueda">
       <form method="get" style="display:flex; gap:10px; align-items:center;">
@@ -25,14 +26,21 @@
         <button type="submit">Filtrar</button>
       </form>
     </div>
+
     <a href="{% url 'crear_usuario' %}" class="boton-registrar">
       Registrar nuevo usuario
     </a>
+
     <a href="{% url 'usuarios_inactivos' %}" class="boton-registrar">
       Usuarios inactivos
     </a>
   </div>
-  <table>
+  <div class="barra-top">
+  <button onclick="generarReporte()" class="boton-registrar">
+      Generar reporte PDF
+    </button>
+  </div>
+  <table id="tablaUsuarios">
     <thead>
       <tr>
         <th>ID</th>
@@ -47,6 +55,7 @@
       {% for usuario in usuarios %}
       <tr>
         <td>{{ usuario.id_usuario }}</td>
+
         <td>
           {% if usuario.foto_perfil %}
             <img src="{{ usuario.foto_perfil.url }}" height="60">
@@ -54,36 +63,33 @@
             <img src="/static/imagenes/default.png" height="60">
           {% endif %}
         </td>
+
         <td>{{ usuario.correo }}</td>
         <td>{{ usuario.nombre_completo }}</td>
         <td>{{ usuario.num_identificacion }}</td>
 
         <td class="acciones">
           <button class="documento">
-            <a style="text-decoration: none; color: white;"
-               href="{% url 'documentos' usuario.id_usuario %}"> 
-               Documentos
+            <a href="{% url 'documentos' usuario.id_usuario %}" style="color:white; text-decoration:none;">
+              Documentos
             </a>
           </button>
 
           <button class="actualizar">
-            <a style="text-decoration: none; color: white;"
-               href="{% url 'editar_usuario' usuario.id_usuario %}">
-               Actualizar
+            <a href="{% url 'editar_usuario' usuario.id_usuario %}" style="color:white; text-decoration:none;">
+              Actualizar
             </a>
           </button>
-          
+
           <button class="eliminar">
-            <a style="text-decoration: none; color: white;"
-               href="{% url 'eliminar_usuario' usuario.id_usuario %}">
-               Eliminar
+            <a href="{% url 'eliminar_usuario' usuario.id_usuario %}" style="color:white; text-decoration:none;">
+              Eliminar
             </a>
           </button>
 
           <button class="ver">
-            <a style="text-decoration: none; color: white;"
-               href="{% url 'consulta_especifica_usuario' usuario.id_usuario %}">
-               Ver más
+            <a href="{% url 'consulta_especifica_usuario' usuario.id_usuario %}" style="color:white; text-decoration:none;">
+              Ver más
             </a>
           </button>
         </td>
@@ -96,4 +102,60 @@
     </tbody>
   </table>
 </div>
+
+<!-- 🔹 LIBRERÍAS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+
+<!-- 🔹 SCRIPT -->
+<script>
+function generarReporte() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    let tabla = document.getElementById("tablaUsuarios");
+    let filas = tabla.querySelectorAll("tbody tr");
+
+    let datos = [];
+
+    filas.forEach(fila => {
+        let celdas = fila.querySelectorAll("td");
+
+        if (celdas.length > 1) {
+            datos.push([
+                celdas[0].innerText, // ID
+                celdas[2].innerText, // Correo
+                celdas[3].innerText, // Nombre
+                celdas[4].innerText  // Identificación
+            ]);
+        }
+    });
+
+    // 🔹 Título
+    doc.setFontSize(16);
+    doc.text("Reporte de Usuarios", 14, 15);
+
+    // 🔹 Fecha
+    let fecha = new Date().toLocaleDateString();
+    doc.setFontSize(10);
+    doc.text("Fecha: " + fecha, 14, 22);
+
+    // 🔹 Tabla
+    doc.autoTable({
+        head: [["ID", "Correo", "Nombre", "Identificación"]],
+        body: datos,
+        startY: 25,
+        styles: {
+            fontSize: 9
+        },
+        headStyles: {
+            fillColor: [0, 102, 204]
+        }
+    });
+
+    // 🔹 Descargar PDF
+    doc.save("reporte_usuarios.pdf");
+}
+</script>
+
 {% endblock %}

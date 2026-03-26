@@ -1,12 +1,16 @@
-{% extends "layout/menu.html" %}
+{% extends "layout/form.html" %}
 {% load static %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/style_forms.css' %}">
+{% endblock %}
+
 {% block content %}
-<div class="contenido">
+<div class="login-box" role="main">
   <h2>Editar Mi Perfil</h2>
   <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
-    {{ form.as_p }}
+    {{ formulario.as_p }}
     <button type="submit">Guardar cambios</button>
   </form>
 </div>

@@ -4,7 +4,7 @@ def rol_requerido(roles_permitidos):
 
     def permiso(vista):
 
-        def monstrar(request, *args, **kwargs):
+        def mostrar(request, *args, **kwargs):
 
             if "usuario_id" not in request.session:
                 return redirect("login")
@@ -17,6 +17,6 @@ def rol_requerido(roles_permitidos):
 
             return vista(request, *args, **kwargs)
 
-        return monstrar
+        return mostrar
 
     return permiso
