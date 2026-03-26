@@ -1,0 +1,68 @@
+{% extends 'layout/menu.html' %}
+{% load static %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/stylepag.css' %}">
+{% endblock %}
+{% block content %}
+
+<div class="contenido">
+
+  <br>
+
+  <!-- 🔎 BUSCADOR -->
+  <div class="barra-top">
+    <div class="barra-busqueda">
+        <form method="get">
+            <input type="text" name="q"
+                placeholder="Buscar por documento..."
+                value="{{ query|default:'' }}">
+        </form>
+    </div>
+  </div>
+
+  <table>
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>Nombre</th>
+      <th>Documento</th>
+
+      <th>Def</th>
+      <th>Pase</th>
+      <th>Regate</th>
+      <th>Técnica</th>
+      <th>Vel</th>
+      <th>Tiro</th>
+
+      <th>⭐ Promedio Final</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    {% for j in jugadores %}
+    <tr>
+      <td>{{ forloop.counter }}</td>
+      <td>{{ j.id_jugador.nombre_completo }}</td>
+      <td>{{ j.id_jugador.num_identificacion }}</td>
+
+      <td>{{ j.prom_defensa|floatformat:1 }}</td>
+      <td>{{ j.prom_pase|floatformat:1 }}</td>
+      <td>{{ j.prom_regate|floatformat:1 }}</td>
+      <td>{{ j.prom_tecnica|floatformat:1 }}</td>
+      <td>{{ j.prom_velocidad|floatformat:1 }}</td>
+      <td>{{ j.prom_tiro|floatformat:1 }}</td>
+
+      <td><strong>{{ j.promedio_final|floatformat:2 }}</strong></td>
+    </tr>
+
+    {% empty %}
+    <tr>
+      <td colspan="10">No hay datos</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+</div>
+
+{% endblock %}
