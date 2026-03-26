@@ -47,7 +47,7 @@ def logout(request):
     request.session.flush()
     return redirect("login")
 
-@rol_requerido(["Administrador", "Entrenador"])
+@rol_requerido(["Administrador"])
 def usuario(request):
     usuarios = Usuario.objects.filter(estado=True)
     busqueda = request.GET.get('busqueda', '')
@@ -60,9 +60,14 @@ def usuario(request):
     roles = Rol.objects.filter(estado=True)
     return render(request, "usuarios/list.html", {'usuarios': usuarios,'roles': roles,'busqueda': busqueda,'rol_id': rol_id})
 
+@rol_requerido(["Administrador", "Entrenador", "Jugador"])
 def documentos(request,id):
     usuario = Usuario.objects.get(id_usuario=id)
     documentos = Documentos.objects.filter(usuario=usuario)
+    usuario_sesion_id = request.session.get("usuario_id")
+    roles = request.session.get("roles", [])
+    if "Administrador" not in roles and usuario_sesion_id != id:
+        return redirect('error400')
     if request.method == 'POST':
         formulario = DocumentoForm(request.POST, request.FILES)
         if formulario.is_valid():
@@ -85,6 +90,7 @@ def borrar_documento(request, id):
         documento.delete()
     return redirect("documentos", id=usuario_id)
 
+@rol_requerido(["Administrador"])
 def crear_usuario(request):
     formulario = UsuarioForm(request.POST or None, request.FILES or None)
     if formulario.is_valid():
@@ -97,11 +103,19 @@ def crear_usuario(request):
 def consulta_especifica_usuario(request, id):
     usuario = Usuario.objects.get(id_usuario=id)
     roles_usuario = list(usuario.roles.values_list('id_rol', flat=True))
+    usuario_sesion_id = request.session.get("usuario_id")
+    roles = request.session.get("roles", [])
+    if "Administrador" not in roles and usuario_sesion_id != id:
+        return redirect('error400')
     return render(request, "usuarios/especifica.html", {'usuario' : usuario, 'roles_usuario' : roles_usuario})
 
 def editar_usuario(request, id):
     usuario = Usuario.objects.get(id_usuario=id)
     formulario = UsuarioForm(request.POST or None, request.FILES or None, instance=usuario)  #Se instacia del Modelo.
+    usuario_sesion_id = request.session.get("usuario_id")
+    roles = request.session.get("roles", [])
+    if "Administrador" not in roles and usuario_sesion_id != id:
+        return redirect('error400')
     if formulario.is_valid() and request.POST:
         usuario = formulario.save(commit=False)
         formulario.save()
@@ -109,18 +123,34 @@ def editar_usuario(request, id):
         return redirect('usuario')
     return render(request, "usuarios/usuario_form.html", {'formulario' : formulario})
 
+def editar_perfil(request, id):
+    usuario = Usuario.objects.get(id_usuario=id)
+    formulario = EditarPerfil(request.POST or None, request.FILES or None, instance=usuario)  #Se instacia del Modelo.
+    usuario_sesion_id = request.session.get("usuario_id")
+    roles = request.session.get("roles", [])
+    if "Administrador" not in roles and usuario_sesion_id != id:
+        return redirect('error400')
+    if formulario.is_valid() and request.POST:
+        usuario = formulario.save(commit=False)
+        formulario.save()
+        return redirect('mi_perfil', id=usuario.id_usuario)
+    return render(request, "usuarios/editar_perfil.html", {'formulario' : formulario})
+
+@rol_requerido(["Administrador"])
 def reactivar_usuario(request, id):
     usuario = Usuario.objects.get(id_usuario=id)
     usuario.estado = True
     usuario.save()
     return redirect('usuario')
 
+@rol_requerido(["Administrador"])
 def eliminar_usuario(request, id):
     usuario = Usuario.objects.get(id_usuario=id)
     usuario.estado = False
     usuario.save()
     return redirect('usuario')
 
+@rol_requerido(["Administrador"])
 def usuarios_inactivos(request):
     busqueda = request.GET.get('busqueda', '')
     rol_id = request.GET.get('rol', '')
