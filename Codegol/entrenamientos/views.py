@@ -27,7 +27,7 @@ def crear_entrenamiento(request):
 
         Entrenamiento.objects.create(
             descripcion=descripcion,
-            estado=True,  # 👈 SIEMPRE ACTIVO AL CREAR
+            estado=True, 
             lugar=lugar,
             observaciones=observaciones
         )
@@ -59,4 +59,3 @@ def eliminar_entrenamiento(request, id):
     entrenamiento.save()
 
     return redirect('lista_entrenamientos')
-

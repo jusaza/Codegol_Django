@@ -27,22 +27,17 @@ def lista_sesiones(request, id_entrenamiento):
         filtros = Q()
 
         try:
-            # 1. Fecha completa: 15/07/2025
             fecha = datetime.strptime(query, "%d/%m/%Y").date()
             filtros |= Q(fecha=fecha)
 
         except ValueError:
             try:
-                # 2. Día/Mes: 15/07
                 fecha = datetime.strptime(query, "%d/%m")
                 filtros |= Q(fecha__day=fecha.day, fecha__month=fecha.month)
 
             except ValueError:
-                # 3. Solo día: 15
                 if query.isdigit():
                     filtros |= Q(fecha__day=int(query))
-
-        # 4. Texto (siempre que haya query)
         filtros |= Q(id_entrenamiento__descripcion__icontains=query)
 
         sesiones = sesiones.filter(filtros)
@@ -77,14 +72,12 @@ def crear_sesion(request, id_entrenamiento):
         id_categoria = request.POST.get("id_categoria")
         rendimiento_general = request.POST.get("rendimiento_general") == "1"
 
-        # 🔥 entrenador
         if "Administrador" in roles:
             entrenador_id = request.POST.get("id_entrenador")
             entrenador = Usuario.objects.get(id_usuario=entrenador_id)
         else:
             entrenador = entrenador_seleccionado
 
-        # 🔥 crear sesión
         sesion = SesionEntrenamiento.objects.create(
             fecha=fecha,
             hora_inicio=hora_inicio,
@@ -94,7 +87,6 @@ def crear_sesion(request, id_entrenamiento):
             id_entrenamiento=entrenamiento
         )
 
-        # 🔥 OBTENER MATRÍCULAS DE ESA CATEGORÍA
         historiales = HistorialCategoria.objects.filter(
             id_categoria_id=id_categoria,
             estado=True
@@ -103,7 +95,6 @@ def crear_sesion(request, id_entrenamiento):
         for h in historiales:
             matricula = h.id_matricula
 
-            # ✅ ASISTENCIA
             asistencia, creada = Asistencia.objects.get_or_create(
                 id_sesion=sesion,
                 id_matricula=matricula,
@@ -112,12 +103,10 @@ def crear_sesion(request, id_entrenamiento):
                 }
             )
 
-            # 🔁 si ya existía, actualizar
             if not creada:
                 asistencia.tipo_asistencia = "asiste"
                 asistencia.save()
 
-            # ✅ RENDIMIENTO (uno por asistencia)
             rendimiento, creado = Rendimiento.objects.get_or_create(
                 id_asistencia=asistencia,
                 defaults={
@@ -125,7 +114,6 @@ def crear_sesion(request, id_entrenamiento):
                 }
             )
 
-            # 🔁 si ya existía
             if not creado:
                 rendimiento.estado = rendimiento_general
                 rendimiento.save()
@@ -151,17 +139,14 @@ def editar_sesion(request, id):
     entrenadores = None
     entrenador_seleccionado = None
 
-    # 🔥 ADMIN puede cambiar entrenador
     if "Administrador" in roles:
         entrenadores = Usuario.objects.filter(
             roles__rol_usuario="Entrenador"
         )
 
-    # 🔥 ENTRENADOR solo se asigna a sí mismo
     elif "Entrenador" in roles:
         entrenador_seleccionado = Usuario.objects.get(id_usuario=usuario_id)
 
-    # 🔥 OBTENER ESTADO ACTUAL DEL RENDIMIENTO (IMPORTANTE)
     asistencias = Asistencia.objects.filter(id_sesion=sesion)
     rendimiento_general_actual = True  # por defecto
 
@@ -178,7 +163,6 @@ def editar_sesion(request, id):
         sesion.hora_inicio = request.POST.get('hora_inicio')
         sesion.hora_fin = request.POST.get('hora_fin')
 
-        # 🔥 ADMIN selecciona entrenador
         if "Administrador" in roles:
             entrenador_id = request.POST.get("id_entrenador")
             sesion.id_entrenador = get_object_or_404(
@@ -190,7 +174,6 @@ def editar_sesion(request, id):
 
         sesion.save()
 
-        # 🔥 ACTUALIZAR RENDIMIENTO GENERAL
         rendimiento_general = request.POST.get("rendimiento_general") == "1"
 
         for asistencia in asistencias:
@@ -212,13 +195,13 @@ def editar_sesion(request, id):
         'entrenadores': entrenadores,
         'es_admin': "Administrador" in roles,
         'modo_editar': True,
-        'rendimiento_general_actual': rendimiento_general_actual  # 🔥 CLAVE
+        'rendimiento_general_actual': rendimiento_general_actual 
     })
 
 
 def eliminar_sesion(request, id):
     sesion = get_object_or_404(SesionEntrenamiento, pk=id)
-    sesion.estado = False  # 👈 borrado lógico
+    sesion.estado = False  
     sesion.save()
 
     return redirect('lista_sesiones')
