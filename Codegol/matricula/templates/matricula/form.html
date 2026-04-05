@@ -25,10 +25,7 @@
       <input type="date" name="fecha_fin" required>
     </div>
 
-    <div class="Formgrupo">
-      <label>Fecha Matrícula:</label>
-      <input type="date" name="fecha_matricula" required>
-    </div>
+  
 
     <div class="Formgrupo">
       <label>Nivel:</label>
@@ -50,9 +47,13 @@
 
     <br>
 
-    <button type="submit">Guardar</button>
-
-    <a href="{% url 'lista_matricula' %}">Cancelar</a>
+  <div class="botones-form">
+    <button type="submit" class="btn-guardar">Guardar</button>
+    <br>
+    <a href="{% url 'lista_matricula' %}" class="btn-cancelar">
+        Cancelar
+    </a>
+  </div>
 
   </form>
 

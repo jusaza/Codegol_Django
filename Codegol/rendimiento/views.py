@@ -13,7 +13,6 @@ def lista_jugadores(request):
         estado=True
     ).select_related('id_jugador').annotate(
 
-        # 🔹 Promedios por habilidad
         prom_defensa=Avg('asistencia__rendimiento__defensa'),
         prom_pase=Avg('asistencia__rendimiento__pase'),
         prom_regate=Avg('asistencia__rendimiento__regate'),
@@ -35,13 +34,11 @@ def lista_jugadores(request):
         )
     )
 
-    # 🔎 BUSCADOR
     if query:
         jugadores = jugadores.filter(
             id_jugador__num_identificacion__icontains=query
         )
 
-    # 🔤 ORDEN
     jugadores = jugadores.order_by('id_jugador__nombre_completo')
 
     return render(request, 'rendimiento/lista.html', {

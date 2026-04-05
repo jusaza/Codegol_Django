@@ -52,7 +52,7 @@ def editar_inventario(request, id):
 
 def eliminar_inventario(request, id):
     inventario = get_object_or_404(Inventario, pk=id)
-    inventario.estado = False  # 👈 borrado lógico
+    inventario.estado = False
     inventario.save()
 
     return redirect('lista_inventario')

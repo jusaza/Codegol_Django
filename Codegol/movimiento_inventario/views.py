@@ -219,19 +219,16 @@ def salidas_sesion(request, id_sesion):
         'query': query,
     })
 
-#devoluciones
 
 def crear_devolucion(request, id_movimiento):
     salida = get_object_or_404(MovimientoInventario, pk=id_movimiento)
 
-    # 🔥 calcular devoluciones
     total_devuelto = salida.devoluciones.aggregate(
         total=Sum('cantidad')
     )['total'] or 0
 
     restante = salida.cantidad - total_devuelto
 
-    # 🔒 bloquear si ya está completamente devuelto
     if restante <= 0:
         return HttpResponse("Este movimiento ya fue devuelto completamente")
 
@@ -243,21 +240,17 @@ def crear_devolucion(request, id_movimiento):
 
         observaciones = request.POST.get("observaciones")
 
-        # ❌ no negativos ni cero
         if cantidad < 1:
             return HttpResponse("La cantidad debe ser mayor a 0")
 
-        # ❌ no superar restante
         if cantidad > restante:
             return HttpResponse("Excede lo prestado")
 
-        # ❗ devolución parcial → requiere observación
         if cantidad < restante and not observaciones:
             return HttpResponse("Debe explicar faltante")
 
         usuario = Usuario.objects.get(pk=request.session.get("usuario_id"))
 
-        # ✅ crear devolución
         MovimientoInventario.objects.create(
             inventario=salida.inventario,
             usuario=usuario,
