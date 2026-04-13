@@ -5,5 +5,6 @@ urlpatterns = [
     path('', views.lista_pagos, name='lista_pagos'),
     path('crear/', views.crear_pago, name='crear_pago'),
     path('editar/<int:id>/', views.editar_pago, name='editar_pago'),
-    path('eliminar/<int:id>/', views.eliminar_pago, name='eliminar_pago'),
+    path('cancelar/<int:id>/', views.cancelar_pago, name='cancelar_pago'),
+    path('reporte/pagos/pdf/', views.reporte_pagos_pdf, name='reporte_pagos_pdf'),
 ]

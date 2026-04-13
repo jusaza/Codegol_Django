@@ -2,6 +2,11 @@ from django.shortcuts import render, get_object_or_404, redirect
 from .models import Pago
 from matricula.models import Matricula
 from django.db.models import Max
+from django.http import HttpResponse
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import letter
+from datetime import datetime
+from django.db.models import Sum
 
 # LISTAR
 def lista_pagos(request):
@@ -68,8 +73,60 @@ def editar_pago(request, id):
     return render(request, 'pago/editar.html', {'pago': pago})
 
 # ELIMINAR
-def eliminar_pago(request, id):
-    pago = get_object_or_404(Pago, pk=id)
-    pago.estado = False
+def cancelar_pago(request, id):
+    pago = Pago.objects.get(id=id)
+    
+    # Cambiar estado (toggle)
+    pago.cancelado = not pago.cancelado
     pago.save()
+
     return redirect('lista_pagos')
+
+def reporte_pagos_pdf(request):
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="reporte_pagos.pdf"'
+
+    p = canvas.Canvas(response)
+
+    # Título
+    p.setFont("Helvetica-Bold", 14)
+    p.drawString(180, 800, "Reporte General de Pagos")
+
+    # Fecha actual
+    p.setFont("Helvetica", 10)
+    p.drawString(50, 780, f"Fecha: {datetime.now().strftime('%Y-%m-%d')}")
+
+    # Total recaudado
+    total = Pago.objects.filter(cancelado=False).aggregate(Sum('valor_total'))['valor_total__sum'] or 0
+    p.drawString(50, 760, f"Total recaudado: ${total}")
+
+    pagos = Pago.objects.filter(cancelado=False)
+
+    y = 730
+
+    # Encabezados
+    p.setFont("Helvetica-Bold", 10)
+    p.drawString(30, y, "ID")
+    p.drawString(60, y, "Concepto")
+    p.drawString(160, y, "Fecha")
+    p.drawString(230, y, "Metodo")
+    p.drawString(300, y, "Valor")
+
+    y -= 20
+    p.setFont("Helvetica", 9)
+
+    for pago in pagos:
+        p.drawString(30, y, str(pago.id))
+        p.drawString(60, y, pago.concepto_pago[:15])  # cortar texto largo
+        p.drawString(160, y, str(pago.fecha_pago))
+        p.drawString(230, y, pago.metodo_pago)
+        p.drawString(300, y, str(pago.valor_total))
+
+        y -= 15
+
+        if y < 50:
+            p.showPage()
+            y = 800
+
+    p.save()
+    return response
