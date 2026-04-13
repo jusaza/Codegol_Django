@@ -15,6 +15,7 @@ class Pago(models.Model):
     metodo_pago = models.CharField(max_length=20, choices=METODOS)
     observaciones = models.CharField(max_length=255, blank=True, null=True)
     valor_total = models.FloatField()
+    cancelado = models.BooleanField(default=False)
     id_matricula = models.ForeignKey(Matricula, on_delete=models.CASCADE)
 
     def __str__(self):
