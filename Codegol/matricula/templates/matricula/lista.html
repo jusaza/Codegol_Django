@@ -1,0 +1,96 @@
+{% extends 'layout/menu.html' %} 
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/stylepag.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<div class="contenido">
+
+  <br>
+
+  <div class="barra-top">
+    <div class="barra-busqueda">
+        <form method="get">
+            <input type="text" name="q"
+                placeholder="Buscar jugador, ID o categoría..."
+                value="{{ query|default:'' }}">
+        </form>
+    </div>
+
+    <a href="{% url 'crear_matricula' %}" class="boton-registrar">
+      Registrar matrícula
+    </a>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Jugador</th>
+        <th>Nivel</th>
+        <th>Fecha Inicio</th>
+        <th>Fecha Fin</th>
+        <th>Fecha Matricula</th>
+        <th>Observaciones</th>
+        <th>Categoría</th>
+        <th>Acciones</th>
+        
+      </tr>
+    </thead>
+
+    <tbody>
+      {% for m in matriculas %}
+      <tr>
+        <td>{{ m.id }}</td>
+        <td>{{ m.id_jugador.nombre_completo }}</td>
+        <td>{{ m.nivel }}</td>
+        <td>{{ m.fecha_inicio }}</td>
+        <td>{{ m.fecha_fin }}</td>
+        <td>{{ m.fecha_matricula }}</td>
+        <td>{{ m.observaciones}}</td>
+        <td>{{ m.categoria_actual }}</td>
+
+
+        <td class="acciones">
+          <button class="actualizar">
+            <a href="{% url 'editar_matricula' m.id %}"
+            title="Haz clic aquí para actualizar una matricula">
+               🔄
+            </a>
+          </button>
+
+          <button class="eliminar">
+            <a href="{% url 'eliminar_matricula' m.id %}" 
+            style="text-decoration: none; color: white;" 
+            title="Haz clic aquí para eliminar la matrícula">
+            ❌
+            </a>
+          </button>
+          <button style="background-color: purple;">
+          <a style="text-decoration: none; color: white;"
+           href="{% url 'asignar_categoria' m.id %}">
+            Asignar categoría
+          </a>
+        </button>
+        <button style="background-color: green;">
+        <a style="text-decoration: none; color: white;"
+        href="{% url 'historial_categoria' m.id %}">
+        Ver historial
+        </a>
+        </button>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="9">No hay matrículas registradas</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+</div>
+
+{% endblock %}

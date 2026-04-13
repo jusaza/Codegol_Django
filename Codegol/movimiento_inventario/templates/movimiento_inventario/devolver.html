@@ -1,0 +1,116 @@
+{% extends 'layout/form.html' %} 
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/style_forms.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<div class="login-box" role="main">
+
+  <h1>Registrar devolución</h1>
+
+  <!-- 🔥 INFO DEL MOVIMIENTO ORIGINAL -->
+
+
+
+  <!-- 🔥 FORM -->
+  <form method="post" id="formDevolucion">
+    {% csrf_token %}
+  <div class="Formgrupo">
+    <label>Artículo</label>
+    <input type="text"
+           value="{{ salida.inventario.nombre_articulo }}"
+           disabled>
+  </div>
+
+  <div class="Formgrupo">
+    <label>Cantidad original</label>
+    <input type="number"
+           value="{{ salida.cantidad }}"
+           disabled>
+  </div>
+
+  <div class="Formgrupo">
+    <label>Cantidad ya devuelta</label>
+    <input type="number"
+           value="{{ total_devuelto }}"
+           disabled>
+  </div>
+
+  <div class="Formgrupo">
+    <label>Restante por devolver</label>
+    <input type="number"
+           id="restante"
+           value="{{ restante }}"
+           disabled>
+  </div>
+    <div class="Formgrupo">
+      <label>Cantidad a devolver</label>
+      <input type="number"
+             id="cantidad"
+             name="cantidad"
+             min="1"
+             max="{{ restante }}"
+             placeholder="Ingrese la cantidad"
+             required>
+    </div>
+
+    <div class="Formgrupo">
+      <label>Observación</label>
+      <input type="text"
+             id="observaciones"
+             name="observaciones"
+             placeholder="Obligatoria si no devuelve todo">
+    </div>
+
+    <br>
+
+    <button type="submit">
+      Registrar devolución
+    </button>
+
+  </form>
+
+</div>
+
+<!-- 🔥 VALIDACIÓN JS -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const form = document.getElementById("formDevolucion");
+    const cantidadInput = document.getElementById("cantidad");
+    const observacionesInput = document.getElementById("observaciones");
+    const restante = parseInt(document.getElementById("restante").value);
+
+    form.addEventListener("submit", function (e) {
+        const cantidad = parseInt(cantidadInput.value) || 0;
+        const observacion = observacionesInput.value.trim();
+
+        // ❌ no puede ser mayor al restante
+        if (cantidad > restante) {
+            alert("No puedes devolver más de lo restante");
+            e.preventDefault();
+            return;
+        }
+
+        // ❌ no puede ser menor a 1
+        if (cantidad < 1) {
+            alert("Cantidad inválida");
+            e.preventDefault();
+            return;
+        }
+
+        // 🔥 VALIDACIÓN CLAVE
+        if (cantidad < restante && observacion === "") {
+            alert("Debes agregar una observación si no devuelves todo");
+            e.preventDefault();
+            return;
+        }
+    });
+
+});
+</script>
+
+{% endblock %}

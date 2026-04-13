@@ -1,0 +1,42 @@
+<div class="login-box" role="main">
+
+  <h1>Entrenamiento</h1>
+
+  <form method="post">
+    {% csrf_token %}
+
+    <div class="Formgrupo">
+      <label>Descripción</label>
+      <input type="text" name="descripcion"
+             value="{{ entrenamiento.descripcion|default:'' }}"
+             placeholder="Ingrese la descripción" required>
+    </div>
+
+    <div class="Formgrupo">
+      <label>Lugar</label>
+      <input type="text" name="lugar"
+             value="{{ entrenamiento.lugar|default:'' }}"
+             placeholder="Ingrese el lugar" required>
+    </div>
+
+    <div class="Formgrupo">
+      <label>Observaciones</label>
+      <input type="text" name="observaciones"
+             value="{{ entrenamiento.observaciones|default:'' }}"
+             placeholder="Ingrese observaciones">
+    </div>
+
+    <br>
+
+    <button type="submit">
+      {% if entrenamiento %}
+        Actualizar entrenamiento
+      {% else %}
+        Guardar entrenamiento
+      {% endif %}
+    </button>
+
+
+  </form>
+
+</div>
