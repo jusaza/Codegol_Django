@@ -1,3 +1,5 @@
+import csv
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from .models import Usuario, DetallesUsuarioRol, Documentos, Rol
@@ -46,6 +48,95 @@ def login(request):
 def logout(request):
     request.session.flush()
     return redirect("login")
+
+def cargar_usuarios_csv(request):
+    if request.method == "POST":
+        archivo = request.FILES.get('archivo')
+        if not archivo:
+            messages.error(request, "Debes seleccionar un archivo CSV.")
+            return redirect('carga_masiva_usuario')
+        decoded_file = archivo.read().decode('utf-8').splitlines()
+        reader = csv.DictReader(decoded_file)
+        columnas_requeridas = [
+            'correo',
+            'contrasena',
+            'nombre_completo',
+            'num_identificacion',
+            'tipo_documento',
+            'telefono_1',
+            'direccion',
+            'genero',
+            'fecha_nacimiento',
+            'grupo_sanguineo',
+            'rol'
+        ]
+        columnas_faltantes = [col for col in columnas_requeridas if col not in reader.fieldnames]
+        if columnas_faltantes:
+            messages.error(
+                request,
+                f"❌ Faltan columnas en el CSV: {', '.join(columnas_faltantes)}"
+            )
+            return redirect('carga_masiva_usuario')
+        usuario_sesion_id = request.session.get("usuario_id")
+        if not usuario_sesion_id:
+            messages.error(request, "Debes iniciar sesión.")
+            return redirect('login')
+        usuarios_creados = []
+        duplicados = 0
+        for row in reader:
+            correo = row['correo']
+            documento = row['num_identificacion']
+            rol_nombre = row.get('rol')
+            if Usuario.objects.filter(correo=correo).exists():
+                duplicados += 1
+                continue
+            if Usuario.objects.filter(num_identificacion=documento).exists():
+                duplicados += 1
+                continue
+            usuario = Usuario(
+                correo=correo,
+                contrasena=row['contrasena'],
+                nombre_completo=row['nombre_completo'],
+                num_identificacion=documento,
+                tipo_documento=row['tipo_documento'],
+                telefono_1=row['telefono_1'],
+                direccion=row['direccion'],
+                genero=row['genero'],
+                fecha_nacimiento=row['fecha_nacimiento'],
+                grupo_sanguineo=row['grupo_sanguineo'],
+                estado=True,
+                id_usuario_registro_id=usuario_sesion_id
+            )
+            usuarios_creados.append((usuario, rol_nombre))
+        Usuario.objects.bulk_create([u[0] for u in usuarios_creados])
+        for usuario, rol_nombre in usuarios_creados:
+            try:
+                rol = Rol.objects.get(rol_usuario=rol_nombre)
+                usuario_guardado = Usuario.objects.get(correo=usuario.correo)
+
+                if not DetallesUsuarioRol.objects.filter(
+                    id_usuario=usuario_guardado,
+                    id_rol=rol
+                ).exists():
+                    DetallesUsuarioRol.objects.create(
+                        id_usuario=usuario_guardado,
+                        id_rol=rol
+                    )
+
+            except Rol.DoesNotExist:
+                continue
+        if usuarios_creados:
+            messages.success(
+                request,
+                f"✅ Usuarios creados: {len(usuarios_creados)}"
+            )
+        if duplicados > 0:
+            messages.error(
+                request,
+                f"❌ Duplicados omitidos: {duplicados}"
+            )
+        return redirect('carga_masiva_usuario')
+    return render(request, 'usuarios/cargar.html')
 
 @rol_requerido(["Administrador"])
 def usuario(request):
