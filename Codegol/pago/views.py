@@ -1,5 +1,7 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import Pago
+from matricula.models import Matricula
+from django.db.models import Max
 
 # LISTAR
 def lista_pagos(request):
@@ -12,23 +14,43 @@ def lista_pagos(request):
 
 # CREAR
 def crear_pago(request):
+
+    # 🔹 Obtener última matrícula activa por usuario
+    matriculas = Matricula.objects.filter(
+        estado=True,
+        id_jugador__estado=True
+    ).values('id_jugador').annotate(
+        ultima_fecha=Max('fecha_matricula')
+    )
+
+    # 🔹 Obtener esas matrículas completas
+    matriculas_finales = Matricula.objects.filter(
+        estado=True,
+        fecha_matricula__in=[m['ultima_fecha'] for m in matriculas]
+    ).select_related('id_jugador')
+
     if request.method == 'POST':
         concepto = request.POST.get('concepto_pago')
         fecha = request.POST.get('fecha_pago')
         metodo = request.POST.get('metodo_pago')
         observaciones = request.POST.get('observaciones')
         valor = request.POST.get('valor_total')
+        id_matricula = request.POST.get('id_matricula')
 
         Pago.objects.create(
             concepto_pago=concepto,
             fecha_pago=fecha,
             metodo_pago=metodo,
             observaciones=observaciones,
-            valor_total=valor
+            valor_total=valor,
+            id_matricula_id=id_matricula  # 🔥 importante
         )
         return redirect('lista_pagos')
 
-    return render(request, 'pago/crear.html')
+    return render(request, 'pago/crear.html', {
+        'metodos': Pago.METODOS,
+        'matriculas': matriculas_finales
+    })
 
 # EDITAR
 def editar_pago(request, id):

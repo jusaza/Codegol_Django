@@ -20,9 +20,16 @@
 
     <div class="Formgrupo">
       <label>Método de Pago</label>
-      <input type="text" name="metodo_pago"
-             value="{{ pago.metodo_pago|default:'' }}"
-             placeholder="Ingrese el método de pago" required>
+      <select name="metodo_pago" required>
+  <option value="">Seleccione un método</option>
+
+  {% for value, label in metodos %}
+    <option value="{{ value }}"
+      {% if pago.metodo_pago == value %}selected{% endif %}>
+      {{ label }}
+    </option>
+  {% endfor %}
+</select>
     </div>
 
     <div class="Formgrupo">
@@ -38,6 +45,24 @@
              value="{{ pago.valor_total|default:'' }}"
              placeholder="Ingrese el valor total" required>
     </div>
+<div class="Formgrupo">
+  <label>Buscar Usuario</label>
+  <input type="text" id="buscarUsuario" placeholder="Buscar usuario...">
+  </div>
+    <div class="Formgrupo"> 
+  <label>Seleccionar Usuario</label>
+  <select name="id_matricula" required>
+    <option value="">Seleccione un usuario</option>
+
+    {% for m in matriculas %}
+      <option value="{{ m.id }}">
+        {{ m.id_jugador.nombre_completo }} - {{ m.id_jugador.num_identificacion }}
+      </option>
+    {% endfor %}
+
+  </select>
+  
+</div>
 
     <br>
 
@@ -52,3 +77,19 @@
   </form>
 
 </div>
+
+
+<script>
+document.getElementById('buscarUsuario').addEventListener('keyup', function() {
+    let filtro = this.value.toLowerCase();
+    let opciones = document.querySelectorAll('select[name="id_matricula"] option');
+
+    opciones.forEach(op => {
+        if (op.text.toLowerCase().includes(filtro)) {
+            op.style.display = '';
+        } else {
+            op.style.display = 'none';
+        }
+    });
+});
+</script>

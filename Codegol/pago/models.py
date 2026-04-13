@@ -1,10 +1,5 @@
 from django.db import models
-
-class Matricula(models.Model):
-    id_matricula = models.AutoField(primary_key=True)
-
-    def __str__(self):
-        return str(self.id_matricula)
+from matricula.models import Matricula
 
 
 class Pago(models.Model):
