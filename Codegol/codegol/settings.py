@@ -42,7 +42,7 @@ INSTALLED_APPS = [
     'entrenamientos',
     'sesion_entrenamiento',
     'inventario',
-    'movimiento_inventario', 
+    'movimiento_inventario',
     'matricula',
     'asistencia',
     'rendimiento',
