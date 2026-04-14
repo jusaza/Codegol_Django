@@ -72,9 +72,21 @@ def crear_pago(request):
         'matriculas': matriculas_finales
     })
 
-# EDITAR
 def editar_pago(request, id):
     pago = get_object_or_404(Pago, pk=id)
+
+    # 🔹 mismas matrículas que en crear
+    matriculas = Matricula.objects.filter(
+        estado=True,
+        id_jugador__estado=True
+    ).values('id_jugador').annotate(
+        ultima_fecha=Max('fecha_matricula')
+    )
+
+    matriculas_finales = Matricula.objects.filter(
+        estado=True,
+        fecha_matricula__in=[m['ultima_fecha'] for m in matriculas]
+    ).select_related('id_jugador')
 
     if request.method == 'POST':
         pago.concepto_pago = request.POST.get('concepto_pago')
@@ -82,10 +94,16 @@ def editar_pago(request, id):
         pago.metodo_pago = request.POST.get('metodo_pago')
         pago.observaciones = request.POST.get('observaciones')
         pago.valor_total = request.POST.get('valor_total')
+        pago.id_matricula_id = request.POST.get('id_matricula')  
         pago.save()
+
         return redirect('lista_pagos')
 
-    return render(request, 'pago/editar.html', {'pago': pago})
+    return render(request, 'pago/editar.html', {
+        'pago': pago,
+        'metodos': Pago.METODOS,
+        'matriculas': matriculas_finales
+    })
 
 # ELIMINAR
 def cancelar_pago(request, id):
