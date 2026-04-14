@@ -41,4 +41,10 @@ urlpatterns = [
     path('categoria/', include('categoria.urls')),
 
     path('rendimiento/', include('rendimiento.urls')),
+<<<<<<< HEAD
+
+    
+
+=======
+>>>>>>> bf0ac046f03bd616608ad2ebce542800dfdc9174
 ]

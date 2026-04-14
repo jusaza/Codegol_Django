@@ -8,5 +8,7 @@ urlpatterns = [
     path('eliminar/<int:id>/', views.eliminar_matricula, name='eliminar_matricula'),
     path('asignar_categoria/<int:id>/', views.asignar_categoria, name='asignar_categoria'),
     path('historial_categoria/<int:id>/', views.ver_historial_categoria, name='historial_categoria'),
-    
+    path('certificado/<int:id>/', views.generar_certificado, name='certificado'),
+    path('exportar-excel/', views.exportar_matriculas_excel, name='exportar_excel'),
+
 ]
