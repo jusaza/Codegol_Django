@@ -5,6 +5,12 @@ from categoria.models import Categoria
 from datetime import date
 from .models import Matricula, HistorialCategoria
 from django.db.models import Q
+from django.http import HttpResponse
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+from reportlab.lib.styles import getSampleStyleSheet
+from openpyxl import Workbook
+from django.http import HttpResponse
 
 
 def lista_matricula(request):
@@ -138,3 +144,123 @@ def ver_historial_categoria(request, id):
         'matricula': matricula,
         'historial': historial
     })
+
+def generar_certificado(request, id):
+
+    matricula = Matricula.objects.get(id=id)
+    jugador = matricula.id_jugador
+    historial = HistorialCategoria.objects.filter(
+        id_matricula=matricula
+    ).order_by('fecha_registro')
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="certificado_matricula.pdf"'
+
+    doc = SimpleDocTemplate(response, pagesize=letter)
+    styles = getSampleStyleSheet()
+
+    contenido = []
+
+    # TITULO
+    contenido.append(Paragraph("CERTIFICADO DE MATRÍCULA DEPORTIVA", styles['Title']))
+    contenido.append(Spacer(1, 30))
+
+    # TEXTO PRINCIPAL
+    texto = f"""
+    La presente certifica que el jugador <b>{jugador.nombre_completo}</b>,
+    identificado con <b>{jugador.get_tipo_documento_display()}</b> número
+    <b>{jugador.num_identificacion}</b>, se encuentra vinculado a la institución
+    deportiva, habiendo formalizado su matrícula el día
+    <b>{matricula.fecha_inicio}</b>.
+    
+    Durante su permanencia en la escuela, el jugador ha participado activamente
+    en los procesos formativos correspondientes, demostrando compromiso,
+    disciplina y desarrollo deportivo.
+    """
+
+    contenido.append(Paragraph(texto, styles['Normal']))
+    contenido.append(Spacer(1, 25))
+
+    # HISTORIAL
+    contenido.append(Paragraph("Historial de Categorías", styles['Heading2']))
+    contenido.append(Spacer(1, 15))
+
+    if historial.exists():
+        for h in historial:
+            contenido.append(
+                Paragraph(
+                    f"• {h.id_categoria.nombre_categoria} "
+                    f"({h.fecha_registro})",
+                    styles['Normal']
+                )
+            )
+    else:
+        contenido.append(Paragraph("• No registra categorías asignadas", styles['Normal']))
+
+    contenido.append(Spacer(1, 40))
+
+    # CIERRE
+    cierre = """
+    Este certificado se expide a solicitud del interesado para los fines que estime convenientes.
+    """
+
+    contenido.append(Paragraph(cierre, styles['Normal']))
+    contenido.append(Spacer(1, 60))
+
+    # FIRMA
+    contenido.append(Paragraph("__________________________________", styles['Normal']))
+    contenido.append(Paragraph("Dirección Deportiva", styles['Normal']))
+    contenido.append(Paragraph("Escuela de Formación", styles['Normal']))
+
+    doc.build(contenido)
+
+    return response
+
+
+
+def exportar_matriculas_excel(request):
+
+    matriculas = Matricula.objects.filter(estado=True)
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Matrículas"
+
+    # ENCABEZADOS
+    ws.append([
+        "ID",
+        "Jugador",
+        "Tipo Documento",
+        "Número Documento",
+        "Nivel",
+        "Fecha Inicio",
+        "Fecha Fin",
+        "Fecha Matrícula",
+        "Observaciones"
+    ])
+
+    # DATOS
+    for m in matriculas:
+        jugador = m.id_jugador
+
+        ws.append([
+            m.id,
+            jugador.nombre_completo,
+            jugador.get_tipo_documento_display(),
+            jugador.num_identificacion,
+            m.nivel,
+            str(m.fecha_inicio),
+            str(m.fecha_fin),
+            str(m.fecha_matricula),
+            m.observaciones
+        ])
+
+    # RESPUESTA
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = 'attachment; filename="reporte_matriculas.xlsx"'
+
+    wb.save(response)
+
+    return response

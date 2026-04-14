@@ -23,6 +23,9 @@
     <a href="{% url 'crear_matricula' %}" class="boton-registrar">
       Registrar matrícula
     </a>
+    <a href="{% url 'exportar_excel' %}" class="boton-registrar" style="background-color: green;">
+      Descargar Excel
+    </a>
   </div>
 
   <table>
@@ -80,6 +83,13 @@
         href="{% url 'historial_categoria' m.id %}">
         Ver historial
         </a>
+        </button>
+        <button style="background-color: #28a745;">
+          <a style="text-decoration: none; color: white;"
+            href="{% url 'certificado' m.id %}"
+            target="_blank">
+            📄 PDF
+          </a>
         </button>
         </td>
       </tr>
