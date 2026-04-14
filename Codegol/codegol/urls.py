@@ -41,5 +41,7 @@ urlpatterns = [
 
     path('rendimiento/', include('rendimiento.urls')),
 
+    
+
 ]
 
