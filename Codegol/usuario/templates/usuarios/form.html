@@ -2,50 +2,68 @@
 
 <form enctype="multipart/form-data" method="post">
   {% csrf_token %}
+
   {% for campo in formulario %}
 
-<div class="Formgrupo">
-  <label>{{ campo.label }}:</label>
+  <div class="Formgrupo">
+    <label>{{ campo.label }}:</label>
 
-  {% if campo.name == 'roles' %}
-    {% for opcion in campo.field.queryset %}
-      <label>
-        <input 
-          type="checkbox" 
-          name="{{ campo.name }}" 
-          value="{{ opcion.pk }}"
-          {% if opcion.pk in campo.value %}checked{% endif %}>
-        {{ opcion }}
-      </label><br>
-    {% endfor %}
-
-  {% elif campo.field.choices %}
-    <select name="{{ campo.name }}">
-      {% for valor, texto in campo.field.choices %}
-        <option value="{{ valor }}"
-          {% if campo.value == valor %}selected{% endif %}>
-          {{ texto }}
-        </option>
+    {% if campo.name == 'roles' %}
+      {% for opcion in campo.field.queryset %}
+        <label>
+          <input 
+            type="checkbox" 
+            name="{{ campo.name }}" 
+            value="{{ opcion.pk }}"
+            {% if opcion.pk in campo.value %}checked{% endif %}>
+          {{ opcion }}
+        </label><br>
       {% endfor %}
-    </select>
-  {% else %}
 
-    {% if campo.field.widget.input_type == 'file' and campo.value %}
-      <img src="{{MEDIA_URL}}/media/{{ campo.value}}" width="100"><br>
+    {% elif campo.field.choices %}
+      <select name="{{ campo.name }}">
+        {% for valor, texto in campo.field.choices %}
+          <option value="{{ valor }}"
+            {% if campo.value == valor %}selected{% endif %}>
+            {{ texto }}
+          </option>
+        {% endfor %}
+      </select>
+
+    {% else %}
+
+      {% if campo.field.widget.input_type == 'file' and campo.value %}
+        <img src="{{ MEDIA_URL }}/media/{{ campo.value }}" width="100"><br>
+      {% endif %}
+
+      <input 
+        type="{{ campo.field.widget.input_type }}"
+        name="{{ campo.name }}"
+        value="{% if campo.field.widget.input_type == 'date' %}{{ campo.value|date:'Y-m-d' }}{% else %}{{ campo.value|default:'' }}{% endif %}"
+        placeholder="{{ campo.label }}">
     {% endif %}
 
-    <input 
-      type="{{ campo.field.widget.input_type }}"
-      name="{{ campo.name }}"
-      value="{% if campo.field.widget.input_type == 'date' %}{{ campo.value|date:'Y-m-d' }}{% else %}{{ campo.value|default:'' }}{% endif %}"
-      placeholder="{{ campo.label }}">
-  {% endif %}
+    <div class="error">{{ campo.errors }}</div>
+  </div>
 
-  <div class="error">{{ campo.errors }}</div>
+  {% endfor %}
 
-</div>
+  <!-- 🔥 SELECT DE PAISES DESDE API -->
+  <div class="Formgrupo">
+    <label>País de nacimiento:</label>
+    <select name="lugar_nacimiento" required>
+      <option value="">Seleccione un país</option>
+      
+      {% for p in paises %}
+        <option value="{{ p.codigo }}"
+          {% if formulario.instance.lugar_nacimiento == p.codigo %}selected{% endif %}>
+          {{ p.nombre }}
+        </option>
+      {% endfor %}
+      
+    </select>
+  </div>
 
-{% endfor %}
   <button type="submit">
     {% if formulario.instance.pk %}
       Actualizar Usuario

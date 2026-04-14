@@ -76,7 +76,7 @@ class Usuario(models.Model):
     fecha_nacimiento = models.DateField()
 
     lugar_nacimiento = models.CharField(
-        max_length=50,
+        max_length=3,
         null=True,
         blank=True
     )

@@ -167,15 +167,39 @@ def borrar_documento(request, id):
         documento.delete()
     return redirect("documentos", id=usuario_id)
 
+import requests
+
 @rol_requerido(["Administrador"])
 def crear_usuario(request):
+
+    url = "https://www.apicountries.com/countries"
+    response = requests.get(url)
+    data = response.json()
+
+    # 🔥 LIMPIAR Y ORDENAR
+    paises = sorted([
+        {
+            'codigo': p['alpha2Code'],
+            'nombre': p['name']
+        }
+        for p in data if p.get('alpha2Code') and p.get('name')
+    ], key=lambda x: x['nombre'])
+
     formulario = UsuarioForm(request.POST or None, request.FILES or None)
+
     if formulario.is_valid():
         usuario = formulario.save(commit=False)
-        formulario.save()
+
+        usuario.lugar_nacimiento = request.POST.get('lugar_nacimiento')
+
+        usuario.save()
         formulario.save_m2m()
         return redirect('usuario')
-    return render(request, "usuarios/usuario_form.html" , {'formulario' : formulario})
+
+    return render(request, "usuarios/usuario_form.html", {
+        'formulario': formulario,
+        'paises': paises
+    })
 
 def consulta_especifica_usuario(request, id):
     usuario = Usuario.objects.get(id_usuario=id)
