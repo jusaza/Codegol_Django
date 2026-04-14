@@ -34,12 +34,12 @@
         <a href="{% url 'lista_inventario' %}">Inventario</a>
       </li>
       {% endif %}
-      {% if "Administrador" in request.session.roles or "Entrenador" in request.session.roles %}
+      {% if "Administrador" in request.session.roles or "Entrenador" in request.session.roles or "Jugador" in request.session.roles %}
       <li>
         <a href="{% url 'lista_entrenamientos' %}">Entrenamiento</a>
       </li>
       {% endif %}
-      {% if "Administrador" in request.session.roles or "Entrenador" in request.session.roles %}
+      {% if "Administrador" in request.session.roles or "Entrenador" in request.session.roles or "Jugador" in request.session.roles %}
       <li>
         <a href="{% url 'lista_jugadores' %}">Rendimiento</a>
       </li>
@@ -49,12 +49,12 @@
         <a href="{% url 'lista_categoria' %}">Categoría</a>
       </li>
       {% endif %}
-      {% if "Administrador" in request.session.roles %}
+      {% if "Administrador" in request.session.roles or "Entrenador" in request.session.roles or "Jugador" in request.session.roles %}
       <li>
         <a href="{% url 'lista_matricula' %}">Matrícula</a>
       </li>
       {% endif %}
-      {% if "Administrador" in request.session.roles %}
+      {% if "Administrador" in request.session.roles or "Jugador" in request.session.roles %}
       <li>
         <a href="{% url 'lista_pagos' %}">Pago</a>
       </li>

@@ -1,43 +1,46 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import Matricula, HistorialCategoria
-from usuario.models import Usuario
+from usuario.models import Usuario, DetallesUsuarioRol
 from categoria.models import Categoria
 from datetime import date
 from .models import Matricula, HistorialCategoria
 from django.db.models import Q
 
 
+from django.db.models import Q
+
 def lista_matricula(request):
     query = request.GET.get('q')
-
-    # Filtrar por nombre del jugador o ID de matrícula
-    if query:
+    usuario_id = request.session.get("usuario_id")
+    es_jugador = DetallesUsuarioRol.objects.filter(
+        id_usuario_id=usuario_id,
+        id_rol__rol_usuario__iexact="Jugador"
+    ).exists()
+    if es_jugador:
         matriculas = Matricula.objects.filter(
-            estado=True
-        ).filter(
-            Q(id_jugador__nombre_completo__icontains=query) |
-            Q(id__icontains=query)
+            estado=True,
+            id_jugador__id_usuario=usuario_id  
         )
     else:
         matriculas = Matricula.objects.filter(estado=True)
-
-    # Agregar categoría actual para mostrar
+    if query:
+        matriculas = matriculas.filter(
+            Q(id_jugador__nombre_completo__icontains=query) |
+            Q(id__icontains=query)
+        )
     for m in matriculas:
         ultima = HistorialCategoria.objects.filter(
             id_matricula=m,
             estado=True
         ).order_by('-fecha_registro', '-id_historial').first()
-
-        if ultima:
-            m.categoria_actual = ultima.id_categoria.nombre_categoria
-        else:
-            m.categoria_actual = "Sin categoría"
-
+        m.categoria_actual = (
+            ultima.id_categoria.nombre_categoria
+            if ultima else "Sin categoría"
+        )
     return render(request, 'matricula/lista.html', {
         'matriculas': matriculas,
         'query': query
     })
-
 
 # CREAR
 def crear_matricula(request):

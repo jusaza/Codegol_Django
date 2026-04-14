@@ -1,5 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import Pago
+from usuario.models import DetallesUsuarioRol
 from matricula.models import Matricula
 from django.db.models import Max
 from django.http import HttpResponse
@@ -11,11 +12,25 @@ from django.db.models import Sum
 # LISTAR
 def lista_pagos(request):
     query = request.GET.get('q')
-    if query:
-        pagos = Pago.objects.filter(concepto_pago__icontains=query)
+    usuario_id = request.session.get("usuario_id")
+    es_jugador = DetallesUsuarioRol.objects.filter(
+        id_usuario_id=usuario_id,
+        id_rol__rol_usuario__iexact="Jugador"
+    ).exists()
+    if es_jugador:
+        pagos = Pago.objects.filter(
+            id_matricula__id_jugador__id_usuario=usuario_id
+        )
     else:
         pagos = Pago.objects.all()
-    return render(request, 'pago/lista.html', {'pagos': pagos, 'query': query})
+    if query:
+        pagos = pagos.filter(
+            concepto_pago__icontains=query
+        )
+    return render(request, 'pago/lista.html', {
+        'pagos': pagos,
+        'query': query
+    })
 
 # CREAR
 def crear_pago(request):
