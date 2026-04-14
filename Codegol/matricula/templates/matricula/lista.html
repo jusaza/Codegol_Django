@@ -19,13 +19,17 @@
                 value="{{ query|default:'' }}">
         </form>
     </div>
-
+    {% if "Administrador" in request.session.roles %}
     <a href="{% url 'crear_matricula' %}" class="boton-registrar">
       Registrar matrícula
     </a>
+
     <a href="{% url 'exportar_excel' %}" class="boton-registrar" style="background-color: green;">
       Descargar Excel
     </a>
+
+    {% endif %}
+
   </div>
 
   <table>
@@ -56,8 +60,8 @@
         <td>{{ m.observaciones}}</td>
         <td>{{ m.categoria_actual }}</td>
 
-
         <td class="acciones">
+          {% if "Administrador" in request.session.roles %}
           <button class="actualizar">
             <a href="{% url 'editar_matricula' m.id %}"
             title="Haz clic aquí para actualizar una matricula">
@@ -72,12 +76,15 @@
             ❌
             </a>
           </button>
+          {% endif %}
+          {% if "Administrador" in request.session.roles or "Entrenador" in request.session.roles %}
           <button style="background-color: purple;">
           <a style="text-decoration: none; color: white;"
            href="{% url 'asignar_categoria' m.id %}">
             Asignar categoría
           </a>
         </button>
+        {% endif %}
         <button style="background-color: green;">
         <a style="text-decoration: none; color: white;"
         href="{% url 'historial_categoria' m.id %}">

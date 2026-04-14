@@ -1,6 +1,5 @@
 from django.urls import path
-from . import views 
-
+from .import views 
 from django.conf import settings
 from django.contrib.staticfiles.urls import static
 
@@ -8,6 +7,7 @@ urlpatterns = [
     path('login/', views.login, name='login'),
     path('logout', views.logout, name='logout'),
     path('usuario', views.usuario, name='usuario'),
+    path('usuario/carga/', views.cargar_usuarios_csv, name='carga_masiva_usuario'),
     path('usuario/nuevo', views.crear_usuario, name="crear_usuario"),
     path('usuario/documento/<int:id>', views.documentos, name="documentos"),
     path('usuario/documento/eliminar/<int:id>/', views.borrar_documento, name='borrar_documento'),

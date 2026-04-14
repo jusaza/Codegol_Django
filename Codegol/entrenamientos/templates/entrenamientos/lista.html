@@ -19,10 +19,11 @@
                 value="{{ query|default:'' }}">
         </form>
     </div>
-
+    {% if "Administrador" in request.session.roles %}
     <a href="{% url 'crear_entrenamiento' %}" class="boton-registrar">
       Registrar entrenamiento
     </a>
+    {% endif %}
   </div>
 
   <table>
@@ -43,7 +44,8 @@
         <td>{{ entrenamiento.descripcion }}</td>
         <td>{{ entrenamiento.lugar }}</td>
         <td>{{ entrenamiento.observaciones }}</td>
-
+        
+        {% if "Administrador" in request.session.roles %}
         <td class="acciones">
             <button class="actualizar">
           <a style="text-decoration: none; color: white;"
@@ -58,6 +60,7 @@
           </a>
           </button>
         </td>
+        {% endif %}
           <td class = "acciones">
               <button class="actualizar" style="background-color: green;">
                 <a style="text-decoration: none; color: white;"
@@ -66,8 +69,6 @@
                 </a>
               </button>
             </td>
-
-            
       </tr>
       {% empty %}
       <tr>

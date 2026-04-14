@@ -9,7 +9,6 @@
 
 <div class="contenido">
   <br>
-
   <div class="barra-top">
     <div class="barra-busqueda">
       <form method="get" style="display:flex; gap:10px; align-items:center;">
@@ -34,12 +33,17 @@
     <a href="{% url 'usuarios_inactivos' %}" class="boton-registrar">
       Usuarios inactivos
     </a>
+
+    <a href="#" onclick="generarReporte(); return false;" class="boton-registrar">
+      PDF
+    </a>
+
+    <a href="{% url 'carga_masiva_usuario' %}" class="boton-registrar">
+      Carga Masiva
+    </a>
+
   </div>
-  <div class="barra-top">
-  <button onclick="generarReporte()" class="boton-registrar">
-      Generar reporte PDF
-    </button>
-  </div>
+
   <table id="tablaUsuarios">
     <thead>
       <tr>
@@ -103,11 +107,9 @@
   </table>
 </div>
 
-<!-- 🔹 LIBRERÍAS -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
 
-<!-- 🔹 SCRIPT -->
 <script>
 function generarReporte() {
     const { jsPDF } = window.jspdf;
@@ -131,16 +133,13 @@ function generarReporte() {
         }
     });
 
-    // 🔹 Título
     doc.setFontSize(16);
     doc.text("Reporte de Usuarios", 14, 15);
 
-    // 🔹 Fecha
     let fecha = new Date().toLocaleDateString();
     doc.setFontSize(10);
     doc.text("Fecha: " + fecha, 14, 22);
 
-    // 🔹 Tabla
     doc.autoTable({
         head: [["ID", "Correo", "Nombre", "Identificación"]],
         body: datos,
@@ -153,7 +152,6 @@ function generarReporte() {
         }
     });
 
-    // 🔹 Descargar PDF
     doc.save("reporte_usuarios.pdf");
 }
 </script>

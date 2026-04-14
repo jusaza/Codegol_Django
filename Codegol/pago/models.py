@@ -1,10 +1,5 @@
 from django.db import models
-
-class Matricula(models.Model):
-    id_matricula = models.AutoField(primary_key=True)
-
-    def __str__(self):
-        return str(self.id_matricula)
+from matricula.models import Matricula
 
 
 class Pago(models.Model):
@@ -20,6 +15,7 @@ class Pago(models.Model):
     metodo_pago = models.CharField(max_length=20, choices=METODOS)
     observaciones = models.CharField(max_length=255, blank=True, null=True)
     valor_total = models.FloatField()
+    cancelado = models.BooleanField(default=False)
     id_matricula = models.ForeignKey(Matricula, on_delete=models.CASCADE)
 
     def __str__(self):

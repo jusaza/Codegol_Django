@@ -17,18 +17,19 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from django.urls import include
-
-
 from . import views
+
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('usuario.urls')),
-    # paginas generales
+
+    # Paginas generales
     path('', views.inicio, name='inicio'),
     path('nosotros/', views.nosotros, name='nosotros'),
     path('servicios/', views.servicios, name='servicios'),
     path('pagina_original/', views.pagina_original, name='pagina_original'),
     path('400/', views.error400, name='error400'),
+
+    path('', include('usuario.urls')),
 
     path('entrenamientos/', include('entrenamientos.urls')),
     path('inventario/', include('inventario.urls')),
@@ -40,8 +41,10 @@ urlpatterns = [
     path('categoria/', include('categoria.urls')),
 
     path('rendimiento/', include('rendimiento.urls')),
+<<<<<<< HEAD
 
     
 
+=======
+>>>>>>> bf0ac046f03bd616608ad2ebce542800dfdc9174
 ]
-

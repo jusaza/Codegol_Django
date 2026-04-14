@@ -19,10 +19,14 @@
                 value="{{ query|default:'' }}">
         </form>
     </div>
-
+    {% if "Administrador" in request.session.roles %}
+    <a href="{% url 'reporte_pagos_pdf' %}" class="boton-registrar">
+      Descargar Reporte PDF
+    </a>
     <a href="{% url 'crear_pago' %}" class="boton-registrar">
       Registrar pago
     </a>
+    {% endif %}
   </div>
 
   <table>
@@ -33,7 +37,7 @@
         <th>Fecha</th>
         <th>Método</th>
         <th>Valor Total</th>
-        <th>Acciones</th>
+        {% if "Administrador" in request.session.roles %}<th>Acciones</th>{% endif %}
       </tr>
     </thead>
 
@@ -46,6 +50,7 @@
         <td>{{ pago.metodo_pago }}</td>
         <td>{{ pago.valor_total }}</td>
 
+        {% if "Administrador" in request.session.roles %}
         <td class="acciones">
           <button class="actualizar">
             <a style="text-decoration: none; color: white;"
@@ -54,13 +59,23 @@
             </a>
           </button>
 
-          <button class="eliminar">
-            <a style="text-decoration: none; color: white;"
-               href="{% url 'eliminar_pago' pago.id %}">
-               Eliminar
-            </a>
-          </button>
+          {% if pago.cancelado %}
+    <button style="background-color: green;">
+        <a style="text-decoration: none; color: white;"
+           href="{% url 'cancelar_pago' pago.id %}">
+           Aprobar
+        </a>
+    </button>
+{% else %}
+    <button style="background-color: red;">
+        <a style="text-decoration: none; color: white;"
+           href="{% url 'cancelar_pago' pago.id %}">
+           Cancelar
+        </a>
+    </button>
+{% endif %}
         </td>
+        {% endif %}
       </tr>
       {% empty %}
       <tr>
