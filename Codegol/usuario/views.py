@@ -1,4 +1,5 @@
 import csv
+import requests
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
@@ -167,16 +168,11 @@ def borrar_documento(request, id):
         documento.delete()
     return redirect("documentos", id=usuario_id)
 
-import requests
-
 @rol_requerido(["Administrador"])
 def crear_usuario(request):
-
     url = "https://www.apicountries.com/countries"
     response = requests.get(url)
     data = response.json()
-
-    # 🔥 LIMPIAR Y ORDENAR
     paises = sorted([
         {
             'codigo': p['alpha2Code'],
@@ -184,22 +180,14 @@ def crear_usuario(request):
         }
         for p in data if p.get('alpha2Code') and p.get('name')
     ], key=lambda x: x['nombre'])
-
     formulario = UsuarioForm(request.POST or None, request.FILES or None)
-
     if formulario.is_valid():
         usuario = formulario.save(commit=False)
-
         usuario.lugar_nacimiento = request.POST.get('lugar_nacimiento')
-
         usuario.save()
         formulario.save_m2m()
         return redirect('usuario')
-
-    return render(request, "usuarios/usuario_form.html", {
-        'formulario': formulario,
-        'paises': paises
-    })
+    return render(request, "usuarios/usuario_form.html", {'formulario': formulario,'paises': paises})
 
 def consulta_especifica_usuario(request, id):
     usuario = Usuario.objects.get(id_usuario=id)
@@ -208,21 +196,40 @@ def consulta_especifica_usuario(request, id):
     roles = request.session.get("roles", [])
     if "Administrador" not in roles and usuario_sesion_id != id:
         return redirect('error400')
-    return render(request, "usuarios/especifica.html", {'usuario' : usuario, 'roles_usuario' : roles_usuario})
+    url = "https://www.apicountries.com/countries"
+    response = requests.get(url)
+    data = response.json()
+    pais_nombre = usuario.lugar_nacimiento  
+    for p in data:
+        if p.get('alpha2Code') == usuario.lugar_nacimiento:
+            pais_nombre = p.get('name')
+            break
+    return render(request, "usuarios/especifica.html", {'usuario': usuario,'roles_usuario': roles_usuario,'pais_nombre': pais_nombre})
 
 def editar_usuario(request, id):
     usuario = Usuario.objects.get(id_usuario=id)
-    formulario = UsuarioForm(request.POST or None, request.FILES or None, instance=usuario)  #Se instacia del Modelo.
+    url = "https://www.apicountries.com/countries"
+    response = requests.get(url)
+    data = response.json()
+    paises = sorted([
+        {
+            'codigo': p['alpha2Code'],
+            'nombre': p['name']
+        }
+        for p in data if p.get('alpha2Code') and p.get('name')
+    ], key=lambda x: x['nombre'])
+    formulario = UsuarioForm(request.POST or None, request.FILES or None, instance=usuario)
     usuario_sesion_id = request.session.get("usuario_id")
     roles = request.session.get("roles", [])
     if "Administrador" not in roles and usuario_sesion_id != id:
         return redirect('error400')
     if formulario.is_valid() and request.POST:
         usuario = formulario.save(commit=False)
-        formulario.save()
+        usuario.lugar_nacimiento = request.POST.get('lugar_nacimiento')  
+        usuario.save()
         formulario.save_m2m()
         return redirect('usuario')
-    return render(request, "usuarios/usuario_form.html", {'formulario' : formulario})
+    return render(request, "usuarios/usuario_form.html", {'formulario': formulario,'paises': paises })
 
 def editar_perfil(request, id):
     usuario = Usuario.objects.get(id_usuario=id)
