@@ -1,6 +1,7 @@
 import csv
 import requests
 
+from django.core.mail import send_mail
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from .models import Usuario, DetallesUsuarioRol, Documentos, Rol
@@ -186,6 +187,24 @@ def crear_usuario(request):
         usuario.lugar_nacimiento = request.POST.get('lugar_nacimiento')
         usuario.save()
         formulario.save_m2m()
+        roles = usuario.roles.all()
+        nombres_roles = ", ".join([rol.rol_usuario for rol in roles])
+        print("Correo del usuario:", usuario.correo)
+        print("Roles:", nombres_roles)
+        send_mail(
+            'Usuario creado - Credenciales de Acceso',
+            f'''
+Hola {usuario.nombre_completo},
+Tu cuenta ha sido creada correctamente.
+📧 Usuario: {usuario.num_identificacion}
+🔑 Contraseña: {usuario.contrasena}
+👤 Roles: {nombres_roles}
+Bienvenido al sistema.
+            ''',
+            'administrativo@codegol.com',
+            [usuario.correo],
+            fail_silently=False,
+        )
         return redirect('usuario')
     return render(request, "usuarios/usuario_form.html", {'formulario': formulario,'paises': paises})
 
