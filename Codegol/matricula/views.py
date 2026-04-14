@@ -50,7 +50,7 @@ def lista_matricula(request):
 
 # CREAR
 def crear_matricula(request):
-    usuarios = Usuario.objects.all()
+    usuarios = Usuario.objects.filter(roles__rol_usuario='Jugador').distinct()
 
     if request.method == 'POST':
         fecha_inicio = request.POST.get('fecha_inicio')
