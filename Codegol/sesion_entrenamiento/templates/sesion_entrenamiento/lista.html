@@ -19,10 +19,11 @@
                 value="{{ query|default:'' }}">
         </form>
     </div>
-
+    {% if "Administrador" in request.session.roles or "Entrenador" in request.session.roles %}
     <a href="{% url 'crear_sesion' entrenamiento.id_entrenamiento %}" class="boton-registrar">
       Registrar sesión
     </a>
+    {% endif %}
   </div>
 
   <table>
@@ -34,7 +35,7 @@
         <th>Fecha</th>
         <th>Hora inicio</th>
         <th>Hora fin</th>
-        <th>Acciones</th>
+        {% if "Administrador" in request.session.roles or "Entrenador" in request.session.roles %}<th>Acciones</th>{% endif %}
       </tr>
     </thead>
 
@@ -51,6 +52,7 @@
         <td>{{ sesion.hora_inicio }}</td>
         <td>{{ sesion.hora_fin }}</td>
 
+        {% if "Administrador" in request.session.roles or "Entrenador" in request.session.roles %}
         <td class="acciones">
           <button class="actualizar">
             <a style="text-decoration: none; color: white;"
@@ -66,7 +68,9 @@
             </a>
           </button>
         </td>
+        {% endif %}
 
+        {% if "Administrador" in request.session.roles or "Entrenador" in request.session.roles %}
           <td class = "acciones">
             <button class="actualizar" style="background-color: green;">
                 <a style="text-decoration: none; color: white;"
@@ -81,6 +85,7 @@
                 </a>
             </button>
         </td>
+        {% endif %}
       </tr>
 
       {% empty %}
