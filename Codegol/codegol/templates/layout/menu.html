@@ -20,6 +20,9 @@
 
     <h2>⚽ Menú ⚽</h2>
     <ul>
+      <li>
+        <a href="{% url 'pagina_original' %}">Inicio</a>
+      </li>
       {% if "Administrador" in request.session.roles %}
       <li>
         <a href="{% url 'usuario' %}">Usuarios</a>
