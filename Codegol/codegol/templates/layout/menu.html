@@ -1,0 +1,83 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{% block title %}Escuela de Fútbol Pinze{% endblock %}</title>
+
+  <link rel="stylesheet" href="{% static 'css/style_pag_prin.css' %}">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  {% block extra_css %}
+  {% endblock %}
+</head>
+<body>
+  <aside class="menu">
+    <a href="{% url 'pagina_original' %}" class="logo" aria-label="Logo Escuela de Fútbol Pinze">
+      <img src="{% static 'imagenes/logo.jpg' %}" alt="Logo Escuela de Fútbol Pinze" />
+    </a>
+
+    <h2>⚽ Menú ⚽</h2>
+    <ul>
+      {% if "Administrador" in request.session.roles %}
+      <li>
+        <a href="{% url 'usuario' %}">Usuarios</a>
+      </li>
+      {% endif %}
+      {% if "Administrador" in request.session.roles or "Entrenador" in request.session.roles or "Jugador" in request.session.roles %}
+      <li>
+        <a href="{% url 'mi_perfil' request.session.usuario_id %}">Mi Perfil</a>
+      </li>
+      {% endif %}
+      {% if "Administrador" in request.session.roles or "Entrenador" in request.session.roles %}
+      <li>
+        <a href="{% url 'lista_inventario' %}">Inventario</a>
+      </li>
+      {% endif %}
+      {% if "Administrador" in request.session.roles or "Entrenador" in request.session.roles or "Jugador" in request.session.roles %}
+      <li>
+        <a href="{% url 'panel_entrenamiento' %}">Entrenamiento</a>
+      </li>
+      {% endif %}
+      {% if "Administrador" in request.session.roles or "Entrenador" in request.session.roles %}
+      <li>
+        <a href="{% url 'panel_posicion_actividad' %}">Actividades</a>
+      </li>
+      {% endif %}
+      {% if "Administrador" in request.session.roles or "Entrenador" in request.session.roles %}
+      <li>
+        <a href="{% url 'panel_actividad_atributo' %}">Atributos a Evaluar</a>
+      </li>
+      {% endif %}
+      {% if "Administrador" in request.session.roles or "Entrenador" in request.session.roles or "Jugador" in request.session.roles %}
+      <li>
+        <a href="{% url 'historial_rendimiento' %}">Rendimiento</a>
+      </li>
+      {% endif %}
+      {% if "Administrador" in request.session.roles %}
+      <li>
+        <a href="{% url 'lista_categoria' %}">Categoría</a>
+      </li>
+      {% endif %}
+      {% if "Administrador" in request.session.roles or "Entrenador" in request.session.roles or "Jugador" in request.session.roles %}
+      <li>
+        <a href="{% url 'lista_matricula' %}">Matrícula</a>
+      </li>
+      {% endif %}
+      {% if "Administrador" in request.session.roles or "Jugador" in request.session.roles %}
+      <li>
+        <a href="{% url 'lista_pagos' %}">Pago</a>
+      </li>
+      {% endif %}
+    </ul>
+
+    <a href="{% url 'logout' %}" class="cerrar-sesion">Cerrar sesión</a>
+  </aside>
+
+{% block content %}
+{% endblock %}
+     
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

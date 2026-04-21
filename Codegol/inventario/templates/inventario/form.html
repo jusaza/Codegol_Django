@@ -1,0 +1,34 @@
+<div class="login-box" role="main">
+
+  <h1>Inventario</h1>
+
+  <form method="post">
+    {% csrf_token %}
+
+    <div class="Formgrupo">
+      <label>Nombre del artículo</label>
+      <input type="text" name="nombre_articulo"
+             value="{{ inventario.nombre_articulo|default:'' }}"
+             placeholder="Ingrese el nombre del artículo" required>
+    </div>
+
+    <div class="Formgrupo">
+      <label>Descripción</label>
+      <input type="text" name="descripcion"
+             value="{{ inventario.descripcion|default:'' }}"
+             placeholder="Ingrese la descripción">
+    </div>
+
+    <br>
+
+    <button type="submit">
+      {% if inventario %}
+        Actualizar artículo
+      {% else %}
+        Guardar artículo
+      {% endif %}
+    </button>
+
+  </form>
+
+</div>

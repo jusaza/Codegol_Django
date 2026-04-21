@@ -1,0 +1,95 @@
+<div class="login-box" role="main">
+
+  <h1>{% if pago %}Editar Pago{% else %}Registrar Pago{% endif %}</h1>
+
+  <form method="post">
+    {% csrf_token %}
+
+    <div class="Formgrupo">
+      <label>Concepto de Pago</label>
+      <input type="text" name="concepto_pago"
+             value="{{ pago.concepto_pago|default:'' }}"
+             placeholder="Ingrese el concepto del pago" required>
+    </div>
+
+    <div class="Formgrupo">
+      <label>Fecha de Pago</label>
+      <input type="date" name="fecha_pago"
+             value="{{ pago.fecha_pago|default:'' }}" required>
+    </div>
+
+    <div class="Formgrupo">
+      <label>Método de Pago</label>
+      <select name="metodo_pago" required>
+  <option value="">Seleccione un método</option>
+
+  {% for value, label in metodos %}
+    <option value="{{ value }}"
+      {% if pago.metodo_pago == value %}selected{% endif %}>
+      {{ label }}
+    </option>
+  {% endfor %}
+</select>
+    </div>
+
+    <div class="Formgrupo">
+      <label>Observaciones</label>
+      <input type="text" name="observaciones"
+             value="{{ pago.observaciones|default:'' }}"
+             placeholder="Ingrese observaciones (opcional)">
+    </div>
+
+    <div class="Formgrupo">
+      <label>Valor Total</label>
+      <input type="number" step="0.01" name="valor_total"
+       value="{{ pago.valor_total|floatformat:0 }}"
+       required>
+    </div>
+<div class="Formgrupo">
+  <label>Buscar Usuario</label>
+  <input type="text" id="buscarUsuario" placeholder="Buscar usuario...">
+  </div>
+    <div class="Formgrupo"> 
+  <label>Seleccionar Usuario</label>
+  <select name="id_matricula" required>
+  <option value="">Seleccione un usuario</option>
+
+  {% for m in matriculas %}
+    <option value="{{ m.id }}"
+      {% if pago.id_matricula.id == m.id %}selected{% endif %}>
+      {{ m.id_jugador.nombre_completo }} - {{ m.id_jugador.num_identificacion }}
+    </option>
+  {% endfor %}
+</select>
+  
+</div>
+
+    <br>
+
+    <button type="submit">
+      {% if pago %}
+        Actualizar Pago
+      {% else %}
+        Guardar Pago
+      {% endif %}
+    </button>
+
+  </form>
+
+</div>
+
+
+<script>
+document.getElementById('buscarUsuario').addEventListener('keyup', function() {
+    let filtro = this.value.toLowerCase();
+    let opciones = document.querySelectorAll('select[name="id_matricula"] option');
+
+    opciones.forEach(op => {
+        if (op.text.toLowerCase().includes(filtro)) {
+            op.style.display = '';
+        } else {
+            op.style.display = 'none';
+        }
+    });
+});
+</script>

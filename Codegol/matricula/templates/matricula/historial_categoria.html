@@ -1,0 +1,58 @@
+{% extends 'layout/menu.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/stylepag.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<div class="contenido">
+
+  <a href="{% url 'lista_matricula' %}" class="btn-volver">
+    ← Volver
+  </a>
+
+  <h2>Historial de Categorías</h2>
+
+
+
+  <p><strong>Matrícula:</strong> {{ matricula.id }}</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Nombre</th>
+        <th>Categoría</th>
+        <th>Fecha</th>
+        <th>Estado</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      {% for h in historial %}
+      <tr>
+        <td>{{ h.id_historial }}</td>
+        <td>{{ h.id_matricula.id_jugador.nombre_completo }}</td>
+        <td>{{ h.id_categoria.nombre_categoria }}</td>
+        <td>{{ h.fecha_registro }}</td>
+        <td>
+          {% if h.estado %}
+            Activo
+          {% else %}
+            Inactivo
+          {% endif %}
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="4">No hay historial registrado</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+</div>
+
+{% endblock %}

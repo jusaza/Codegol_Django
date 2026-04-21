@@ -1,0 +1,81 @@
+{% extends 'layout/menu.html' %} 
+{% load static %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/stylepag.css' %}">
+{% endblock %}
+
+
+{% block content %}
+
+<div class="contenido">
+
+  <br>
+
+  <div class="barra-top">
+    <div class="barra-busqueda">
+        <form method="get">
+            <input type="text" name="q"
+                placeholder="Buscar artículo..."
+                value="{{ query|default:'' }}">
+        </form>
+    </div>
+    {% if "Administrador" in request.session.roles %}
+    <a href="{% url 'crear_inventario' %}" class="boton-registrar">
+      Registrar artículo
+    </a>
+    {% endif %}
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Nombre</th>
+        <th>Descripción</th>
+        {% if "Administrador" in request.session.roles %}<th>Acciones</th>{% endif %}
+      </tr>
+    </thead>
+
+    <tbody>
+      {% for inventario in inventarios %}
+      <tr>
+        <td>{{ inventario.id_inventario }}</td>
+        <td>{{ inventario.nombre_articulo }}</td>
+        <td>{{ inventario.descripcion }}</td>
+
+        {% if "Administrador" in request.session.roles %}
+        <td class="acciones">
+          <button class="actualizar">
+            <a style="text-decoration: none; color: white;"
+               href="{% url 'editar_inventario' inventario.id_inventario %}">
+               Actualizar
+            </a>
+          </button>
+          <button class="eliminar">
+            <a style="text-decoration: none; color: white;"
+               href="{% url 'eliminar_inventario' inventario.id_inventario %}">
+               Eliminar
+            </a>
+          </button>
+        </td>
+        <td class = "acciones">
+            <button class="actualizar" style="background-color: green;">
+                <a style="text-decoration: none; color: white;"
+                    href="{% url 'lista_movimientos' inventario.id_inventario %}">
+                Ver movimientos
+                </a>
+            </button>
+        </td>
+      </tr>
+      {% endif %}
+      {% empty %}
+      <tr>
+        <td colspan="4">No hay artículos registrados</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+</div>
+
+{% endblock %}

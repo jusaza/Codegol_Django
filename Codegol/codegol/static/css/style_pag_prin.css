@@ -1,0 +1,274 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Segoe UI', sans-serif;
+  display: flex;
+  min-height: 100vh;
+  background-color: #f0f0f0;
+  color: #111;
+  text-align: center;
+}
+
+/* Menú lateral */
+.menu {
+  width: 250px;
+  background-color: #001f3f;
+  color: white;
+  padding: 20px;
+  flex-shrink: 0;
+  position: relative;
+  border-left: 8px solid #0a4f8b;
+}
+
+/* Logo */
+.logo {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 25px;
+  text-decoration: none;
+}
+
+.logo img {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 3px solid #00bfff;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.logo img:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 10px rgba(0, 191, 255, 0.6);
+}
+
+.menu h2 {
+  margin-bottom: 20px;
+  font-size: 22px;
+  border-bottom: 1px solid #0074D9;
+  padding-bottom: 10px;
+  text-align: center;
+}
+
+/* Menú principal */
+.menu ul {
+  list-style: none;
+}
+
+.menu ul li {
+  margin: 15px 0;
+  position: relative;
+}
+
+.menu ul li a {
+  text-decoration: none;
+  color: white;
+  font-weight: bold;
+  transition: color 0.3s ease;
+  display: block;
+  padding: 8px 12px;
+  border-radius: 5px;
+}
+
+.menu ul li a:hover,
+.menu ul li a:focus-visible {
+  color: #97bcc9;
+  background: rgba(12, 12, 12, 0.2);
+}
+
+/* Botón cerrar sesión */
+.cerrar-sesion {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  right: 20px;
+  padding: 10px;
+  background-color: #960707;
+  color: white;
+  font-weight: bold;
+  border-radius: 5px;
+  text-align: center;
+  text-decoration: none;
+  display: block;
+  transition: background-color 0.3s ease;
+}
+
+.cerrar-sesion:hover,
+.cerrar-sesion:focus-visible {
+  background-color: #7a0505;
+}
+
+/* Contenido */
+.contenido {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+header {
+  width: 100%;
+  background-color: #0f5897;
+  color: white;
+  padding: 25px;
+  text-align: center;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+
+main {
+  flex-grow: 1;
+  padding: 30px;
+  background-color: white;
+}
+
+main h2 {
+  margin-bottom: 15px;
+  color: #001f3f;
+}
+
+.galeria {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 40px;
+  margin-top: 50px;
+}
+
+.tarjeta {
+  position: relative;
+  overflow: hidden;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  cursor: pointer;
+  background: #f9f9f9;
+  transition: transform 0.3s ease;
+}
+
+.tarjeta:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+}
+
+.tarjeta img {
+  width: 100%;
+  height: 400px;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.3s ease;
+}
+
+.tarjeta:hover img {
+  transform: scale(1.05);
+}
+
+.tarjeta .info {
+  position: absolute;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  width: 100%;
+  padding: 10px;
+  font-size: 14px;
+  transform: translateY(100%);
+  transition: transform 0.3s ease;
+}
+
+.tarjeta:hover .info {
+  transform: translateY(0);
+}
+
+footer {
+  background-color: #e9e9fb;
+  color: #111;
+  text-align: center;
+  padding: 15px;
+  font-size: 14px;
+  margin-top: auto;
+}
+
+/* Bienvenida y barrita */
+.bienvenida, .barrita {
+  background: #e9e9fb;
+  padding: 25px 30px;
+  border-left: 8px solid #0a4f8b;
+  border-right: 8px solid #0a4f8b;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  margin-bottom: 40px;
+}
+
+.bienvenida h2, .barrita h2 {
+  color: #001f3f;
+  margin-bottom: 10px;
+  font-size: 24px;
+}
+
+.barrita {
+  background: #001f3f;
+}
+
+.barrita h2, .barrita p {
+  color: white;
+}
+
+/* ---------------------- RESPONSIVE ---------------------- */
+
+@media (max-width: 900px) {
+  body {
+    flex-direction: column;
+  }
+
+  .menu {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+    align-items: center;
+    border-left: none;
+    border-bottom: 8px solid #0a4f8b;
+    padding: 10px;
+    position: static;
+  }
+
+  .menu h2 {
+    font-size: 18px;
+    border-bottom: none;
+    margin-bottom: 0;
+  }
+
+  .menu ul {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 100%;
+  }
+
+  .menu ul li {
+    margin: 5px 10px;
+  }
+
+  .cerrar-sesion {
+    position: static;
+    margin-top: 10px;
+    width: auto;
+  }
+
+  main {
+    padding: 20px;
+  }
+}
+
+@media (max-width: 600px) {
+  .galeria {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .tarjeta img {
+    height: 250px;
+  }
+}
