@@ -1,11 +1,12 @@
 import csv
+from datetime import date
 import requests
 
 from django.core.mail import send_mail
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from .models import Usuario, DetallesUsuarioRol, Documentos, Rol
-from .forms import UsuarioForm, LoginForm, DocumentoForm, EditarPerfil
+from .forms import UsuarioForm, LoginForm, DocumentoForm, DOCUMENTOS_POR_ROL, EditarPerfil, es_menor
 from .decorators import rol_requerido
 from django.db.models import Q
 
@@ -140,23 +141,37 @@ def usuario(request):
     return render(request, "usuarios/list.html", {'usuarios': usuarios,'roles': roles,'busqueda': busqueda,'rol_id': rol_id})
 
 @rol_requerido(["Administrador", "Entrenador", "Jugador"])
-def documentos(request,id):
+def documentos(request, id):
     usuario = Usuario.objects.get(id_usuario=id)
     documentos = Documentos.objects.filter(usuario=usuario)
     usuario_sesion_id = request.session.get("usuario_id")
-    roles = request.session.get("roles", [])
-    if "Administrador" not in roles and usuario_sesion_id != id:
+    roles_sesion = request.session.get("roles", [])
+    if "Administrador" not in roles_sesion and usuario_sesion_id != id:
         return redirect('error400')
+    roles_usuario = usuario.roles.values_list('rol_usuario', flat=True)
+    documentos_requeridos = set()
+    for rol in roles_usuario:
+        if rol == "Jugador" and es_menor(usuario):
+            documentos_requeridos.update(DOCUMENTOS_POR_ROL.get("JugadorMenor", []))
+        else:
+            documentos_requeridos.update(DOCUMENTOS_POR_ROL.get(rol, []))
+    documentos_subidos = set(
+        documentos.values_list('tipo_documento', flat=True)
+    )
+    faltantes = documentos_requeridos - documentos_subidos
     if request.method == 'POST':
-        formulario = DocumentoForm(request.POST, request.FILES)
+        formulario = DocumentoForm(request.POST, request.FILES, usuario=usuario)
         if formulario.is_valid():
-            documento = formulario.save(commit=False)  # se crea pero todavia no se guarda.
-            documento.usuario = usuario          # aquí se asigna al usuario.
-            documento.save()                     # ahora sí se guarda el archivo.
+            documento = formulario.save(commit=False)
+            documento.usuario = usuario
+            documento.save()
+            messages.success(request, "Documento subido correctamente")
             return redirect('documentos', id=usuario.id_usuario)
+        else:
+            messages.error(request, formulario.errors)
     else:
-        formulario = DocumentoForm()
-    return render(request, 'usuarios/documentos.html', {'formulario': formulario, 'documentos': documentos, 'usuario': usuario})
+        formulario = DocumentoForm(usuario=usuario)
+    return render(request, 'usuarios/documentos.html', {'formulario': formulario,'documentos': documentos,'usuario': usuario,'faltantes': faltantes})
 
 def borrar_documento(request, id):
     usuario_id = request.session.get("usuario_id")
@@ -194,12 +209,12 @@ def crear_usuario(request):
         send_mail(
             'Usuario creado - Credenciales de Acceso',
             f'''
-Hola {usuario.nombre_completo},
-Tu cuenta ha sido creada correctamente.
-📧 Usuario: {usuario.num_identificacion}
-🔑 Contraseña: {usuario.contrasena}
-👤 Roles: {nombres_roles}
-Bienvenido al sistema.
+            Hola {usuario.nombre_completo},
+            Tu cuenta ha sido creada correctamente.
+            📧 Usuario: {usuario.num_identificacion}
+            🔑 Contraseña: {usuario.contrasena}
+            👤 Roles: {nombres_roles}
+            Bienvenido al sistema.
             ''',
             'administrativo@codegol.com',
             [usuario.correo],

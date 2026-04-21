@@ -9,33 +9,58 @@
 {% block content %}
 
 <h2>Documentos</h2>
+{% if messages %}
+    {% for message in messages %}
+        <p>{{ message }}</p>
+    {% endfor %}
+{% endif %}
+
+<h3>Documentos faltantes</h3>
+
+{% if faltantes %}
+    <ul>
+        {% for doc in faltantes %}
+            <li>{{ doc }}</li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>Todos los documentos han sido cargados ✔️</p>
+{% endif %}
 
 <div class="login-box" role="main">
     <form method="post" enctype="multipart/form-data">
-    {% csrf_token %}
-    {% for campo in formulario %}
-        <div class="Formgrupo">
-            <label for="{{ campo.id_for_label }}">{{ campo.label }}</label>
-            {% if campo.field.widget.input_type != "select" %}
-                <input type="{{ campo.field.widget.input_type }}"
-                       name="{{ campo.name }}"
-                       id="{{ campo.id_for_label }}"
-                       placeholder="{{ campo.label }}"
-                       value="{{ campo.value|default_if_none:'' }}" />
-            {% elif campo.field.choices %}
-                <select name="{{ campo.name }}" id="{{ campo.id_for_label }}">
-                    {% for valor, texto in campo.field.choices %}
-                        <option value="{{ valor }}" {% if campo.value == valor %}selected{% endif %}>
-                            {{ texto }}
-                        </option>
-                    {% endfor %}
-                </select>
-            {% endif %}
-        </div>
-    {% endfor %}
-    <button type="submit">Subir</button>
-</form><br><br>
+        {% csrf_token %}
+
+        {% for campo in formulario %}
+            <div class="Formgrupo">
+                <label for="{{ campo.id_for_label }}">{{ campo.label }}</label>
+
+                {% if campo.field.widget.input_type != "select" %}
+                    <input type="{{ campo.field.widget.input_type }}"
+                           name="{{ campo.name }}"
+                           id="{{ campo.id_for_label }}"
+                           placeholder="{{ campo.label }}"
+                           value="{{ campo.value|default_if_none:'' }}" />
+
+                {% elif campo.field.choices %}
+                    <select name="{{ campo.name }}" id="{{ campo.id_for_label }}">
+                        {% for valor, texto in campo.field.choices %}
+                            <option value="{{ valor }}" {% if campo.value == valor %}selected{% endif %}>
+                                {{ texto }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                {% endif %}
+            </div>
+        {% endfor %}
+
+        <button type="submit">Subir</button>
+    </form>
+</div>
+
+<br><br>
 <hr><br>
+
 <h2>Archivos Subidos por {{ usuario.nombre_completo }}</h2><br>
 
 {% if documentos %}
@@ -54,18 +79,27 @@
                 <tr>
                     <td>{{ doc.tipo_documento }}</td>
                     <td>{{ doc.nombre }}</td>
+
                     <td class="acciones">
-                        <button class="ver">
                         {% if doc.archivo %}
-                            <a style="text-decoration: none; color: white;" href="{{ doc.archivo.url }}" target="_blank">Ver</a>
+                            <button class="ver">
+                                <a style="text-decoration: none; color: white;"
+                                   href="{{ doc.archivo.url }}"
+                                   target="_blank">Ver</a>
                             </button>
                         {% else %}
                             No hay archivo
                         {% endif %}
+                    </td>
+
                     <td>{{ doc.observaciones }}</td>
+
                     <td class="acciones">
                         <button class="eliminar">
-                            <a style="text-decoration: none; color: white;" href="{% url 'borrar_documento' doc.id_archivo %}">Eliminar</a>
+                            <a style="text-decoration: none; color: white;"
+                               href="{% url 'borrar_documento' doc.id_archivo %}">
+                                Eliminar
+                            </a>
                         </button>
                     </td>
                 </tr>

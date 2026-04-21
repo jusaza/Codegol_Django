@@ -2,14 +2,77 @@
 {% load static %}
 
 {% block title %}
-Menu de Bienvenida
+Inicio - Codegol
 {% endblock %}
 
 {% block content %}
+<style>
+.alerta-obligaciones {
+    position: relative;
+    padding: 10px;
+    border-radius: 10px;
+    color: white;
+    margin-bottom: 20px;
+    font-weight: bold;
+    overflow: hidden;
+    max-width: 400px;
+    height: 230px;
+    margin: 20px auto;
+    box-shadow: 0 0 15px rgba(0,0,0,0.4);
+}
+.capa {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 10px;
+}
+.rojo {
+    background-color: #ff0000;
+}
+.azul {
+    background-color: #0044ff;
+    animation: fadeColor 0.6s infinite alternate ease-in-out;
+}
+.contenido {
+    position: relative;
+    z-index: 2;
+}
+.alerta-obligaciones ul {
+    margin-top: 10px;
+    padding-left: 20px;
+    font-weight: normal;
+}
+@keyframes fadeColor {
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+</style>
+
 <div class="contenido">
     <header>
       <h1>Escuela de Fútbol Pinze</h1>
     </header>
+    {% if faltantes %}
+<div class="alerta-obligaciones">
+    <div class="capa rojo"></div>
+    <div class="capa azul"></div>
+
+    <div class="contenido">
+        <strong>⚠ Tiene obligaciones pendientes</strong>
+        <ul>
+            {% for doc in faltantes %}
+                <li>{{ doc }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+{% endif %}
 <main>
       <div class="bienvenida">
         <h2>Bienvenidos a la escuela de fútbol Pinze</h2>

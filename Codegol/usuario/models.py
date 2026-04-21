@@ -160,15 +160,21 @@ class DetallesUsuarioRol(models.Model):
 
 class Documentos(models.Model):
     DOCUMENTACION = [
-        ('DNI', 'Documento de Identidad (DNI/CC/TI)'),
-        ('PASAPORTE', 'Pasaporte'),
-        ('LICENCIA_MEDICA', 'Licencia Médica o Certificado de Salud'),
-        ('FOTO', 'Fotografía Reciente'),
-        ('AUTORIZACION', 'Autorización de Representante Legal'),
-        ('CONSTANCIA_ESTUDIO', 'Constancia de Estudio o Escolaridad'),
-        ('CONTRATO', 'Contrato de Inscripción o Membresía'),
-        ('SEGURO', 'Póliza de Seguro Médico o Deportiva'),
-        ('OTRO', 'Otro Documento'),
+    ('DNI', 'Documento de Identidad (CC/TI/DNI)'),
+    ('PASAPORTE', 'Pasaporte'),
+    ('HOJA_VIDA', 'Hoja de Vida'),
+    ('CERT_ANTECEDENTES', 'Certificado de Antecedentes'),
+    ('CERT_ESTUDIOS', 'Certificados Académicos'),
+    ('LICENCIA_ENTRENADOR', 'Licencia de Entrenador'),
+    ('CERT_MEDICO', 'Certificado Médico'),
+    ('EPS', 'Certificado de Afiliación a EPS'),
+    ('ARL', 'Certificado de Afiliación a ARL'),
+    ('SEGURO', 'Póliza de Seguro Deportivo'),
+    ('FOTO', 'Fotografía Reciente'),
+    ('AUTORIZACION_PADRES', 'Autorización de Padres'),
+    ('REGISTRO_CIVIL', 'Registro Civil'),
+    ('CONTRATO', 'Contrato Laboral o Inscripción'),
+    ('COMPROMISO', 'Carta de Compromiso'),
     ]
 
     id_archivo = models.AutoField(primary_key=True)

@@ -2,9 +2,7 @@
 
 <form enctype="multipart/form-data" method="post">
   {% csrf_token %}
-
   {% for campo in formulario %}
-
   <div class="Formgrupo">
     <label>{{ campo.label }}:</label>
 
@@ -43,12 +41,16 @@
         placeholder="{{ campo.label }}">
     {% endif %}
 
-    <div class="error">{{ campo.errors }}</div>
+    {% if campo.errors %}
+      <div class="error">
+        {% for error in campo.errors %}
+          <p>{{ error }}</p>
+        {% endfor %}
+      </div>
+    {% endif %}
   </div>
-
   {% endfor %}
 
-  <!-- 🔥 SELECT DE PAISES DESDE API -->
   <div class="Formgrupo">
     <label>País de nacimiento:</label>
     <select name="lugar_nacimiento" required>
@@ -60,10 +62,9 @@
           {{ p.nombre }}
         </option>
       {% endfor %}
-      
+    
     </select>
   </div>
-
   <button type="submit">
     {% if formulario.instance.pk %}
       Actualizar Usuario
@@ -71,8 +72,6 @@
       Guardar Usuario
     {% endif %}
   </button>
-
   <button type="button" onclick="history.back()">Volver</button>
-
 </form>
 </div>
