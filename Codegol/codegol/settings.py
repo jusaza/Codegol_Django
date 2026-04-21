@@ -24,10 +24,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-w&5&8fm@qa^nzcx@4$rkjs(g49$)##aix4qp%tt##t8yxq2_@j'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
 
-ALLOWED_HOSTS = []
+DEBUG = False
 
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 
 # Application definition
 
@@ -154,5 +154,3 @@ EMAIL_HOST_PASSWORD = 'abf63dbcf86884'
 EMAIL_USE_TLS = True
 EMAIL_USE_SSL = False
 
-DEBUG = False
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
