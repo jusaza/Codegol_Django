@@ -39,6 +39,17 @@
       <input type="text" name="observaciones" value="{{ matricula.observaciones }}">
     </div>
 
+    <div style="display:flex; flex-direction:column;">
+  <label>Posición:</label>
+
+  {% for p in posiciones %}
+    <div>
+      <input type="radio" name="posicion" value="{{ p.id_posicion }}" required>
+      {{ p.nombre }}
+    </div>
+  {% endfor %}
+</div>
+
     <div class="Formgrupo">
       <label></label>
       <input type="hidden" name="fecha_matricula" value="{{ matricula.fecha_matricula|date:'Y-m-d' }}">

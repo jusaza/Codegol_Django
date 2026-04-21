@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'usuario',
     'entrenamientos',
+    'entrenamiento_actividad',
     'sesion_entrenamiento',
     'inventario',
     'movimiento_inventario',
@@ -49,6 +50,11 @@ INSTALLED_APPS = [
     'categoria',
     'codegol',
     'pago',
+    'posicion',
+    'actividad',
+    'atributo',
+    'posicion_actividad',
+    'atributo_actividad',
 ]
 
 MIDDLEWARE = [

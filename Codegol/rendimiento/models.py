@@ -1,64 +1,67 @@
 from django.db import models
+from django.core.exceptions import ValidationError
+
+from matricula.models import Matricula
+from actividad.models import Actividad
+from atributo.models import Atributo
 from asistencia.models import Asistencia
+from sesion_entrenamiento.models import SesionEntrenamiento
+from posicion_actividad.models import PosicionActividad
+from atributo_actividad.models import ActividadAtributo
 
 
 class Rendimiento(models.Model):
+
     id_rendimiento = models.AutoField(primary_key=True)
 
-    id_asistencia = models.OneToOneField(
-        Asistencia,
-        on_delete=models.CASCADE,
-        db_column='id_asistencia'
-    )
+    matricula = models.ForeignKey(Matricula, on_delete=models.CASCADE)
+    sesion = models.ForeignKey(SesionEntrenamiento, on_delete=models.CASCADE)
+    actividad = models.ForeignKey(Actividad, on_delete=models.CASCADE)
+    atributo = models.ForeignKey(Atributo, on_delete=models.CASCADE)
 
-    # 🔥 ENUM DE POSICIONES
-    POSICIONES = [
-        ('POR', 'Portero'),
-        ('DEF', 'Defensa'),
-        ('MED', 'Mediocampista'),
-        ('DEL', 'Delantero'),
-        ('ND', 'No definido'),
-    ]
-
-    estado = models.BooleanField(default=True)
-
-    # 🔥 CAMPOS (con mínimo 1)
-    defensa = models.IntegerField(null=True, blank=True, default=1)
-    pase = models.IntegerField(null=True, blank=True, default=1)
-    regate = models.IntegerField(null=True, blank=True, default=1)
-    tecnica = models.IntegerField(null=True, blank=True, default=1)
-    velocidad = models.IntegerField(null=True, blank=True, default=1)
-    potencia_tiro = models.IntegerField(null=True, blank=True, default=1)
-
-    posicion = models.CharField(
-        max_length=3,
-        choices=POSICIONES,
-        default='ND',
+    valor = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
         null=True,
         blank=True
     )
 
-    observaciones = models.CharField(max_length=100, null=True, blank=True)
-
-    # 🔥 PROMEDIO (TE FALTABA EN EL MODELO)
-    promedio = models.FloatField(null=True, blank=True, default=1)
+    fecha = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = 'rendimiento'
+        db_table = "rendimiento_historico"
 
-    
+    def clean(self):
+
+        # VALIDAR SOLO SI SE VA A GUARDAR VALOR
+        if self.valor is not None:
+
+            existe_asistencia = Asistencia.objects.filter(
+                id_sesion=self.sesion,
+                id_matricula=self.matricula
+            ).exists()
+
+            if not existe_asistencia:
+                raise ValidationError("No se puede registrar rendimiento sin asistencia")
+
+            posicion = self.matricula.posicion
+
+            actividad_valida = PosicionActividad.objects.filter(
+                posicion=posicion,
+                actividad=self.actividad
+            ).exists()
+
+            if not actividad_valida:
+                raise ValidationError("Actividad no válida para la posición")
+
+            atributo_valido = ActividadAtributo.objects.filter(
+                actividad=self.actividad,
+                atributo=self.atributo
+            ).exists()
+
+            if not atributo_valido:
+                raise ValidationError("El atributo no corresponde a la actividad")
 
     def save(self, *args, **kwargs):
-        valores = [
-            self.defensa, self.pase, self.regate,
-            self.tecnica, self.velocidad, self.potencia_tiro
-        ]
-
-        valores_validos = [v for v in valores if v is not None]
-
-        if valores_validos:
-            self.promedio = sum(valores_validos) / len(valores_validos)
-        else:
-            self.promedio = 1  # 👈 nunca 0, mínimo 1 como pediste
-
+        self.full_clean()
         super().save(*args, **kwargs)

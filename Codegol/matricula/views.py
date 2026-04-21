@@ -11,6 +11,7 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet
 from openpyxl import Workbook
 from django.http import HttpResponse
+from posicion.models import Posicion
 
 
 from django.db.models import Q
@@ -51,6 +52,7 @@ def lista_matricula(request):
 # CREAR
 def crear_matricula(request):
     usuarios = Usuario.objects.filter(roles__rol_usuario='Jugador').distinct()
+    posiciones = Posicion.objects.filter()
 
     if request.method == 'POST':
         fecha_inicio = request.POST.get('fecha_inicio')
@@ -59,6 +61,7 @@ def crear_matricula(request):
         nivel = request.POST.get('nivel')
         observaciones = request.POST.get('observaciones')
         id_jugador = request.POST.get('id_jugador')
+        posicion_id = request.POST.get('posicion')
 
         if not id_jugador:
             return render(request, 'matricula/crear.html', {
@@ -75,19 +78,22 @@ def crear_matricula(request):
             nivel=nivel,
             observaciones=observaciones,
             estado=True,
-            id_jugador=jugador
+            id_jugador=jugador,
+            posicion=Posicion.objects.get(id_posicion=posicion_id) if posicion_id else None
         )
 
         return redirect('lista_matricula')
 
     return render(request, 'matricula/crear.html', {
-        'usuarios': usuarios
+        'usuarios': usuarios,
+        'posiciones': posiciones
     })
 
 
 # EDITAR
 def editar_matricula(request, id):
     matricula = get_object_or_404(Matricula, id=id)
+    posiciones = Posicion.objects.all()
 
     if request.method == 'POST':
         matricula.fecha_inicio = request.POST.get('fecha_inicio')
@@ -96,12 +102,17 @@ def editar_matricula(request, id):
         matricula.nivel = request.POST.get('nivel')
         matricula.observaciones = request.POST.get('observaciones')
 
+        posicion_id = request.POST.get('posicion')
+        if posicion_id:
+            matricula.posicion = Posicion.objects.get(id_posicion=posicion_id)
+
         matricula.save()
 
         return redirect('lista_matricula')
 
     return render(request, 'matricula/editar.html', {
-        'matricula': matricula
+        'matricula': matricula,
+        'posiciones': posiciones
     })
 
 
