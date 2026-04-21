@@ -43,6 +43,17 @@
       <input type="text" name="observaciones" style="width: 50%;">
     </div>
 
+    <div style="display:flex; flex-direction:column;">
+  <label>Posición:</label>
+
+  {% for p in posiciones %}
+    <div>
+      <input type="radio" name="posicion" value="{{ p.id_posicion }}" required>
+      {{ p.nombre }}
+    </div>
+  {% endfor %}
+</div>
+
     {% if error %}
       <p style="color:red; grid-column: 1 / -1; text-align:center;">{{ error }}</p>
     {% endif %}

@@ -41,4 +41,12 @@ urlpatterns = [
     path('categoria/', include('categoria.urls')),
 
     path('rendimiento/', include('rendimiento.urls')),
+
+    path('posicion_actividad/', include('posicion_actividad.urls')),
+
+    path('atributo_actividad/', include('atributo_actividad.urls')),
+
+    path('sesiones/', include('sesion_entrenamiento.urls')),
+
+    path('asistencia/', include('asistencia.urls')),
 ]
