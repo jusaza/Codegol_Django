@@ -158,6 +158,12 @@
                             📊 Rendimiento
                         </button>
 
+                        <button class="btn btn-warning w-50" style="background-color: green; border-color: green; ">
+                            <a style="text-decoration: none; color: white;"
+                                href="{% url 'salidas_sesion' s.id_sesion %}">
+                            Ver movimientos
+                            </a>
+                        </button>
                     </div>
 
                 </div>
@@ -181,7 +187,8 @@
 
                 <div class="modal-body">
 
-                  <input type="date" name="fecha" class="form-control mb-2" value="{{ s.fecha }}" required>
+                  <input type="date" name="fecha" class="form-control mb-2"
+                    value="{{ s.fecha|date:'Y-m-d' }}" required>
 
                   <input type="time" name="hora_inicio" class="form-control mb-2" value="{{ s.hora_inicio }}" required>
 
@@ -315,6 +322,27 @@ function irRendimiento(idSesion){
 
     window.location.href = `/rendimiento/sesion/${idSesion}/categoria/${categoria}/`;
 }
+</script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    document.querySelectorAll("form").forEach(form => {
+
+        form.addEventListener("submit", function (e) {
+
+            let inicio = form.querySelector("input[name='hora_inicio']").value;
+            let fin = form.querySelector("input[name='hora_fin']").value;
+
+            if (inicio && fin && inicio >= fin) {
+                alert("La hora de inicio no puede ser mayor o igual a la hora final");
+                e.preventDefault();
+            }
+
+        });
+
+    });
+
+});
 </script>
 
 {% endblock %}

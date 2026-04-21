@@ -132,6 +132,7 @@ USE_I18N = True
 USE_TZ = True
 
 
+
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
@@ -151,3 +152,6 @@ EMAIL_HOST_USER = 'a343e7bd69df11'
 EMAIL_HOST_PASSWORD = 'abf63dbcf86884'
 EMAIL_USE_TLS = True
 EMAIL_USE_SSL = False
+
+DEBUG = False
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost']

@@ -138,7 +138,7 @@ def salidas_sesion(request, id_sesion):
     query = request.GET.get('q')
 
     movimientos = MovimientoInventario.objects.filter(
-        tipo_movimiento='salida'
+        tipo_movimiento='salida',
     ).select_related('usuario', 'inventario')\
      .prefetch_related('devoluciones')\
      .order_by('-fecha')
