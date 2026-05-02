@@ -1,39 +1,35 @@
-{% extends 'layout/form.html' %}
-{% load static %}
+<form method="post" action="{% url 'crear_movimiento' inventario.id_inventario %}">
+  {% csrf_token %}
 
-{% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/style_forms.css' %}">
-{% endblock %}
+  <div class="modal-header text-white" style="background-color: #001f3f;">
+    <h5>Registrar entrada</h5>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+  </div>
 
-{% block content %}
+  <div class="modal-body">
 
-<div class="login-box" role="main">
-
-  <h1>Registrar entrada</h1>
-
-  <form method="post">
-    {% csrf_token %}
-
-    <div class="Formgrupo">
-      <label>Cantidad</label>
+    <div class="mb-3">
+      <label class="form-label fw-bold">Cantidad</label>
       <input type="number" name="cantidad"
+             class="form-control"
              placeholder="Ingrese la cantidad" required>
     </div>
 
-    <div class="Formgrupo">
-      <label>Observación</label>
+    <div class="mb-3">
+      <label class="form-label fw-bold">Observación</label>
       <input type="text" name="observaciones"
+             class="form-control"
              placeholder="Opcional">
     </div>
 
-    <br>
+  </div>
 
-    <button type="submit">
+  <div class="modal-footer">
+    <button type="submit"
+            class="btn btn-success"
+            style="background-color: #001f3f; border-color:#001f3f;">
       Registrar entrada
     </button>
+  </div>
 
-  </form>
-
-</div>
-
-{% endblock %}
+</form>

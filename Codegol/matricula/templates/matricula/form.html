@@ -1,80 +1,275 @@
-<div class="login-box" role="main">
-
-  <h1 style="text-align:center;">Registrar Matrícula</h1>
-
-  <form method="POST"
-        style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
+<form method="POST"
+      action="{% if matricula %}
+                {% url 'editar_matricula' matricula.id %}
+              {% else %}
+                {% url 'crear_matricula' %}
+              {% endif %}">
 
     {% csrf_token %}
 
-    <div style="display:flex; flex-direction:column;">
-      <label>Jugador:</label>
-      <select name="id_jugador" required>
-        <option value="">Seleccione un jugador</option>
-        {% for u in usuarios %}
-          <option value="{{ u.id_usuario }}">{{ u.nombre_completo }}</option>
-        {% endfor %}
-      </select>
+    <!-- HEADER -->
+    <div class="modal-header text-white"
+         style="background-color: #001f3f;">
+
+        <h5>
+            {% if matricula %}
+                Editar Matrícula
+            {% else %}
+                Registrar Matrícula
+            {% endif %}
+        </h5>
+
+        <button type="button"
+                class="btn-close btn-close-white"
+                data-bs-dismiss="modal">
+        </button>
+
     </div>
 
-    <div style="display:flex; flex-direction:column;">
-      <label>Fecha Inicio:</label>
-      <input type="date" name="fecha_inicio" required>
+    <!-- BODY -->
+    <div class="modal-body"
+         style="display:grid;
+                grid-template-columns: 1fr 1fr;
+                gap:20px;">
+
+        <!-- JUGADOR SOLO EN CREAR -->
+        {% if not matricula %}
+        <div style="display:flex; flex-direction:column;">
+            <label class="fw-bold">Jugador:</label>
+
+            <select name="id_jugador"
+                    class="form-control"
+                    required>
+
+                <option value="">
+                    Seleccione un jugador
+                </option>
+
+                {% for u in usuarios %}
+                <option value="{{ u.id_usuario }}">
+                    {{ u.nombre_completo }}
+                </option>
+                {% endfor %}
+
+            </select>
+        </div>
+        {% endif %}
+
+        <!-- FECHA INICIO -->
+        <div style="display:flex; flex-direction:column;">
+
+            <label class="fw-bold">
+                Fecha Inicio:
+            </label>
+
+            <input type="date"
+                   name="fecha_inicio"
+                   class="form-control"
+                   value="{% if matricula %}{{ matricula.fecha_inicio|date:'Y-m-d' }}{% endif %}"
+                   required>
+        </div>
+
+        <!-- FECHA FIN -->
+        <div style="display:flex; flex-direction:column;">
+
+            <label class="fw-bold">
+                Fecha Fin:
+            </label>
+
+            <input type="date"
+                   name="fecha_fin"
+                   class="form-control"
+                   value="{% if matricula %}{{ matricula.fecha_fin|date:'Y-m-d' }}{% endif %}"
+                   required>
+        </div>
+
+        <!-- NIVEL -->
+        <div style="display:flex; flex-direction:column;">
+
+            <label class="fw-bold">
+                Nivel:
+            </label>
+
+            <select name="nivel"
+                    class="form-control"
+                    required>
+
+                <option value="Alto"
+                    {% if matricula.nivel == "Alto" %}
+                        selected
+                    {% endif %}
+                >
+                    Alto
+                </option>
+
+                <option value="Medio"
+                    {% if matricula.nivel == "Medio" %}
+                        selected
+                    {% endif %}
+                >
+                    Medio
+                </option>
+
+                <option value="Bajo"
+                    {% if matricula.nivel == "Bajo" %}
+                        selected
+                    {% endif %}
+                >
+                    Bajo
+                </option>
+
+            </select>
+        </div>
+
+        <!-- OBSERVACIONES -->
+        <div style="display:flex; flex-direction:column;">
+
+            <label class="fw-bold">
+                Observaciones:
+            </label>
+
+            <input type="text"
+                   name="observaciones"
+                   class="form-control"
+                   value="{% if matricula %}{{ matricula.observaciones }}{% endif %}">
+        </div>
+
+        <!-- POSICIÓN -->
+        <div style="display:flex; flex-direction:column;">
+
+            <label class="fw-bold">
+                Posición:
+            </label>
+
+            <select name="posicion"
+                    class="form-control"
+                    required>
+
+                {% if posiciones %}
+
+                    <option value="">
+                        Seleccione una posición
+                    </option>
+
+                    {% for p in posiciones %}
+
+                    <option value="{{ p.id_posicion }}"
+
+                        {% if matricula and matricula.posicion.id_posicion == p.id_posicion %}
+                            selected
+                        {% endif %}
+
+                    >
+                        {{ p.nombre }}
+                    </option>
+
+                    {% endfor %}
+
+                {% else %}
+
+                    <option value=""
+                            disabled
+                            selected>
+
+                        Primero registra una posición
+
+                    </option>
+
+                {% endif %}
+
+            </select>
+        </div>
+
+        <!-- CATEGORÍA -->
+        <div style="display:flex; flex-direction:column;">
+
+            <label class="fw-bold">
+                Categoría:
+            </label>
+
+            <select name="categoria"
+                    id="categoria"
+                    class="form-control"
+                    required>
+
+                <option value="">
+                    Seleccione una categoría
+                </option>
+
+                {% for c in categorias %}
+
+                <option value="{{ c.id_categoria }}"
+
+                    {% if ultima_categoria and ultima_categoria.id_categoria.id_categoria == c.id_categoria %}
+                        selected
+                    {% endif %}
+
+                >
+                    {{ c.nombre_categoria }}
+                </option>
+
+                {% endfor %}
+
+            </select>
+
+        </div>
+
+        <!-- OBSERVACIÓN CAMBIO CATEGORÍA -->
+        {% if matricula %}
+        <div style="display:flex;
+                    flex-direction:column;"
+             id="campo-observacion"
+             hidden>
+
+            <label class="fw-bold">
+                Observación cambio categoría:
+            </label>
+
+            <input type="text"
+                   name="observacion_categoria"
+                   id="observacion_categoria"
+                   class="form-control">
+
+        </div>
+        {% endif %}
+
+        <!-- FECHA MATRÍCULA -->
+        {% if matricula %}
+        <input type="hidden"
+               name="fecha_matricula"
+               value="{{ matricula.fecha_matricula|date:'Y-m-d' }}">
+        {% endif %}
+
+        <!-- ERROR -->
+        {% if error %}
+        <p style="color:red;
+                  grid-column: 1 / -1;
+                  text-align:center;">
+
+            {{ error }}
+
+        </p>
+        {% endif %}
+
+        <!-- FOOTER -->
+        <div class="modal-footer"
+             style="grid-column: 1 / -1;">
+
+            <button type="submit"
+                    class="btn btn-success"
+                    style="background-color:#001f3f;
+                           border-color:#001f3f;">
+
+                {% if matricula %}
+                    Actualizar
+                {% else %}
+                    Guardar
+                {% endif %}
+
+            </button>
+
+        </div>
+
     </div>
 
-   
-    <div style="display:flex; flex-direction:column;">
-      <label>Fecha Fin:</label>
-      <input type="date" name="fecha_fin" required>
-    </div>
-
-    <div style="display:flex; flex-direction:column;">
-      <label>Nivel:</label>
-      <select name="nivel" required>
-        <option value="Alto">Alto</option>
-        <option value="Medio">Medio</option>
-        <option value="Bajo">Bajo</option>
-      </select>
-    </div>
-
-    
-    <div style="display:flex; flex-direction:column;">
-      <label>Observaciones:</label>
-      <input type="text" name="observaciones">
-    </div>
-
-<div style="display:flex; flex-direction:column;">
-  <label>Posición:</label>
-
-  <select name="posicion" required>
-    
-    {% if posiciones %}
-        <option value="">Seleccione una posición</option>
-
-        {% for p in posiciones %}
-            <option value="{{ p.id_posicion }}">
-                {{ p.nombre }}
-            </option>
-        {% endfor %}
-
-    {% else %}
-        <option value="" disabled selected>
-            Primero registra una posición
-        </option>
-    {% endif %}
-
-  </select>
-</div>
-
-    {% if error %}
-      <p style="color:red; grid-column: 1 / -1; text-align:center;">{{ error }}</p>
-    {% endif %}
-
-    <div style="grid-column: 1 / -1; display:flex; justify-content:center; gap:10px; margin-top:20px;">
-
-  <button type="submit"
-          style="background:#0b1649; color:white; padding:10px 25px; border:none; border-radius:8px; cursor:pointer; width:140px;">
-    Guardar
-  </button>
-
-</div>
+</form>

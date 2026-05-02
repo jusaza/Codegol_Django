@@ -79,7 +79,10 @@
         <h1>Entrenamientos</h1>
 
         <div>
-            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalEntrenamiento">
+            <button class="btn btn-primary"
+                    data-bs-toggle="modal"
+                    data-bs-target="#modalEntrenamiento"
+                    onclick="nuevoEntrenamiento()">
                 + Entrenamiento
             </button>
 
@@ -115,7 +118,12 @@
                             <!-- EDITAR -->
                             <button class="btn btn-sm btn-warning"
                                     data-bs-toggle="modal"
-                                    data-bs-target="#edit{{ e.id_entrenamiento }}">
+                                    data-bs-target="#modalEntrenamiento"
+                                    data-id="{{ e.id_entrenamiento }}"
+                                    data-descripcion="{{ e.descripcion }}"
+                                    data-lugar="{{ e.lugar }}"
+                                    data-observaciones="{{ e.observaciones }}"
+                                    onclick="editarEntrenamiento(this)">
                                 ✏️
                             </button>
 
@@ -169,17 +177,18 @@
 
       <form method="post">
         {% csrf_token %}
-        <input type="hidden" name="tipo" value="crear_entrenamiento">
+        <input type="hidden" name="tipo" id="tipoForm" value="crear_entrenamiento">
+        <input type="hidden" name="id" id="idEntrenamiento">
 
         <div class="modal-header bg-primary text-white">
-          <h5>Nuevo Entrenamiento</h5>
+          <h5 id="tituloModal">Nuevo Entrenamiento</h5>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
 
         <div class="modal-body">
-          <input name="descripcion" class="form-control mb-2" placeholder="Descripción" required>
-          <input name="lugar" class="form-control mb-2" placeholder="Lugar">
-          <input name="observaciones" class="form-control" placeholder="Observaciones">
+          <input id="descripcion" name="descripcion" class="form-control mb-2" placeholder="Descripción" required>
+          <input id="lugar" name="lugar" class="form-control mb-2" placeholder="Lugar">
+          <input id="observaciones" name="observaciones" class="form-control" placeholder="Observaciones">
         </div>
 
         <div class="modal-footer">
@@ -247,5 +256,30 @@
     </div>
   </div>
 </div>
+<script>
+function editarEntrenamiento(btn) {
 
+    document.getElementById('tipoForm').value = 'editar_entrenamiento';
+    document.getElementById('idEntrenamiento').value = btn.dataset.id;
+
+    document.getElementById('descripcion').value = btn.dataset.descripcion;
+    document.getElementById('lugar').value = btn.dataset.lugar;
+    document.getElementById('observaciones').value = btn.dataset.observaciones;
+
+    // 👇 CAMBIAR TÍTULO
+    document.getElementById('tituloModal').innerText = 'Editar Entrenamiento';
+}
+function nuevoEntrenamiento() {
+
+    document.getElementById('tipoForm').value = 'crear_entrenamiento';
+    document.getElementById('idEntrenamiento').value = '';
+
+    document.getElementById('descripcion').value = '';
+    document.getElementById('lugar').value = '';
+    document.getElementById('observaciones').value = '';
+
+    // 👇 CAMBIAR TÍTULO
+    document.getElementById('tituloModal').innerText = 'Nuevo Entrenamiento';
+}
+</script>
 {% endblock %}

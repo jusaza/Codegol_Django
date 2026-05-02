@@ -20,7 +20,8 @@
         </form>
     </div>
     {% if "Administrador" in request.session.roles %}
-    <a href="{% url 'crear_matricula' %}" class="boton-registrar">
+    <a class="boton-registrar"
+        onclick="abrirModalMatricula('{% url 'crear_matricula' %}')">
       Registrar matrícula
     </a>
 
@@ -65,8 +66,8 @@
         <td class="acciones">
           {% if "Administrador" in request.session.roles %}
           <button class="actualizar">
-            <a href="{% url 'editar_matricula' m.id %}"
-            title="Haz clic aquí para actualizar una matricula">
+            <a onclick="abrirModalMatricula('{% url 'editar_matricula' m.id %}')"
+                title="Haz clic aquí para actualizar una matrícula">
                🔄
             </a>
           </button>
@@ -80,12 +81,6 @@
           </button>
           {% endif %}
           {% if "Administrador" in request.session.roles or "Entrenador" in request.session.roles %}
-          <button style="background-color: purple;">
-          <a style="text-decoration: none; color: white;"
-           href="{% url 'asignar_categoria' m.id %}">
-            Asignar categoría
-          </a>
-        </button>
         {% endif %}
         <button style="background-color: green;">
         <a style="text-decoration: none; color: white;"
@@ -111,5 +106,85 @@
   </table>
 
 </div>
+<!-- MODAL MATRÍCULA -->
+<div class="modal fade"
+     id="modalMatricula">
 
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+
+        <div class="modal-content"
+             id="contenidoModalMatricula">
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
+function abrirModalMatricula(url){
+
+    fetch(url)
+
+    .then(response => response.text())
+
+    .then(html => {
+
+        document.getElementById(
+            'contenidoModalMatricula'
+        ).innerHTML = html;
+
+        let modal = new bootstrap.Modal(
+            document.getElementById('modalMatricula')
+        );
+
+        modal.show();
+
+        // 🔥 ACTIVAR CAMBIO DE CATEGORÍA
+        activarCambioCategoria();
+
+    });
+
+}
+
+function activarCambioCategoria(){
+
+    const categoriaSelect =
+        document.getElementById('categoria');
+
+    const campoObservacion =
+        document.getElementById('campo-observacion');
+
+    const observacionInput =
+        document.getElementById('observacion_categoria');
+
+    // 🔥 si no existe, salir
+    if (!categoriaSelect || !campoObservacion) return;
+
+    // 🔥 categoría original
+    const categoriaOriginal =
+        categoriaSelect.querySelector('option[selected]')?.value;
+
+    categoriaSelect.addEventListener('change', function () {
+
+        if (this.value !== categoriaOriginal) {
+
+            campoObservacion.hidden = false;
+
+            observacionInput.required = true;
+
+        } else {
+
+            campoObservacion.hidden = true;
+
+            observacionInput.required = false;
+
+        }
+
+    });
+
+}
+
+</script>
 {% endblock %}

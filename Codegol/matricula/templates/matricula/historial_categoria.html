@@ -27,6 +27,7 @@
         <th>Categoría</th>
         <th>Fecha</th>
         <th>Estado</th>
+        <th>Observación</th>
       </tr>
     </thead>
 
@@ -44,6 +45,7 @@
             Inactivo
           {% endif %}
         </td>
+        <td>{{ h.observacion }}</td>
       </tr>
       {% empty %}
       <tr>
