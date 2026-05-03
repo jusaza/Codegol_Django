@@ -71,48 +71,99 @@ def crear_matricula(request):
 
         jugador = Usuario.objects.get(id_usuario=id_jugador)
 
-        Matricula.objects.create(
-            fecha_inicio=fecha_inicio,
-            fecha_fin=fecha_fin,
-            fecha_matricula=fecha_matricula,
-            nivel=nivel,
-            observaciones=observaciones,
-            estado=True,
-            id_jugador=jugador,
-            posicion=Posicion.objects.get(id_posicion=posicion_id) if posicion_id else None
-        )
+        matricula = Matricula.objects.create(
+        fecha_inicio=fecha_inicio,
+        fecha_fin=fecha_fin,
+        fecha_matricula=fecha_matricula,
+        nivel=nivel,
+        observaciones=observaciones,
+        estado=True,
+        id_jugador=jugador,
+        posicion=Posicion.objects.get(id_posicion=posicion_id) if posicion_id else None
+    )
+        categoria_id = request.POST.get('categoria')
+
+        if categoria_id:
+            HistorialCategoria.objects.create(
+                id_matricula=matricula,
+                id_categoria_id=categoria_id,
+                fecha_registro=date.today(),
+                estado=True
+            )
 
         return redirect('lista_matricula')
 
-    return render(request, 'matricula/crear.html', {
-        'usuarios': usuarios,
-        'posiciones': posiciones
-    })
+    return render(request, 'matricula/form.html', {
+    'usuarios': usuarios,
+    'posiciones': posiciones,
+    'categorias': Categoria.objects.filter(estado=True),
+    'error': 'Debe seleccionar un jugador'
+})
 
 
 # EDITAR
 def editar_matricula(request, id):
+
     matricula = get_object_or_404(Matricula, id=id)
+
     posiciones = Posicion.objects.all()
 
+    categorias = Categoria.objects.filter(estado=True)
+
+    ultima_categoria = HistorialCategoria.objects.filter(
+        id_matricula=matricula,
+        estado=True
+    ).order_by('-fecha_registro', '-id_historial').first()
+
     if request.method == 'POST':
+
+        # DATOS MATRÍCULA
         matricula.fecha_inicio = request.POST.get('fecha_inicio')
         matricula.fecha_fin = request.POST.get('fecha_fin')
         matricula.fecha_matricula = request.POST.get('fecha_matricula')
         matricula.nivel = request.POST.get('nivel')
         matricula.observaciones = request.POST.get('observaciones')
 
+        # POSICIÓN
         posicion_id = request.POST.get('posicion')
+
         if posicion_id:
-            matricula.posicion = Posicion.objects.get(id_posicion=posicion_id)
+            matricula.posicion = Posicion.objects.get(
+                id_posicion=posicion_id
+            )
 
         matricula.save()
 
+        # CATEGORÍA NUEVA
+        categoria_nueva = request.POST.get('categoria')
+
+        # OBSERVACIÓN DEL CAMBIO
+        observacion_categoria = request.POST.get(
+            'observacion_categoria'
+        )
+
+        # VALIDAR SI CAMBIÓ LA CATEGORÍA
+        if (
+            ultima_categoria and
+            str(ultima_categoria.id_categoria.id_categoria)
+            != str(categoria_nueva)
+        ):
+
+            HistorialCategoria.objects.create(
+                id_matricula=matricula,
+                id_categoria_id=categoria_nueva,
+                fecha_registro=date.today(),
+                observacion=observacion_categoria,
+                estado=True
+            )
+
         return redirect('lista_matricula')
 
-    return render(request, 'matricula/editar.html', {
+    return render(request, 'matricula/form.html', {
         'matricula': matricula,
-        'posiciones': posiciones
+        'posiciones': posiciones,
+        'categorias': categorias,
+        'ultima_categoria': ultima_categoria
     })
 
 

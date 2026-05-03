@@ -20,8 +20,9 @@
         </form>
     </div>
     {% if "Administrador" in request.session.roles %}
-    <a href="{% url 'crear_inventario' %}" class="boton-registrar">
-      Registrar artículo
+    <a class="boton-registrar"
+            onclick="abrirModal('{% url 'crear_inventario' %}')">
+        + Registrar artículo
     </a>
     {% endif %}
   </div>
@@ -45,11 +46,9 @@
 
         {% if "Administrador" in request.session.roles %}
         <td class="acciones">
-          <button class="actualizar">
-            <a style="text-decoration: none; color: white;"
-               href="{% url 'editar_inventario' inventario.id_inventario %}">
-               Actualizar
-            </a>
+          <button class="actualizar"
+                  onclick="abrirModal('{% url 'editar_inventario' inventario.id_inventario %}')">
+              Actualizar
           </button>
           <button class="eliminar">
             <a style="text-decoration: none; color: white;"
@@ -78,4 +77,24 @@
 
 </div>
 
+<div class="modal fade" id="modalInventario">
+  <div class="modal-dialog">
+    <div class="modal-content" id="contenidoModal">
+      <!-- aquí se carga TODO -->
+    </div>
+  </div>
+</div>
+
+<script>
+function abrirModal(url){
+    fetch(url)
+    .then(response => response.text())
+    .then(html => {
+        document.getElementById('contenidoModal').innerHTML = html;
+
+        var modal = new bootstrap.Modal(document.getElementById('modalInventario'));
+        modal.show();
+    });
+}
+</script>
 {% endblock %}

@@ -67,7 +67,7 @@ def crear_pago(request):
         )
         return redirect('lista_pagos')
 
-    return render(request, 'pago/crear.html', {
+    return render(request, 'pago/formulario.html', {
         'metodos': Pago.METODOS,
         'matriculas': matriculas_finales
     })
@@ -99,7 +99,7 @@ def editar_pago(request, id):
 
         return redirect('lista_pagos')
 
-    return render(request, 'pago/editar.html', {
+    return render(request, 'pago/formulario.html', {
         'pago': pago,
         'metodos': Pago.METODOS,
         'matriculas': matriculas_finales

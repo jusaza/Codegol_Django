@@ -23,8 +23,9 @@
                value="{{ query|default:'' }}">
       </form>
     </div>
-    <a href="{% url 'crear_movimiento' inventario.id_inventario %}" class="boton-registrar">
-      Registrar Entrada de Movimiento
+    <a class="boton-registrar"
+        onclick="abrirModalMovimiento('{% url 'crear_movimiento' inventario.id_inventario %}')">
+        + Registrar Entrada de Movimiento
     </a>
   </div>
 <div class = "acciones">
@@ -122,6 +123,13 @@
 </table>
 
 </div>
+<div class="modal fade" id="modalMovimiento">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" id="contenidoModalMovimiento">
+      <!-- se carga aquí -->
+    </div>
+  </div>
+</div>
 <script>
 function guardarCambios() {
     let inputs = document.querySelectorAll('.obs');
@@ -143,6 +151,18 @@ function guardarCambios() {
     .then(response => response.json())
     .then(data => {
         alert("Cambios guardados correctamente");
+    });
+}
+</script>
+<script>
+function abrirModalMovimiento(url){
+    fetch(url)
+    .then(response => response.text())
+    .then(html => {
+        document.getElementById('contenidoModalMovimiento').innerHTML = html;
+
+        var modal = new bootstrap.Modal(document.getElementById('modalMovimiento'));
+        modal.show();
     });
 }
 </script>

@@ -20,8 +20,12 @@
         </form>
     </div>
 
-    <a href="{% url 'crear_categoria' %}" class="boton-registrar">
+    <a href="javascript:void(0);"
+      class="boton-registrar"
+      onclick="abrirModalCategoria('{% url 'crear_categoria' %}')">
+
       Registrar categoría
+
     </a>
   </div>
 
@@ -51,9 +55,12 @@
 
         <td class="acciones">
           <button class="actualizar">
-            <a style="text-decoration: none; color: white;"
-               href="{% url 'editar_categoria' categoria.id_categoria %}">
-               Actualizar
+            <a href="javascript:void(0);"
+              style="text-decoration:none; color:white;"
+              onclick="abrirModalCategoria('{% url 'editar_categoria' categoria.id_categoria %}')">
+
+              Actualizar
+
             </a>
           </button>
 
@@ -75,5 +82,44 @@
   </table>
 
 </div>
+<!-- MODAL CATEGORÍA -->
+<div class="modal fade"
+     id="modalCategoria">
 
+    <div class="modal-dialog modal-dialog-centered">
+
+        <div class="modal-content"
+             id="contenidoModalCategoria">
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
+function abrirModalCategoria(url){
+
+    fetch(url)
+
+    .then(response => response.text())
+
+    .then(html => {
+
+        document.getElementById(
+            'contenidoModalCategoria'
+        ).innerHTML = html;
+
+        let modal = new bootstrap.Modal(
+            document.getElementById('modalCategoria')
+        );
+
+        modal.show();
+
+    });
+
+}
+
+</script>
 {% endblock %}
