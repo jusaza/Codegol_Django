@@ -281,15 +281,94 @@ def generar_certificado(request, id):
 
     return response
 
+def modal_filtro_excel(request):
 
+    categorias = Categoria.objects.filter(estado=True)
+    posiciones = Posicion.objects.all()
+
+    return render(request, 'matricula/modal_filtro_excel.html', {
+        'categorias': categorias,
+        'posiciones': posiciones
+    })
 
 def exportar_matriculas_excel(request):
 
     matriculas = Matricula.objects.filter(estado=True)
 
+    categoria = request.GET.get('categoria')
+    nivel = request.GET.get('nivel')
+    posicion = request.GET.get('posicion')
+    fecha_inicio = request.GET.get('fecha_inicio')
+    fecha_fin = request.GET.get('fecha_fin')
+
+    # FILTRO NIVEL
+    if nivel:
+        matriculas = matriculas.filter(
+            nivel=nivel
+        )
+
+    # FILTRO POSICIÓN
+    if posicion:
+        matriculas = matriculas.filter(
+            posicion_id=posicion
+        )
+
+    # FILTRO FECHAS
+    if fecha_inicio:
+        matriculas = matriculas.filter(
+            fecha_inicio__gte=fecha_inicio
+        )
+
+    if fecha_fin:
+        matriculas = matriculas.filter(
+            fecha_fin__lte=fecha_fin
+        )
+
+    # FILTRO CATEGORÍA
+    if categoria:
+
+        matriculas = matriculas.filter(
+            historialcategoria__id_categoria_id=categoria,
+            historialcategoria__estado=True
+        ).distinct()
+
+    # TOTAL
+    total = matriculas.count()
+
+    # CREAR EXCEL
     wb = Workbook()
+
     ws = wb.active
+
     ws.title = "Matrículas"
+
+    # INFORMACIÓN REPORTE
+    ws.append(["REPORTE DE MATRÍCULAS"])
+    ws.append([])
+
+    ws.append(["TOTAL JUGADORES", total])
+
+    ws.append([
+        "FILTROS APLICADOS"
+    ])
+
+    ws.append([
+        f"Nivel: {nivel or 'Todos'}"
+    ])
+
+    ws.append([
+        f"Posición: {posicion or 'Todas'}"
+    ])
+
+    ws.append([
+        f"Fecha Inicio: {fecha_inicio or 'Todas'}"
+    ])
+
+    ws.append([
+        f"Fecha Fin: {fecha_fin or 'Todas'}"
+    ])
+
+    ws.append([])
 
     # ENCABEZADOS
     ws.append([
@@ -306,6 +385,7 @@ def exportar_matriculas_excel(request):
 
     # DATOS
     for m in matriculas:
+
         jugador = m.id_jugador
 
         ws.append([
@@ -324,7 +404,10 @@ def exportar_matriculas_excel(request):
     response = HttpResponse(
         content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     )
-    response['Content-Disposition'] = 'attachment; filename="reporte_matriculas.xlsx"'
+
+    response[
+        'Content-Disposition'
+    ] = 'attachment; filename="reporte_matriculas.xlsx"'
 
     wb.save(response)
 
