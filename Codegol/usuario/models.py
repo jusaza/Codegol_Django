@@ -159,28 +159,66 @@ class DetallesUsuarioRol(models.Model):
 
 
 class Documentos(models.Model):
-    DOCUMENTACION = [
-    ('DNI', 'Documento de Identidad (CC/TI/DNI)'),
-    ('PASAPORTE', 'Pasaporte'),
-    ('HOJA_VIDA', 'Hoja de Vida'),
-    ('CERT_ANTECEDENTES', 'Certificado de Antecedentes'),
-    ('CERT_ESTUDIOS', 'Certificados Académicos'),
-    ('LICENCIA_ENTRENADOR', 'Licencia de Entrenador'),
-    ('CERT_MEDICO', 'Certificado Médico'),
-    ('EPS', 'Certificado de Afiliación a EPS'),
-    ('ARL', 'Certificado de Afiliación a ARL'),
-    ('SEGURO', 'Póliza de Seguro Deportivo'),
-    ('FOTO', 'Fotografía Reciente'),
-    ('AUTORIZACION_PADRES', 'Autorización de Padres'),
-    ('REGISTRO_CIVIL', 'Registro Civil'),
-    ('CONTRATO', 'Contrato Laboral o Inscripción'),
-    ('COMPROMISO', 'Carta de Compromiso'),
+    CATEGORIA_CHOICES = [
+        ('LEGAL', 'Legal'),
+        ('MEDICO', 'Médico'),
+        ('ACADEMICO', 'Académico'),
+        ('DEPORTIVO', 'Deportivo'),
+        ('PERSONAL', 'Personal'),
     ]
 
+    DOCUMENTACION = [
+        ('DNI', 'Documento de Identidad'),
+        ('PASAPORTE', 'Pasaporte'),
+        ('HOJA_VIDA', 'Hoja de Vida'),
+        ('CERT_ANTECEDENTES', 'Certificado de Antecedentes'),
+        ('CERT_ESTUDIOS', 'Certificados Académicos'),
+        ('LICENCIA_ENTRENADOR', 'Licencia de Entrenador'),
+        ('CERT_MEDICO', 'Certificado Médico'),
+        ('EPS', 'Certificado EPS'),
+        ('ARL', 'Certificado ARL'),
+        ('SEGURO', 'Póliza de Seguro'),
+        ('FOTO', 'Fotografía'),
+        ('AUTORIZACION_PADRES', 'Autorización de Padres'),
+        ('REGISTRO_CIVIL', 'Registro Civil'),
+        ('CONTRATO', 'Contrato'),
+        ('COMPROMISO', 'Carta de Compromiso'),
+    ]
+
+    DOCUMENTOS_CATEGORIA_MAP = {
+        'DNI': 'LEGAL',
+        'PASAPORTE': 'LEGAL',
+        'HOJA_VIDA': 'PERSONAL',
+        'CERT_ANTECEDENTES': 'LEGAL',
+        'CERT_ESTUDIOS': 'ACADEMICO',
+        'LICENCIA_ENTRENADOR': 'DEPORTIVO',
+        'CERT_MEDICO': 'MEDICO',
+        'EPS': 'MEDICO',
+        'ARL': 'MEDICO',
+        'SEGURO': 'MEDICO',
+        'FOTO': 'PERSONAL',
+        'AUTORIZACION_PADRES': 'LEGAL',
+        'REGISTRO_CIVIL': 'LEGAL',
+        'CONTRATO': 'LEGAL',
+        'COMPROMISO': 'LEGAL',
+    }
+
     id_archivo = models.AutoField(primary_key=True)
+    usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE)
+    categoria = models.CharField(
+        max_length=20,
+        choices=CATEGORIA_CHOICES,
+        default="SIN_CATEGORIA"
+    )
+    tipo_documento = models.CharField(
+        max_length=50,
+        choices=DOCUMENTACION
+    )
     archivo = models.FileField(upload_to='documentos/')
-    tipo_documento = models.CharField(max_length=50, choices=DOCUMENTACION)  
-    nombre = models.CharField(max_length=255)  # 
+    nombre = models.CharField(max_length=255)
     observaciones = models.CharField(max_length=255, default='N.A')
     fecha_subida = models.DateTimeField(auto_now_add=True)
-    usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.nombre} - {self.usuario}"
+    

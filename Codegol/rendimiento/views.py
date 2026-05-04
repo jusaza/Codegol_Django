@@ -1,6 +1,8 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse
 
+from usuario.decorators import bloqueo_documentos_completos
+
 from .models import Rendimiento
 from sesion_entrenamiento.models import SesionEntrenamiento
 from matricula.models import HistorialCategoria
@@ -12,6 +14,7 @@ from django.db.models import Avg
 
 
 # 🔥 TABLA DE RENDIMIENTO (igual que antes)
+@bloqueo_documentos_completos
 def tabla_rendimiento(request, id_sesion, id_categoria):
 
     sesion = get_object_or_404(SesionEntrenamiento, id_sesion=id_sesion)

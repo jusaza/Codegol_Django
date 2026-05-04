@@ -1,7 +1,8 @@
 import csv
-from datetime import date
 import requests
+import json
 
+from datetime import date
 from django.core.mail import send_mail
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
@@ -30,7 +31,7 @@ def login(request):
                 request.session["usuario_id"] = usuario.id_usuario    #Nombres personalizados para guardar la sesion ejemplo [usuario_id] y despues va el campo de la base de datos.
                 request.session["nombre"] = usuario.nombre_completo
                 request.session["roles"] = lista_roles
-                return redirect("pagina_original")
+                return redirect("inicio")
             except Usuario.DoesNotExist:
                 messages.error(request, "Documento o contraseña incorrectos")
                 return redirect("login")
@@ -142,46 +143,103 @@ def usuario(request):
 
 @rol_requerido(["Administrador", "Entrenador", "Jugador"])
 def documentos(request, id):
+
     usuario = Usuario.objects.get(id_usuario=id)
     documentos = Documentos.objects.filter(usuario=usuario)
+
     usuario_sesion_id = request.session.get("usuario_id")
     roles_sesion = request.session.get("roles", [])
+
     if "Administrador" not in roles_sesion and usuario_sesion_id != id:
         return redirect('error400')
+  
     roles_usuario = usuario.roles.values_list('rol_usuario', flat=True)
+
     documentos_requeridos = set()
+
     for rol in roles_usuario:
         if rol == "Jugador" and es_menor(usuario):
             documentos_requeridos.update(DOCUMENTOS_POR_ROL.get("JugadorMenor", []))
         else:
             documentos_requeridos.update(DOCUMENTOS_POR_ROL.get(rol, []))
+
     documentos_subidos = set(
         documentos.values_list('tipo_documento', flat=True)
     )
+
     faltantes = documentos_requeridos - documentos_subidos
+
+    total_requeridos = len(documentos_requeridos)
+    total_subidos = len(documentos_subidos)
+
+    progreso = int((total_subidos / total_requeridos) * 100) if total_requeridos > 0 else 0
+
+    docs_por_categoria = {}
+
+    for doc in documentos:
+        categoria_display = doc.get_categoria_display()
+
+        if categoria_display not in docs_por_categoria:
+            docs_por_categoria[categoria_display] = []
+
+        docs_por_categoria[categoria_display].append(doc)
+
+    dict_documentos = dict(Documentos.DOCUMENTACION)
+    faltantes_display = [dict_documentos.get(doc, doc) for doc in faltantes]
+
     if request.method == 'POST':
         formulario = DocumentoForm(request.POST, request.FILES, usuario=usuario)
+
         if formulario.is_valid():
             documento = formulario.save(commit=False)
             documento.usuario = usuario
             documento.save()
+
             messages.success(request, "Documento subido correctamente")
             return redirect('documentos', id=usuario.id_usuario)
+
         else:
-            messages.error(request, formulario.errors)
+            for field, errors in formulario.errors.items():
+                for error in errors:
+                    messages.error(request, f"Error: {error}")
+
     else:
         formulario = DocumentoForm(usuario=usuario)
-    return render(request, 'usuarios/documentos.html', {'formulario': formulario,'documentos': documentos,'usuario': usuario,'faltantes': faltantes})
+
+   
+
+    documentos_categoria_json = json.dumps({
+    doc: cat
+    for doc, cat in Documentos.DOCUMENTOS_CATEGORIA_MAP.items()
+    if doc in documentos_requeridos   
+    })
+
+    return render(request, 'usuarios/documentos.html', {
+        'formulario': formulario,
+        'documentos': documentos,
+        'usuario': usuario,
+        'faltantes': faltantes_display,
+        'progreso': progreso,
+        'total_subidos': total_subidos,
+        'total_requeridos': total_requeridos,
+        'docs_por_categoria': docs_por_categoria,
+        'documentos_categoria_json': documentos_categoria_json,
+    })
 
 def borrar_documento(request, id):
-    usuario_id = request.session.get("usuario_id")
-    if not usuario_id:
-        return redirect("login") 
+    usuario_sesion_id = request.session.get("usuario_id")
+    roles_sesion = request.session.get("roles", [])
+    if not usuario_sesion_id:
+        return redirect("login")
     documento = get_object_or_404(Documentos, id_archivo=id)
-    if documento.usuario.id_usuario == usuario_id:
+    usuario_id = documento.usuario.id_usuario
+    if documento.usuario.id_usuario == usuario_sesion_id or "Administrador" in roles_sesion:
         if documento.archivo:
             documento.archivo.delete(save=False)
         documento.delete()
+        messages.success(request, "Documento eliminado correctamente")
+    else:
+        messages.error(request, "No tienes permiso")
     return redirect("documentos", id=usuario_id)
 
 @rol_requerido(["Administrador"])
@@ -220,7 +278,7 @@ def crear_usuario(request):
             [usuario.correo],
             fail_silently=False,
         )
-        return redirect('usuario')
+        return redirect('documentos', id=usuario.id_usuario)
     return render(request, "usuarios/usuario_form.html", {'formulario': formulario,'paises': paises})
 
 def consulta_especifica_usuario(request, id):

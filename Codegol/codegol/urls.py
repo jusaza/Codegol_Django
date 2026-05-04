@@ -23,10 +23,9 @@ urlpatterns = [
     path('admin/', admin.site.urls),
 
     # Paginas generales
-    path('', views.inicio, name='inicio'),
+    path('inicio', views.inicio, name='inicio'),
     path('nosotros/', views.nosotros, name='nosotros'),
     path('servicios/', views.servicios, name='servicios'),
-    path('pagina_original/', views.pagina_original, name='pagina_original'),
     path('400/', views.error400, name='error400'),
 
     path('', include('usuario.urls')),

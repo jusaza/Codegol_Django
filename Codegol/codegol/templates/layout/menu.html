@@ -145,7 +145,7 @@
 
   <aside class="menu">
 
-    <a href="{% url 'pagina_original' %}" class="logo">
+    <a href="{% url 'inicio' %}" class="logo">
       <img src="{% static 'imagenes/logo.jpg' %}" alt="Logo Escuela de Fútbol Pinze">
     </a>
 
@@ -154,8 +154,8 @@
     <ul>
 
       <!-- INICIO -->
-<li class="menu-item {% if request.resolver_match.url_name == 'pagina_original' %}active{% endif %}">
-    <a href="{% url 'pagina_original' %}">
+<li class="menu-item {% if request.resolver_match.url_name == 'inicio' %}active{% endif %}">
+    <a href="{% url 'inicio' %}">
         Inicio
     </a>
 </li>
