@@ -1,0 +1,364 @@
+import csv
+import requests
+import json
+
+from datetime import date
+from django.core.mail import send_mail
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+from .models import Usuario, DetallesUsuarioRol, Documentos, Rol
+from .forms import UsuarioForm, LoginForm, DocumentoForm, DOCUMENTOS_POR_ROL, EditarPerfil, es_menor
+from .decorators import rol_requerido
+from django.db.models import Q
+
+# Create your views here.
+
+def login(request):
+    form = LoginForm()
+    if request.method == "POST":
+        form = LoginForm(request.POST)
+        if form.is_valid():
+            documento = form.cleaned_data["documento"]
+            contrasena = form.cleaned_data["contrasena"]
+            try:
+                usuario = Usuario.objects.get(
+                    num_identificacion = documento,
+                    contrasena = contrasena
+                )
+                roles = DetallesUsuarioRol.objects.filter(
+                    id_usuario=usuario).select_related("id_rol")
+                lista_roles = [r.id_rol.rol_usuario for r in roles]
+                request.session["usuario_id"] = usuario.id_usuario    #Nombres personalizados para guardar la sesion ejemplo [usuario_id] y despues va el campo de la base de datos.
+                request.session["nombre"] = usuario.nombre_completo
+                request.session["roles"] = lista_roles
+                return redirect("inicio")
+            except Usuario.DoesNotExist:
+                messages.error(request, "Documento o contraseña incorrectos")
+                return redirect("login")
+    return render(request, "login.html", {"form" : form})
+
+def logout(request):
+    request.session.flush()
+    return redirect("login")
+
+def cargar_usuarios_csv(request):
+    if request.method == "POST":
+        archivo = request.FILES.get('archivo')
+        if not archivo:
+            messages.error(request, "Debes seleccionar un archivo CSV.")
+            return redirect('carga_masiva_usuario')
+        decoded_file = archivo.read().decode('utf-8').splitlines()
+        reader = csv.DictReader(decoded_file)
+        columnas_requeridas = [
+            'correo',
+            'contrasena',
+            'nombre_completo',
+            'num_identificacion',
+            'tipo_documento',
+            'telefono_1',
+            'direccion',
+            'genero',
+            'fecha_nacimiento',
+            'grupo_sanguineo',
+            'rol'
+        ]
+        columnas_faltantes = [col for col in columnas_requeridas if col not in reader.fieldnames]
+        if columnas_faltantes:
+            messages.error(
+                request,
+                f"❌ Faltan columnas en el CSV: {', '.join(columnas_faltantes)}"
+            )
+            return redirect('carga_masiva_usuario')
+        usuario_sesion_id = request.session.get("usuario_id")
+        if not usuario_sesion_id:
+            messages.error(request, "Debes iniciar sesión.")
+            return redirect('login')
+        usuarios_creados = []
+        duplicados = 0
+        for row in reader:
+            correo = row['correo']
+            documento = row['num_identificacion']
+            rol_nombre = row.get('rol')
+            if Usuario.objects.filter(correo=correo).exists():
+                duplicados += 1
+                continue
+            if Usuario.objects.filter(num_identificacion=documento).exists():
+                duplicados += 1
+                continue
+            usuario = Usuario(
+                correo=correo,
+                contrasena=row['contrasena'],
+                nombre_completo=row['nombre_completo'],
+                num_identificacion=documento,
+                tipo_documento=row['tipo_documento'],
+                telefono_1=row['telefono_1'],
+                direccion=row['direccion'],
+                genero=row['genero'],
+                fecha_nacimiento=row['fecha_nacimiento'],
+                grupo_sanguineo=row['grupo_sanguineo'],
+                estado=True,
+                id_usuario_registro_id=usuario_sesion_id
+            )
+            usuarios_creados.append((usuario, rol_nombre))
+        Usuario.objects.bulk_create([u[0] for u in usuarios_creados])
+        for usuario, rol_nombre in usuarios_creados:
+            try:
+                rol = Rol.objects.get(rol_usuario=rol_nombre)
+                usuario_guardado = Usuario.objects.get(correo=usuario.correo)
+                if not DetallesUsuarioRol.objects.filter(
+                    id_usuario=usuario_guardado,
+                    id_rol=rol
+                ).exists():
+                    DetallesUsuarioRol.objects.create(
+                        id_usuario=usuario_guardado,
+                        id_rol=rol
+                    )
+            except Rol.DoesNotExist:
+                continue
+        if usuarios_creados:
+            messages.success(
+                request,
+                f"✅ Usuarios creados: {len(usuarios_creados)}"
+            )
+        if duplicados > 0:
+            messages.error(
+                request,
+                f"❌ Duplicados omitidos: {duplicados}"
+            )
+        return redirect('carga_masiva_usuario')
+    return render(request, 'usuarios/cargar.html')
+
+@rol_requerido(["Administrador"])
+def usuario(request):
+    usuarios = Usuario.objects.filter(estado=True)
+    busqueda = request.GET.get('busqueda', '')
+    rol_id = request.GET.get('rol', '')
+    if busqueda:
+        usuarios = usuarios.filter(Q(nombre_completo__icontains=busqueda) | Q(correo__icontains=busqueda) | Q(num_identificacion__exact=busqueda if busqueda.isdigit() else None))
+    if rol_id:
+        # Filtramos usando la tabla intermedia de roles
+        usuarios = usuarios.filter(roles__id_rol=rol_id).distinct()
+    roles = Rol.objects.filter(estado=True)
+    return render(request, "usuarios/list.html", {'usuarios': usuarios,'roles': roles,'busqueda': busqueda,'rol_id': rol_id})
+
+@rol_requerido(["Administrador", "Entrenador", "Jugador"])
+def documentos(request, id):
+
+    usuario = Usuario.objects.get(id_usuario=id)
+    documentos = Documentos.objects.filter(usuario=usuario)
+
+    usuario_sesion_id = request.session.get("usuario_id")
+    roles_sesion = request.session.get("roles", [])
+
+    if "Administrador" not in roles_sesion and usuario_sesion_id != id:
+        return redirect('error400')
+  
+    roles_usuario = usuario.roles.values_list('rol_usuario', flat=True)
+
+    documentos_requeridos = set()
+
+    for rol in roles_usuario:
+        if rol == "Jugador" and es_menor(usuario):
+            documentos_requeridos.update(DOCUMENTOS_POR_ROL.get("JugadorMenor", []))
+        else:
+            documentos_requeridos.update(DOCUMENTOS_POR_ROL.get(rol, []))
+
+    documentos_subidos = set(
+        documentos.values_list('tipo_documento', flat=True)
+    )
+
+    faltantes = documentos_requeridos - documentos_subidos
+
+    total_requeridos = len(documentos_requeridos)
+    total_subidos = len(documentos_subidos)
+
+    progreso = int((total_subidos / total_requeridos) * 100) if total_requeridos > 0 else 0
+
+    docs_por_categoria = {}
+
+    for doc in documentos:
+        categoria_display = doc.get_categoria_display()
+
+        if categoria_display not in docs_por_categoria:
+            docs_por_categoria[categoria_display] = []
+
+        docs_por_categoria[categoria_display].append(doc)
+
+    dict_documentos = dict(Documentos.DOCUMENTACION)
+    faltantes_display = [dict_documentos.get(doc, doc) for doc in faltantes]
+
+    if request.method == 'POST':
+        formulario = DocumentoForm(request.POST, request.FILES, usuario=usuario)
+
+        if formulario.is_valid():
+            documento = formulario.save(commit=False)
+            documento.usuario = usuario
+            documento.save()
+
+            messages.success(request, "Documento subido correctamente")
+            return redirect('documentos', id=usuario.id_usuario)
+
+        else:
+            for field, errors in formulario.errors.items():
+                for error in errors:
+                    messages.error(request, f"Error: {error}")
+
+    else:
+        formulario = DocumentoForm(usuario=usuario)
+
+   
+
+    documentos_categoria_json = json.dumps({
+    doc: cat
+    for doc, cat in Documentos.DOCUMENTOS_CATEGORIA_MAP.items()
+    if doc in documentos_requeridos   
+    })
+
+    return render(request, 'usuarios/documentos.html', {
+        'formulario': formulario,
+        'documentos': documentos,
+        'usuario': usuario,
+        'faltantes': faltantes_display,
+        'progreso': progreso,
+        'total_subidos': total_subidos,
+        'total_requeridos': total_requeridos,
+        'docs_por_categoria': docs_por_categoria,
+        'documentos_categoria_json': documentos_categoria_json,
+    })
+
+def borrar_documento(request, id):
+    usuario_sesion_id = request.session.get("usuario_id")
+    roles_sesion = request.session.get("roles", [])
+    if not usuario_sesion_id:
+        return redirect("login")
+    documento = get_object_or_404(Documentos, id_archivo=id)
+    usuario_id = documento.usuario.id_usuario
+    if documento.usuario.id_usuario == usuario_sesion_id or "Administrador" in roles_sesion:
+        if documento.archivo:
+            documento.archivo.delete(save=False)
+        documento.delete()
+        messages.success(request, "Documento eliminado correctamente")
+    else:
+        messages.error(request, "No tienes permiso")
+    return redirect("documentos", id=usuario_id)
+
+@rol_requerido(["Administrador"])
+def crear_usuario(request):
+    url = "https://www.apicountries.com/countries"
+    response = requests.get(url)
+    data = response.json()
+    paises = sorted([
+        {
+            'codigo': p['alpha2Code'],
+            'nombre': p['name']
+        }
+        for p in data if p.get('alpha2Code') and p.get('name')
+    ], key=lambda x: x['nombre'])
+    formulario = UsuarioForm(request.POST or None, request.FILES or None)
+    if formulario.is_valid():
+        usuario = formulario.save(commit=False)
+        usuario.lugar_nacimiento = request.POST.get('lugar_nacimiento')
+        usuario.save()
+        formulario.save_m2m()
+        roles = usuario.roles.all()
+        nombres_roles = ", ".join([rol.rol_usuario for rol in roles])
+        print("Correo del usuario:", usuario.correo)
+        print("Roles:", nombres_roles)
+        send_mail(
+            'Usuario creado - Credenciales de Acceso',
+            f'''
+            Hola {usuario.nombre_completo},
+            Tu cuenta ha sido creada correctamente.
+            📧 Usuario: {usuario.num_identificacion}
+            🔑 Contraseña: {usuario.contrasena}
+            👤 Roles: {nombres_roles}
+            Bienvenido al sistema.
+            ''',
+            'administrativo@codegol.com',
+            [usuario.correo],
+            fail_silently=False,
+        )
+        return redirect('documentos', id=usuario.id_usuario)
+    return render(request, "usuarios/usuario_form.html", {'formulario': formulario,'paises': paises})
+
+def consulta_especifica_usuario(request, id):
+    usuario = Usuario.objects.get(id_usuario=id)
+    roles_usuario = list(usuario.roles.values_list('id_rol', flat=True))
+    usuario_sesion_id = request.session.get("usuario_id")
+    roles = request.session.get("roles", [])
+    if "Administrador" not in roles and usuario_sesion_id != id:
+        return redirect('error400')
+    url = "https://www.apicountries.com/countries"
+    response = requests.get(url)
+    data = response.json()
+    pais_nombre = usuario.lugar_nacimiento  
+    for p in data:
+        if p.get('alpha2Code') == usuario.lugar_nacimiento:
+            pais_nombre = p.get('name')
+            break
+    return render(request, "usuarios/especifica.html", {'usuario': usuario,'roles_usuario': roles_usuario,'pais_nombre': pais_nombre})
+
+def editar_usuario(request, id):
+    usuario = Usuario.objects.get(id_usuario=id)
+    url = "https://www.apicountries.com/countries"
+    response = requests.get(url)
+    data = response.json()
+    paises = sorted([
+        {
+            'codigo': p['alpha2Code'],
+            'nombre': p['name']
+        }
+        for p in data if p.get('alpha2Code') and p.get('name')
+    ], key=lambda x: x['nombre'])
+    formulario = UsuarioForm(request.POST or None, request.FILES or None, instance=usuario)
+    usuario_sesion_id = request.session.get("usuario_id")
+    roles = request.session.get("roles", [])
+    if "Administrador" not in roles and usuario_sesion_id != id:
+        return redirect('error400')
+    if formulario.is_valid() and request.POST:
+        usuario = formulario.save(commit=False)
+        usuario.lugar_nacimiento = request.POST.get('lugar_nacimiento')  
+        usuario.save()
+        formulario.save_m2m()
+        return redirect('usuario')
+    return render(request, "usuarios/usuario_form.html", {'formulario': formulario,'paises': paises })
+
+def editar_perfil(request, id):
+    usuario = Usuario.objects.get(id_usuario=id)
+    formulario = EditarPerfil(request.POST or None, request.FILES or None, instance=usuario)  #Se instacia del Modelo.
+    usuario_sesion_id = request.session.get("usuario_id")
+    roles = request.session.get("roles", [])
+    if "Administrador" not in roles and usuario_sesion_id != id:
+        return redirect('error400')
+    if formulario.is_valid() and request.POST:
+        usuario = formulario.save(commit=False)
+        formulario.save()
+        return redirect('mi_perfil', id=usuario.id_usuario)
+    return render(request, "usuarios/editar_perfil.html", {'formulario' : formulario})
+
+@rol_requerido(["Administrador"])
+def reactivar_usuario(request, id):
+    usuario = Usuario.objects.get(id_usuario=id)
+    usuario.estado = True
+    usuario.save()
+    return redirect('usuario')
+
+@rol_requerido(["Administrador"])
+def eliminar_usuario(request, id):
+    usuario = Usuario.objects.get(id_usuario=id)
+    usuario.estado = False
+    usuario.save()
+    return redirect('usuario')
+
+@rol_requerido(["Administrador"])
+def usuarios_inactivos(request):
+    busqueda = request.GET.get('busqueda', '')
+    rol_id = request.GET.get('rol', '')
+    usuarios = Usuario.objects.filter(estado=False)
+    if busqueda:
+        usuarios = usuarios.filter(nombre_completo__icontains=busqueda)
+    if rol_id:
+        usuarios = usuarios.filter(roles__id_rol=rol_id).distinct()
+    roles = Rol.objects.all()
+    return render(request, 'usuarios/inactivos.html', {
+        'usuarios': usuarios,'roles': roles,'busqueda': busqueda,'rol_id': rol_id})

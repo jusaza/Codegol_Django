@@ -1,0 +1,791 @@
+{% extends 'layout/form.html' %}
+{% load static %}
+
+{% block content %}
+
+<style>
+    * {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+body {
+  background: url('../imagenes/fondo-formulario.jpg') no-repeat center center fixed;
+  background-size: cover;
+  min-height: 100vh;
+  padding-top: 90px;
+  color: #001f3f;
+}
+
+header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 70px;
+  background: #0b1649;
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  gap: 15px;
+  z-index: 1000;
+}
+
+.logo {
+  width: 55px;
+  height: 55px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid #00bfff;
+}
+
+.logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.volver {
+  color: white;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.login-box {
+  background: white;
+  max-width: 750px;
+  width: 92%;
+  margin: 40px auto;
+  padding: 35px;
+  border-radius: 10px;
+  border: 3px solid #0a4f8b;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+  text-align: center;
+}
+
+h2, h3 {
+  text-align: center;
+  margin: 15px 0;
+  color: #0a1f44;
+}
+
+.proceso {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 25px;
+  flex-wrap: wrap;
+}
+
+.paso {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: #ddd;
+  font-size: 14px;
+  text-decoration: none;
+  min-width: 180px;
+  text-align: center;
+}
+
+.paso.activo {
+  background: #007bff;
+  color: white;
+}
+
+.paso.completado {
+  background: #28a745;
+  color: white;
+}
+
+.paso.finalizar {
+  background: red;
+  color: white;
+}
+
+.barra-contenedor {
+  width: 100%;
+  background: #e0e0e0;
+  border-radius: 10px;
+  overflow: hidden;
+  margin: 15px auto;
+  max-width: 600px;
+}
+
+.barra {
+  height: 28px;
+  color: white;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: width 0.5s ease;
+}
+
+.barra.bajo { background: #dc3545; }
+.barra.medio { background: #ffc107; color: black; }
+.barra.alto { background: #28a745; }
+
+ul {
+  list-style: none;
+  padding: 0;
+  text-align: center;
+}
+
+ul li {
+  padding: 5px 0;
+}
+
+form {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 15px;
+  justify-items: center;
+}
+
+.Formgrupo {
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+}
+
+label {
+  font-weight: 600;
+  margin-bottom: 5px;
+  display: block;
+}
+
+input, select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #001f3f;
+  border-radius: 6px;
+  text-align: center;
+}
+
+button {
+  background: #001f3f;
+  color: white;
+  padding: 12px 25px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  width: 60%;
+}
+
+button:hover {
+  background: #0074d9;
+}
+
+table {
+  width: 100%;
+  margin-top: 20px;
+  border-collapse: collapse;
+  text-align: center;
+}
+
+th, td {
+  border: 1px solid #ccc;
+  padding: 10px;
+}
+
+th {
+  background: #0a4f8b;
+  color: white;
+}
+
+@media (max-width: 768px) {
+  .paso {
+    min-width: 100%;
+  }
+
+  button {
+    width: 90%;
+  }
+}
+
+.toast-container {
+    position: fixed;
+    top: 90px;
+    right: 20px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.toast {
+    min-width: 250px;
+    max-width: 320px;
+    padding: 12px 15px;
+    border-radius: 10px;
+    color: white;
+    font-weight: 600;
+    font-size: 14px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    animation: slideIn 0.4s ease, fadeOut 0.5s ease 4s forwards;
+}
+
+.toast.success {
+    background: #28a745;
+    color: white;
+}
+
+.toast.error {
+    background: #dc3545;
+    color: white;
+}
+
+.toast.warning {
+    background: #ffc107;
+    color: black;
+}
+
+.toast.info {
+    background: #17a2b8;
+    color: black;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes fadeOut {
+    to {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+}
+
+.titulo-seccion {
+    text-align: center;
+    margin: 15px 0;
+    color: #0a1f44;
+}
+
+.faltantes-box {
+    max-width: 500px;
+    margin: 0 auto 20px auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.faltante-item {
+    background: #ffe5e5;
+    border-left: 5px solid #dc3545;
+    padding: 10px 15px;
+    border-radius: 8px;
+    font-weight: 600;
+    text-align: center;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+    transition: transform 0.2s ease;
+}
+
+.faltante-item:hover {
+    transform: scale(1.02);
+}
+
+.completo-box {
+    max-width: 500px;
+    margin: 0 auto 20px auto;
+    background: #e6ffed;
+    border-left: 5px solid #28a745;
+    padding: 12px 15px;
+    border-radius: 8px;
+    font-weight: 700;
+    text-align: center;
+    color: #155724;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+}
+
+.documentos-resumen {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    margin: 15px auto;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.documentos-resumen .subidos {
+    background: #007bff;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 8px;
+    min-width: 35px;
+    text-align: center;
+}
+
+.documentos-resumen .texto {
+    color: #333;
+}
+
+.documentos-resumen .total {
+    background: #28a745;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 8px;
+    min-width: 35px;
+    text-align: center;
+}
+
+.sin-documentos {
+    max-width: 450px;
+    margin: 20px auto;
+    padding: 15px 20px;
+    background: #e9ecef;
+    border-left: 6px solid #007bff;
+    border-radius: 10px;
+    text-align: center;
+    font-weight: 600;
+    color: #0a1f44;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+    animation: aparecer 0.3s ease;
+    font-size: 15px;
+}
+
+@keyframes aparecer {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.login-box form {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+    justify-items: center;
+}
+
+.Formgrupo {
+    width: 100%;
+    max-width: 450px;
+    text-align: left;
+}
+
+.Formgrupo label {
+    font-weight: 600;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #001f3f;
+}
+
+.Formgrupo select,
+.Formgrupo input[type="text"],
+.Formgrupo input[type="file"] {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #dee2e6;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    background-color: #f8f9fa;
+}
+
+.Formgrupo select:focus,
+.Formgrupo input[type="text"]:focus,
+.Formgrupo input[type="file"]:focus {
+    outline: none;
+    border-color: #007bff;
+    background-color: white;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+.Formgrupo select:hover,
+.Formgrupo input[type="text"]:hover,
+.Formgrupo input[type="file"]:hover {
+    border-color: #0056b3;
+}
+
+.error {
+    color: #dc3545;
+    font-size: 13px;
+    margin-top: 5px;
+    padding: 5px 10px;
+    background: #ffe5e5;
+    border-radius: 5px;
+    border-left: 3px solid #dc3545;
+}
+
+.error p {
+    margin: 0;
+}
+
+.categoria-ayuda {
+    font-size: 12px;
+    color: #6c757d;
+    margin-top: 5px;
+    font-style: italic;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.documento-info {
+    background: #e7f3ff;
+    border: 1px solid #b3d9ff;
+    border-radius: 8px;
+    padding: 10px 15px;
+    margin: 15px 0;
+    font-size: 14px;
+    color: #004085;
+}
+
+.btn-ver, .btn-eliminar {
+    text-decoration: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 13px;
+    transition: all 0.2s ease;
+    display: inline-block;
+}
+
+.btn-ver {
+    background: #007bff;
+    color: white;
+}
+
+.btn-ver:hover {
+    background: #0056b3;
+    transform: translateY(-1px);
+}
+
+.btn-eliminar {
+    background: #dc3545;
+    color: white;
+}
+
+.btn-eliminar:hover {
+    background: #c82333;
+    transform: translateY(-1px);
+}
+
+.no-disponible {
+    color: #6c757d;
+    font-style: italic;
+}
+
+.categoria-titulo {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    margin: 25px 0 15px 0;
+    display: inline-block;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .Formgrupo {
+        max-width: 100%;
+    }
+    
+    .categoria-titulo {
+        font-size: 16px;
+        padding: 8px 15px;
+    }
+}
+</style>
+
+<div class="proceso">
+    <a href="{% url 'editar_usuario' usuario.id_usuario %}" class="paso completado">
+        ✔ Paso 1: Usuario
+    </a>
+
+    <div class="paso activo">
+        📄 Paso 2: Documentos
+    </div>
+
+    <a href="{% url 'usuario' %}" class="paso finalizar">
+        Finalizar
+    </a>
+</div>
+
+<h2>Documentos de {{ usuario.nombre_completo }}</h2>
+
+{% if messages %}
+<div class="toast-container">
+    {% for message in messages %}
+        <div class="toast {{ message.tags }}">
+            {{ message }}
+        </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<h3>Progreso de documentos</h3>
+
+<div class="barra-contenedor">
+    <div class="barra 
+        {% if progreso < 40 %}bajo
+        {% elif progreso < 80 %}medio
+        {% else %}alto
+        {% endif %}"
+        style="width: {{ progreso|default:0 }}%;">
+        {{ progreso|default:0 }}%
+    </div>
+</div>
+
+<div class="documentos-resumen">
+    <span class="subidos">{{ total_subidos }}</span>
+    <span class="texto">de</span>
+    <span class="total">{{ total_requeridos }}</span>
+    <span class="texto">documentos subidos</span>
+</div>
+
+<h3 class="titulo-seccion">Documentos faltantes</h3>
+
+{% if faltantes %}
+<div class="faltantes-box">
+    {% for doc in faltantes %}
+        <div class="faltante-item">
+            ❌ {{ doc }}
+        </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="completo-box">
+    ✔ Todos los documentos están completos
+</div>
+{% endif %}
+
+<div class="login-box">
+    <h3>📤 Subir Nuevo Documento</h3>
+    
+    {% if not faltantes %}
+    <div class="documento-info">
+        ℹ️ Ya has subido todos los documentos requeridos para tu perfil.
+    </div>
+    {% endif %}
+    
+    <form method="post" enctype="multipart/form-data" id="documentoForm">
+        {% csrf_token %}
+
+        <div class="Formgrupo">
+            <label for="{{ formulario.categoria.id_for_label }}">
+                📁 {{ formulario.categoria.label }}
+            </label>
+            {{ formulario.categoria }}
+            {% if formulario.categoria.errors %}
+                <div class="error">
+                    {% for error in formulario.categoria.errors %}
+                        <p>⚠️ {{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            <div class="categoria-ayuda">
+                💡 Seleccione primero la categoría para filtrar los tipos de documento
+            </div>
+        </div>
+
+        <div class="Formgrupo">
+            <label for="{{ formulario.tipo_documento.id_for_label }}">
+                📄 {{ formulario.tipo_documento.label }}
+            </label>
+            {{ formulario.tipo_documento }}
+            {% if formulario.tipo_documento.errors %}
+                <div class="error">
+                    {% for error in formulario.tipo_documento.errors %}
+                        <p>⚠️ {{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="Formgrupo">
+            <label for="{{ formulario.nombre.id_for_label }}">
+                ✏️ {{ formulario.nombre.label }}
+            </label>
+            {{ formulario.nombre }}
+            {% if formulario.nombre.errors %}
+                <div class="error">
+                    {% for error in formulario.nombre.errors %}
+                        <p>⚠️ {{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="Formgrupo">
+            <label for="{{ formulario.archivo.id_for_label }}">
+                📎 {{ formulario.archivo.label }}
+            </label>
+            {{ formulario.archivo }}
+            {% if formulario.archivo.errors %}
+                <div class="error">
+                    {% for error in formulario.archivo.errors %}
+                        <p>⚠️ {{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="Formgrupo">
+            <label for="{{ formulario.observaciones.id_for_label }}">
+                📝 {{ formulario.observaciones.label }}
+            </label>
+            {{ formulario.observaciones }}
+            {% if formulario.observaciones.errors %}
+                <div class="error">
+                    {% for error in formulario.observaciones.errors %}
+                        <p>⚠️ {{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <button type="submit">
+            📤 Subir documento
+        </button>
+    </form>
+</div>
+
+<h3>📚 Documentos Subidos</h3>
+
+{% if docs_por_categoria %}
+    {% for categoria, docs in docs_por_categoria.items %}
+        <h4 class="categoria-titulo">📂 {{ categoria }}</h4>
+        
+        <div style="overflow-x: auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Tipo de Documento</th>
+                        <th>Nombre</th>
+                        <th>Archivo</th>
+                        <th>Observaciones</th>
+                        <th>Fecha de Subida</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for doc in docs %}
+                    <tr>
+                        <td>
+                            <strong>{{ doc.get_tipo_documento_display }}</strong>
+                        </td>
+                        <td>{{ doc.nombre }}</td>
+                        <td>
+                            {% if doc.archivo %}
+                                <a href="{{ doc.archivo.url }}" target="_blank" class="btn-ver">
+                                    👁️ Ver archivo
+                                </a>
+                            {% else %}
+                                <span class="no-disponible">No disponible</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ doc.observaciones }}</td>
+                        <td>{{ doc.fecha_subida|date:"d/m/Y H:i" }}</td>
+                        <td>
+                            <a href="{% url 'borrar_documento' doc.id_archivo %}" 
+                               class="btn-eliminar"
+                               onclick="return confirm('¿Está seguro de eliminar el documento {{ doc.get_tipo_documento_display }}?')">
+                                🗑️ Eliminar
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endfor %}
+{% else %}
+<div class="sin-documentos">
+    📁 No hay documentos subidos todavía
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    let raw = '{{ documentos_categoria_json|escapejs }}';
+
+    if (!raw || raw === 'None' || raw === 'null') {
+        console.error("❌ JSON de categorías vacío o inválido");
+        return;
+    }
+
+    let map = {};
+
+    try {
+        map = JSON.parse(raw);
+    } catch (e) {
+        console.error("❌ Error al parsear JSON:", e);
+        return;
+    }
+
+    const categoria = document.getElementById('id_categoria');
+    const tipo = document.getElementById('id_tipo_documento');
+
+    if (!categoria || !tipo) {
+        console.error("❌ No se encontraron los selects");
+        return;
+    }
+
+    // 🔧 Función para limpiar select
+    function limpiarSelect(select, placeholder) {
+        select.innerHTML = '';
+
+        const opt = document.createElement('option');
+        opt.value = '';
+        opt.textContent = placeholder;
+        select.appendChild(opt);
+    }
+
+    // 🔥 FILTRO PRINCIPAL
+    function filtrar() {
+
+        const valor = categoria.value;
+
+        limpiarSelect(tipo, 'Seleccione un tipo de documento');
+
+        if (!valor) return;
+
+        for (const doc in map) {
+
+            if (Object.prototype.hasOwnProperty.call(map, doc)) {
+
+                if (map[doc] === valor) {
+
+                    const option = document.createElement('option');
+                    option.value = doc;
+                    option.textContent = doc;
+
+                    tipo.appendChild(option);
+                }
+            }
+        }
+    }
+
+    // 🔥 eventos
+    categoria.addEventListener('change', filtrar);
+
+    // 🔥 ejecutar al cargar
+    filtrar();
+
+});
+</script>
+{% endblock %}
