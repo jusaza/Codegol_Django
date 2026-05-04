@@ -11,7 +11,7 @@ from categoria.models import Categoria
 from django.db.models import Avg
 
 
-# 🔥 TABLA DE RENDIMIENTO (igual que antes)
+# 🔥 TABLA DE RENDIMIENTO (igual que antes + posición)
 def tabla_rendimiento(request, id_sesion, id_categoria):
 
     sesion = get_object_or_404(SesionEntrenamiento, id_sesion=id_sesion)
@@ -31,7 +31,7 @@ def tabla_rendimiento(request, id_sesion, id_categoria):
 
         m = h.id_matricula
         jugador = m.id_jugador
-        posicion = m.posicion
+        posicion = m.posicion  # 👈 ya lo tenías
 
         actividades_posicion = PosicionActividad.objects.filter(
             posicion=posicion
@@ -57,6 +57,7 @@ def tabla_rendimiento(request, id_sesion, id_categoria):
                 data.append({
                     'jugador_id': m.id,
                     'jugador_nombre': jugador.nombre_completo,
+                    'posicion': posicion.nombre,  # 🔥 NUEVO (ÚNICO CAMBIO)
                     'actividad': aa.actividad.nombre,
                     'atributo': aa.atributo.nombre,
                     'valor': rendimiento.valor,
@@ -70,7 +71,7 @@ def tabla_rendimiento(request, id_sesion, id_categoria):
     })
 
 
-# 🔥 GUARDAR
+# 🔥 GUARDAR (SIN CAMBIOS)
 def guardar_rendimiento(request, id_sesion):
 
     if request.method == "POST":
@@ -89,7 +90,7 @@ def guardar_rendimiento(request, id_sesion):
     return JsonResponse({'ok': False})
 
 
-# 🔥 HISTORIAL (SIN DUPLICADOS EN SELECT)
+# 🔥 HISTORIAL (SIN CAMBIOS)
 def historial_rendimiento(request):
 
     rendimientos = Rendimiento.objects.filter(
@@ -120,7 +121,6 @@ def historial_rendimiento(request):
             'fecha': r.sesion.fecha
         })
 
-    # 🔥 JUGADORES ÚNICOS (CLAVE)
     jugadores = Rendimiento.objects.filter(
         valor__isnull=False
     ).values_list(
@@ -128,12 +128,10 @@ def historial_rendimiento(request):
         flat=True
     ).distinct()
 
-    # 🔥 CATEGORÍAS ÚNICAS
     categorias = list(set([
         d['categoria'] for d in data
     ]))
 
-    # 🔥 PROMEDIOS
     promedios = Rendimiento.objects.filter(
         valor__isnull=False
     ).values(
@@ -147,9 +145,4 @@ def historial_rendimiento(request):
         'promedios': promedios,
         'jugadores': jugadores,
         'categorias': categorias
-    })
-    
-    return render(request, 'rendimiento/historial.html', {
-        'data': data,
-        'promedios': promedios
     })

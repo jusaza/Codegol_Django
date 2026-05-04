@@ -62,6 +62,7 @@
 
 </style>
 {% endblock %}
+
 {% block content %}
 
 <div class="container mt-4">
@@ -77,19 +78,14 @@
         {% endfor %}
     {% endif %}
 
-    <!-- BOTONES -->
+    <!-- BOTÓN SOLO ATRIBUTO -->
     <div class="mb-3">
         <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalAtributo">
             + Atributo
         </button>
-
-        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalRelacion">
-            + Asignar
-        </button>
     </div>
 
     <div class="row">
-
 
 {% for atr in atributos %}
 <div class="col-md-4 mb-4">
@@ -97,77 +93,80 @@
     <div class="card shadow-sm border-0">
         <div class="card-body">
 
-            <!-- NOMBRE ATRIBUTO -->
+            <!-- HEADER -->
             <div class="d-flex justify-content-between align-items-center mb-2">
 
-    <!-- NOMBRE -->
-    <h5 class="fw-bold m-0">{{ atr.nombre }}</h5>
+                <h5 class="fw-bold m-0">{{ atr.nombre }}</h5>
 
-    <!-- BOTONES -->
-    <div class="d-flex gap-2">
+                <div class="d-flex gap-2">
 
-        <!-- EDITAR -->
-        <button 
-            class="btn btn-sm btn-warning"
-            data-bs-toggle="modal" 
-            data-bs-target="#editarAtributo{{ atr.id_atributo }}">
-            ✏️
-        </button>
+                    <!-- 🔥 ASIGNAR -->
+                    <button 
+                        class="btn btn-sm btn-success"
+                        data-bs-toggle="modal"
+                        data-bs-target="#modalRelacion"
+                        onclick="seleccionarAtributo('{{ atr.id_atributo }}','{{ atr.nombre }}')">
+                        + Asignar
+                    </button>
 
-        <!-- ELIMINAR -->
-        <form method="post" style="margin:0;">
-            {% csrf_token %}
-            <input type="hidden" name="tipo" value="eliminar_atributo">
-            <input type="hidden" name="id" value="{{ atr.id_atributo }}">
+                    <!-- EDITAR -->
+                    <button 
+                        class="btn btn-sm btn-warning"
+                        data-bs-toggle="modal" 
+                        data-bs-target="#editarAtributo{{ atr.id_atributo }}">
+                        ✏️
+                    </button>
 
-            <button class="btn btn-sm btn-danger"
-                    onclick="return confirm('¿Eliminar atributo?')">
-                🗑️
-            </button>
-        </form>
+                    <!-- ELIMINAR -->
+                    <form method="post" style="margin:0;">
+                        {% csrf_token %}
+                        <input type="hidden" name="tipo" value="eliminar_atributo">
+                        <input type="hidden" name="id" value="{{ atr.id_atributo }}">
 
-    </div>
+                        <button class="btn btn-sm btn-danger"
+                                onclick="return confirm('¿Eliminar atributo?')">
+                            🗑️
+                        </button>
+                    </form>
 
-</div>
+                </div>
 
-<hr>
-            <div class="d-flex justify-content-between mb-2">
+            </div>
 
-</div>
+            <hr>
 
-<div class="modal fade" id="editarAtributo{{ atr.id_atributo }}">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
+            <!-- MODAL EDITAR -->
+            <div class="modal fade" id="editarAtributo{{ atr.id_atributo }}">
+              <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
 
-      <form method="post">
-        {% csrf_token %}
-        <input type="hidden" name="tipo" value="editar_atributo">
-        <input type="hidden" name="id" value="{{ atr.id_atributo }}">
+                  <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="tipo" value="editar_atributo">
+                    <input type="hidden" name="id" value="{{ atr.id_atributo }}">
 
-        <div class="modal-header bg-primary text-white">
-          <h5>Editar Atributo</h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-        </div>
+                    <div class="modal-header bg-primary text-white">
+                      <h5>Editar Atributo</h5>
+                      <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
 
-        <div class="modal-body">
-          <input type="text" name="nombre" class="form-control mb-2"
-                 value="{{ atr.nombre }}" required>
+                    <div class="modal-body">
+                      <input type="text" name="nombre" class="form-control mb-2"
+                             value="{{ atr.nombre }}" required>
 
-          <input type="text" name="descripcion" class="form-control"
-                 value="{{ atr.descripcion }}">
-        </div>
+                      <input type="text" name="descripcion" class="form-control"
+                             value="{{ atr.descripcion }}">
+                    </div>
 
-        <div class="modal-footer">
-          <button class="btn btn-success">Actualizar</button>
-        </div>
+                    <div class="modal-footer">
+                      <button class="btn btn-success">Actualizar</button>
+                    </div>
 
-      </form>
+                  </form>
 
-    </div>
-  </div>
-</div>
-
-
+                </div>
+              </div>
+            </div>
 
             <!-- ACTIVIDADES -->
             <div style="max-height:200px; overflow:auto;">
@@ -200,7 +199,7 @@
 
 </div>
 
-<!-- ================= MODAL RELACION ================= -->
+<!-- MODAL RELACION -->
 <div class="modal fade" id="modalRelacion">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
@@ -208,12 +207,15 @@
       <form method="post">
         {% csrf_token %}
         <input type="hidden" name="tipo" value="actividad_atributo">
+        <input type="hidden" name="atributo" id="atributoSeleccionado">
 
         <div class="modal-header bg-dark text-white">
           <h5>Asignar Atributos</h5>
         </div>
 
         <div class="modal-body">
+
+          <p><b>Atributo:</b> <span id="nombreAtributo"></span></p>
 
           <!-- ACTIVIDAD -->
           <label>Actividad</label>
@@ -265,7 +267,7 @@
   </div>
 </div>
 
-<!-- ================= MODAL ATRIBUTO ================= -->
+<!-- MODAL ATRIBUTO -->
 <div class="modal fade" id="modalAtributo">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
@@ -293,21 +295,30 @@
   </div>
 </div>
 
-
-<!-- ================= JS ================= -->
+<!-- JS -->
 <script>
+
 const relaciones = {{ actividad_atributos_json|safe }};
 const selectActividad = document.getElementById('selectActividad');
+
+/* 🔥 NUEVO */
+function seleccionarAtributo(id, nombre) {
+
+    document.getElementById('atributoSeleccionado').value = id;
+    document.getElementById('nombreAtributo').innerText = nombre;
+
+    // limpiar
+    document.querySelectorAll('.atributo-check').forEach(chk => chk.checked = false);
+    document.querySelectorAll('input[type="number"]').forEach(inp => inp.value = '');
+}
 
 selectActividad.addEventListener('change', function () {
 
     const actividadId = parseInt(this.value);
 
-    // limpiar
     document.querySelectorAll('.atributo-check').forEach(chk => chk.checked = false);
     document.querySelectorAll('input[type="number"]').forEach(inp => inp.value = '');
 
-    // marcar existentes
     relaciones.forEach(rel => {
 
         if (rel.actividad == actividadId) {
