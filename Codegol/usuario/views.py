@@ -31,7 +31,7 @@ def login(request):
                 request.session["usuario_id"] = usuario.id_usuario    #Nombres personalizados para guardar la sesion ejemplo [usuario_id] y despues va el campo de la base de datos.
                 request.session["nombre"] = usuario.nombre_completo
                 request.session["roles"] = lista_roles
-                return redirect("inicio")
+                return redirect("pagina_original")
             except Usuario.DoesNotExist:
                 messages.error(request, "Documento o contraseña incorrectos")
                 return redirect("login")
