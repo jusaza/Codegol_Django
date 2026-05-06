@@ -16,8 +16,10 @@ from django.db.models import Sum, Avg, Max, Min
 from django.db.models import Sum, Avg, Max, Min
 from django.shortcuts import render
 
-
 def inicio(request):
+    return render(request, 'inicio.html')
+
+def dashboard(request):
     usuarios_total = Usuario.objects.count()
     usuarios_activos = Usuario.objects.filter(estado=True).count()
     usuarios_inactivos = usuarios_total - usuarios_activos

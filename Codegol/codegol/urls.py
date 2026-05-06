@@ -23,7 +23,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
 
     # Paginas generales
-    path('inicio', views.inicio, name='inicio'),
+    path('', views.inicio, name='inicio'),
+    path('dashboard', views.dashboard, name='dashboard'),
     path('nosotros/', views.nosotros, name='nosotros'),
     path('servicios/', views.servicios, name='servicios'),
     path('400/', views.error400, name='error400'),
