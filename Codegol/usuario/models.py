@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.validators import MinLengthValidator, RegexValidator, MaxValueValidator, MinValueValidator
 
 # Create your models here.
 
@@ -36,36 +37,83 @@ class Usuario(models.Model):
     )
 
     correo = models.EmailField(
+        validators=[MinLengthValidator(10)],
         max_length=60,
-        unique=True
+        unique=True,
+        blank=False,
+        null=False
+    )
+
+    password_validator = RegexValidator(
+    regex=r'^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&]).{10,}$',
+    message="La contraseña debe tener mínimo 10 caracteres, una mayúscula, una minúscula, un número y un carácter especial."
     )
 
     contrasena = models.CharField(
-        max_length=60
+        max_length=60,
+        validators=[
+            MinLengthValidator(10),
+            password_validator
+        ],
+        default="codegol12345",
+        blank=False,
+        null=False
     )
 
+    nombre_sin_numeros = RegexValidator(
+    regex=r'^[A-Za-zÁÉÍÓÚáéíóúñÑ\s]+$',
+    message="El nombre no puede contener números ni caracteres especiales."
+    )   
+
     nombre_completo = models.CharField(
-        max_length=60
+        max_length=30,
+        validators=[
+            MinLengthValidator(2),
+            nombre_sin_numeros
+        ],
+        blank=False,
+        null=False
     )
 
     num_identificacion = models.PositiveIntegerField(
-        unique = True
+        unique=True,
+        validators=[
+            MinValueValidator(100000),      
+            MaxValueValidator(9999999999)   
+        ],
+        blank=False,
+        null=False
     )
 
     tipo_documento = models.CharField(
         max_length=4,
-        choices=TIPO_DOCUMENTO
+        choices=TIPO_DOCUMENTO,
+        blank=False,
+        null=False
     )
 
-    telefono_1 = models.PositiveBigIntegerField()
+    telefono_validator = RegexValidator(
+    regex=r'^\d{7,10}$',
+    message="El teléfono debe tener entre 7 y 10 dígitos."
+    )
 
-    telefono_2 = models.PositiveBigIntegerField(
+    telefono_1 = models.CharField(
+        max_length=10,
+        validators=[telefono_validator]
+    )
+
+    telefono_2 = models.CharField(
+        max_length=10,
         null=True,
-        blank=True
+        blank=True,
+        validators=[telefono_validator]
     )
 
     direccion = models.CharField(
-        max_length=50
+        max_length=50,
+        validators=[
+            MinLengthValidator(4)
+        ]
     )
 
     genero = models.CharField(

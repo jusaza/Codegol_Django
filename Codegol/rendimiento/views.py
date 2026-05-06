@@ -12,13 +12,6 @@ from atributo_actividad.models import ActividadAtributo
 from categoria.models import Categoria
 from django.db.models import Avg
 
-
-<<<<<<< HEAD
-# 🔥 TABLA DE RENDIMIENTO (igual que antes)
-@bloqueo_documentos_completos
-=======
-# 🔥 TABLA DE RENDIMIENTO (igual que antes + posición)
->>>>>>> 30385b46cebc1e81746169fab67ddd85956c8947
 def tabla_rendimiento(request, id_sesion, id_categoria):
 
     sesion = get_object_or_404(SesionEntrenamiento, id_sesion=id_sesion)
