@@ -1,0 +1,13 @@
+{% extends 'layout/form.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/style_forms.css' %}">
+{% endblock %}
+
+{% block content %}
+
+
+{% include 'entrenamientos/form.html' %}
+
+{% endblock %}
