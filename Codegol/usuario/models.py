@@ -215,6 +215,12 @@ class Documentos(models.Model):
         ('PERSONAL', 'Personal'),
     ]
 
+    ESTADO_CHOICES = [
+    ('PENDIENTE', 'Pendiente'),
+    ('APROBADO', 'Aprobado'),
+    ('DEVUELTO', 'Devuelto'),
+    ]
+
     DOCUMENTACION = [
         ('DNI', 'Documento de Identidad'),
         ('PASAPORTE', 'Pasaporte'),
@@ -264,9 +270,28 @@ class Documentos(models.Model):
     )
     archivo = models.FileField(upload_to='documentos/')
     nombre = models.CharField(max_length=255)
-    observaciones = models.CharField(max_length=255, default='N.A')
+    observaciones = models.CharField(max_length=255, 
+            default='N.A',
+            validators=[MinLengthValidator(3)])
+    observaciones_rechazo = models.CharField(
+        max_length=255,
+        default='N.A',
+        validators=[MinLengthValidator(3)])
     fecha_subida = models.DateTimeField(auto_now_add=True)
+    estado = models.CharField(
+        max_length=20,
+        choices=ESTADO_CHOICES,
+        default='PENDIENTE'
+    )
 
     def __str__(self):
         return f"{self.nombre} - {self.usuario}"
+    
+class HistorialDocumentos(models.Model):
+    usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE)
+    tipo_documento = models.CharField(max_length=100)
+    nombre = models.CharField(max_length=255)
+    observaciones = models.CharField(max_length=255, blank=True, null=True)
+    observaciones_rechazo = models.CharField(max_length=255)
+    fecha_eliminacion = models.DateTimeField(auto_now_add=True)
     

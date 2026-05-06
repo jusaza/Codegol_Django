@@ -39,6 +39,7 @@ class LoginForm(forms.Form):
         widget=forms.PasswordInput(attrs={'placeholder': 'Contraseña'})
     )
 
+
 DOCUMENTOS_POR_ROL = {
     "Administrador": [
         'DNI', 'HOJA_VIDA', 'CERT_ANTECEDENTES', 'CERT_ESTUDIOS',
@@ -66,7 +67,6 @@ def es_menor(usuario):
     )
     return edad < 18
 
-
 class DocumentoForm(forms.ModelForm):
 
     class Meta:
@@ -83,56 +83,81 @@ class DocumentoForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         self.usuario = kwargs.pop('usuario', None)
+        self.categoria_url = kwargs.pop('categoria', None)
+        self.categorias_permitidas = kwargs.pop('categorias_permitidas', None)
         super().__init__(*args, **kwargs)
-
+        categorias = list(Documentos.CATEGORIA_CHOICES)
+        if self.categorias_permitidas:
+            categorias = [
+                (k, v) for k, v in Documentos.CATEGORIA_CHOICES
+                if k in self.categorias_permitidas
+            ]
         self.fields['categoria'].choices = [
             ('', 'Seleccione una categoría')
-        ] + list(Documentos.CATEGORIA_CHOICES)
-
+        ] + categorias
         tipos_permitidos = set()
-
         if self.usuario:
             roles = self.usuario.roles.values_list('rol_usuario', flat=True)
-
             for rol in roles:
                 if rol == "Jugador" and es_menor(self.usuario):
                     tipos_permitidos.update(DOCUMENTOS_POR_ROL["JugadorMenor"])
                 else:
                     tipos_permitidos.update(DOCUMENTOS_POR_ROL.get(rol, []))
+        documentos_subidos = set(
+            Documentos.objects.filter(usuario=self.usuario)
+            .values_list('tipo_documento', flat=True)
+        ) if self.usuario else set()
+        if self.categoria_url:
+            self.fields['categoria'].required = False
+            self.fields['categoria'].widget = forms.HiddenInput()
+            self.initial['categoria'] = self.categoria_url
+            tipos_filtrados = [
+                (key, value)
+                for key, value in Documentos.DOCUMENTACION
+                if key in tipos_permitidos
+                and key not in documentos_subidos
+                and Documentos.DOCUMENTOS_CATEGORIA_MAP.get(key) == self.categoria_url
+            ]
+            self.fields['tipo_documento'].choices = (
+                [('', 'Seleccione un tipo de documento')] + tipos_filtrados
+                if tipos_filtrados else [('', 'Ya todos están subidos')]
+            )
+        else:
+            tipos_disponibles = [
+                (key, value)
+                for key, value in Documentos.DOCUMENTACION
+                if key in tipos_permitidos and key not in documentos_subidos
+            ]
 
-        self.fields['tipo_documento'].choices = [
-            ('', 'Seleccione un tipo de documento')
-        ] + [
-            (key, value)
-            for key, value in Documentos.DOCUMENTACION
-            if key in tipos_permitidos
-        ]
+            self.fields['tipo_documento'].choices = (
+                [('', 'Seleccione un tipo de documento')] + tipos_disponibles
+                if tipos_disponibles else [('', 'Ya todos están subidos')]
+            )
 
         self.fields['categoria'].required = True
         self.fields['tipo_documento'].required = True
         self.fields['archivo'].required = True
         self.fields['nombre'].required = True
         self.fields['observaciones'].required = False
-
     def clean(self):
         cleaned_data = super().clean()
-        categoria = cleaned_data.get('categoria')
+        if self.categoria_url:
+            cleaned_data['categoria'] = self.categoria_url
         tipo_documento = cleaned_data.get('tipo_documento')
-
-        if categoria and tipo_documento:
-            categoria_correcta = Documentos.DOCUMENTOS_CATEGORIA_MAP.get(tipo_documento)
-
-            if categoria_correcta and categoria_correcta != categoria:
-                raise forms.ValidationError(
-                    "El documento no pertenece a esa categoría."
-                )
-            
         if self.usuario and tipo_documento:
-            if Documentos.objects.filter(usuario=self.usuario, tipo_documento=tipo_documento).exists():
-                raise forms.ValidationError("Ya has subido este documento")
-
+            existente = Documentos.objects.filter(
+                usuario=self.usuario,
+                tipo_documento=tipo_documento
+            ).first()
+            if existente:
+                if existente.estado == "APROBADO":
+                    raise forms.ValidationError("Este documento ya fue aprobado")
+                if existente.estado == "PENDIENTE":
+                    raise forms.ValidationError("Este documento ya está en revisión")
+                if existente.estado == "DEVUELTO":
+                    self.instance.id = existente.id
         return cleaned_data
-
+    
 class EditarPerfil(forms.ModelForm):
     class Meta:
         model = Usuario

@@ -80,19 +80,65 @@ h2, h3 {
 }
 
 .paso {
+  background: #ddd;
+  color: black;
+  transition: all 0.3s ease;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 10px 14px;
   border-radius: 8px;
-  background: #ddd;
   font-size: 14px;
   text-decoration: none;
   min-width: 180px;
   text-align: center;
 }
 
+/* SOLO ACTIVACIÓN GENERAL (NO COLOR) */
 .paso.activo {
+  transform: scale(1.03);
+  font-weight: bold;
+}
+
+/* COLORES POR CATEGORÍA (ACTIVO) */
+.paso.legal.activo {
+  background: #007bff;
+  color: white;
+}
+
+.paso.medico.activo {
+  background: #28a745;
+  color: white;
+}
+
+.paso.academico.activo {
+  background: #ffc107;
+  color: black;
+}
+
+.paso.deportivo.activo {
+  background: #dc3545;
+  color: white;
+}
+
+.paso.personal.activo {
+  background: #6f42c1;
+  color: white;
+}
+
+/* TODOS LOS OTROS ESTADOS */
+.paso.completado {
+  background: #28a745;
+  color: white;
+}
+
+.paso.finalizar {
+  background: red;
+  color: white;
+}
+
+/* fallback SOLO para "Todos" */
+.paso:not(.legal):not(.medico):not(.academico):not(.deportivo):not(.personal).activo {
   background: #007bff;
   color: white;
 }
@@ -357,6 +403,49 @@ th {
     font-size: 15px;
 }
 
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+}
+
+.modal-content {
+    background: white;
+    margin: 6% auto;
+    padding: 20px;
+    width: 85%;
+    border-radius: 10px;
+    border: 3px solid #0a4f8b;
+}
+
+.close {
+    float: right;
+    font-size: 25px;
+    cursor: pointer;
+}
+
+.modal table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+.modal th {
+    background: #0a4f8b;
+    color: white;
+}
+
+.modal th, .modal td {
+    border: 1px solid #ccc;
+    padding: 8px;
+    text-align: center;
+}
+
 @keyframes aparecer {
     from {
         opacity: 0;
@@ -504,21 +593,83 @@ th {
         font-size: 16px;
         padding: 8px 15px;
     }
+    
 }
 </style>
 
 <div class="proceso">
-    <a href="{% url 'editar_usuario' usuario.id_usuario %}" class="paso completado">
-        ✔ Paso 1: Usuario
-    </a>
 
-    <div class="paso activo">
-        📄 Paso 2: Documentos
-    </div>
+    {% comment %} LISTA DINÁMICA DE PASOS {% endcomment %}
+    {% with pasos="" %}
 
-    <a href="{% url 'usuario' %}" class="paso finalizar">
-        Finalizar
-    </a>
+        {% comment %} PASO 1 SIEMPRE {% endcomment %}
+        <a href="{% url 'editar_usuario' usuario.id_usuario %}" class="paso completado">
+            ✔ Paso 1: Usuario
+        </a>
+
+        {% comment %} PASO 2 {% endcomment %}
+        {% with i=2 %}
+        <a href="{% url 'documentos' usuario.id_usuario %}" 
+           class="paso {% if not categoria_actual %}activo{% endif %}">
+            📂 Paso {{ i }}: Documentos
+        </a>
+        {% endwith %}
+
+        {% comment %} LEGAL {% endcomment %}
+        {% if "Administrador" in request.session.roles or "Entrenador" in request.session.roles or "Jugador" in request.session.roles %}
+            {% with i=3 %}
+            <a href="{% url 'documentos_categoria' usuario.id_usuario 'LEGAL' %}" 
+                class="paso legal {% if categoria_actual == 'LEGAL' %}activo{% endif %}">
+                📄 Paso {{ i }}: Documentos Legales
+            </a>
+            {% endwith %}
+        {% endif %}
+
+        {% comment %} MÉDICO {% endcomment %}
+        {% with i=4 %}
+        <a href="{% url 'documentos_categoria' usuario.id_usuario 'MEDICO' %}" 
+            class="paso medico {% if categoria_actual == 'MEDICO' %}activo{% endif %}">
+            🏥 Paso {{ i }}: Documentos Médicos
+        </a>
+        {% endwith %}
+
+        {% comment %} ACADÉMICO {% endcomment %}
+        {% if "Administrador" in request.session.roles or "Entrenador" in request.session.roles or "Jugador" in request.session.roles %}
+            {% with i=5 %}
+            <a href="{% url 'documentos_categoria' usuario.id_usuario 'ACADEMICO' %}" 
+                class="paso academico {% if categoria_actual == 'ACADEMICO' %}activo{% endif %}">
+                🎓 Paso {{ i }}: Documentos Académicos
+            </a>
+            {% endwith %}
+        {% endif %}
+
+        {% comment %} DEPORTIVO {% endcomment %}
+        {% if "Jugador" in request.session.roles %}
+            {% with i=6 %}
+            <a href="{% url 'documentos_categoria' usuario.id_usuario 'DEPORTIVO' %}" 
+                class="paso deportivo {% if categoria_actual == 'DEPORTIVO' %}activo{% endif %}">
+                ⚽ Paso {{ i }}: Documentos Deportivos
+            </a>
+            {% endwith %}
+        {% endif %}
+
+        {% comment %} PERSONAL {% endcomment %}
+        {% with i=7 %}
+        <a href="{% url 'documentos_categoria' usuario.id_usuario 'PERSONAL' %}" 
+            class="paso personal {% if categoria_actual == 'PERSONAL' %}activo{% endif %}">
+            👤 Paso {{ i }}: Documentos Personales
+        </a>
+        {% endwith %}
+
+        {% comment %} FINAL {% endcomment %}
+        {% with i=8 %}
+        <a href="{% url 'usuario' %}" class="paso finalizar">
+            ✔ Paso {{ i }}: Finalizar
+        </a>
+        {% endwith %}
+
+    {% endwith %}
+
 </div>
 
 <h2>Documentos de {{ usuario.nombre_completo }}</h2>
@@ -581,11 +732,13 @@ th {
     <form method="post" enctype="multipart/form-data" id="documentoForm">
         {% csrf_token %}
 
+        {% if not categoria_actual %}
         <div class="Formgrupo">
             <label for="{{ formulario.categoria.id_for_label }}">
                 📁 {{ formulario.categoria.label }}
             </label>
             {{ formulario.categoria }}
+
             {% if formulario.categoria.errors %}
                 <div class="error">
                     {% for error in formulario.categoria.errors %}
@@ -593,10 +746,12 @@ th {
                     {% endfor %}
                 </div>
             {% endif %}
+
             <div class="categoria-ayuda">
                 💡 Seleccione primero la categoría para filtrar los tipos de documento
             </div>
         </div>
+        {% endif %}
 
         <div class="Formgrupo">
             <label for="{{ formulario.tipo_documento.id_for_label }}">
@@ -656,65 +811,79 @@ th {
 
         <button type="submit">
             📤 Subir documento
-        </button>
-    </form>
-</div>
+        </button><br>
+    </form><hr>
+    <h3>📚 Documentos Subidos</h3>
 
-<h3>📚 Documentos Subidos</h3>
+        {% if docs_por_categoria %}
 
-{% if docs_por_categoria %}
-    {% for categoria, docs in docs_por_categoria.items %}
-        <h4 class="categoria-titulo">📂 {{ categoria }}</h4>
-        
-        <div style="overflow-x: auto;">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Tipo de Documento</th>
-                        <th>Nombre</th>
-                        <th>Archivo</th>
-                        <th>Observaciones</th>
-                        <th>Fecha de Subida</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for doc in docs %}
-                    <tr>
-                        <td>
-                            <strong>{{ doc.get_tipo_documento_display }}</strong>
-                        </td>
-                        <td>{{ doc.nombre }}</td>
-                        <td>
-                            {% if doc.archivo %}
-                                <a href="{{ doc.archivo.url }}" target="_blank" class="btn-ver">
-                                    👁️ Ver archivo
-                                </a>
-                            {% else %}
-                                <span class="no-disponible">No disponible</span>
-                            {% endif %}
-                        </td>
-                        <td>{{ doc.observaciones }}</td>
-                        <td>{{ doc.fecha_subida|date:"d/m/Y H:i" }}</td>
-                        <td>
-                            <a href="{% url 'borrar_documento' doc.id_archivo %}" 
-                               class="btn-eliminar"
-                               onclick="return confirm('¿Está seguro de eliminar el documento {{ doc.get_tipo_documento_display }}?')">
-                                🗑️ Eliminar
-                            </a>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+            {% for categoria, docs in docs_por_categoria.items %}
+                {% include 'usuarios/documentos_tabla.html' with docs=docs titulo=categoria %}
+            {% endfor %}
+
+        {% else %}
+        <div class="sin-documentos">
+            📁 No hay documentos subidos todavía
         </div>
-    {% endfor %}
-{% else %}
-<div class="sin-documentos">
-    📁 No hay documentos subidos todavía
-</div>
-{% endif %}
+        {% endif %}
+        <div id="modalHistorial" class="modal">
+            <div class="modal-content">
 
+                <span class="close" onclick="document.getElementById('modalHistorial').style.display='none'">
+                    &times;
+                </span>
+
+                <h3>📜 Historial de Documentos</h3>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Tipo</th>
+                            <th>Nombre</th>
+                            <th>Observación</th>
+                            <th>Rechazo</th>
+                            <th>Estado</th>
+                            <th>Fecha</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for h in historial %}
+                        <tr>
+                            <td>{{ h.tipo_documento }}</td>
+                            <td>{{ h.nombre }}</td>
+
+                            <td>{{ h.observaciones_rechazo|default:"N/A" }}</td>
+
+                            <td style="color:red;">
+                                {{ h.observaciones_rechazo|default:"Sin observación" }}
+                            </td>
+
+                            <td>
+                                {% if h.estado %}
+                                    {{ h.estado }}
+                                {% else %}
+                                    ELIMINADO
+                                {% endif %}
+                            </td>
+
+                            <td>
+                                {{ h.fecha_eliminacion|date:"d/m/Y H:i" }}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6">No hay historial</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <button onclick="document.getElementById('modalHistorial').style.display='block'" class="btn-ver">
+            📜 Ver Historial
+        </button>
+</div>
 {% endblock %}
 
 {% block extra_js %}
@@ -745,7 +914,6 @@ document.addEventListener('DOMContentLoaded', function () {
         return;
     }
 
-    // 🔧 Función para limpiar select
     function limpiarSelect(select, placeholder) {
         select.innerHTML = '';
 
@@ -755,7 +923,6 @@ document.addEventListener('DOMContentLoaded', function () {
         select.appendChild(opt);
     }
 
-    // 🔥 FILTRO PRINCIPAL
     function filtrar() {
 
         const valor = categoria.value;
@@ -780,12 +947,9 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // 🔥 eventos
     categoria.addEventListener('change', filtrar);
 
-    // 🔥 ejecutar al cargar
     filtrar();
-
 });
 </script>
 {% endblock %}

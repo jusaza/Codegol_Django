@@ -1,13 +1,8 @@
 from django.shortcuts import redirect
 from functools import wraps
-
 from .models import Usuario, Documentos
 from .forms import DOCUMENTOS_POR_ROL, es_menor
 
-
-# =========================
-# DECORADOR ROLES
-# =========================
 def rol_requerido(roles_permitidos):
 
     def permiso(vista):
@@ -29,10 +24,6 @@ def rol_requerido(roles_permitidos):
 
     return permiso
 
-
-# =========================
-# BLOQUEO DOCUMENTOS
-# =========================
 def bloqueo_documentos_completos(vista):
 
     @wraps(vista)
@@ -44,7 +35,7 @@ def bloqueo_documentos_completos(vista):
         if not usuario_id:
             return redirect("login")
 
-        # ADMIN NO BLOQUEA
+        # 🔥 ADMIN nunca bloqueado
         if "Administrador" in roles_sesion:
             return vista(request, *args, **kwargs)
 
@@ -72,13 +63,17 @@ def bloqueo_documentos_completos(vista):
 
             faltantes = documentos_requeridos - documentos_subidos
 
-            # 🔥 BLOQUEO GENERAL
+            # 🔥 GUARDAR EN SESIÓN (OPCIONAL PERO ÚTIL)
+            request.session["docs_completos"] = len(faltantes) == 0
+
+            # 🔥 BLOQUEO GLOBAL SI FALTAN DOCUMENTOS
             if faltantes:
 
                 url_name = getattr(request.resolver_match, "url_name", "")
 
-                # SOLO PERMITIR MI PERFIL Y DOCUMENTOS
-                if url_name not in ["mi_perfil", "documentos"]:
+                rutas_permitidas = ["documentos", "login"]
+
+                if url_name not in rutas_permitidas:
                     return redirect("documentos", id=usuario_id)
 
         except Usuario.DoesNotExist:
@@ -87,3 +82,4 @@ def bloqueo_documentos_completos(vista):
         return vista(request, *args, **kwargs)
 
     return wrapper
+
