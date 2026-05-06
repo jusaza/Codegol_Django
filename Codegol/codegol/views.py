@@ -1,18 +1,13 @@
 from django.shortcuts import render
-
 from . import views 
 from django.shortcuts import render
-
 from usuario.models import Usuario, Documentos
 from pago.models import Pago
 from matricula.models import Matricula, HistorialCategoria
 from inventario.models import Inventario
 from entrenamientos.models import Entrenamiento
-
-
 from django.shortcuts import render
 from django.db.models import Sum, Avg, Max, Min
-
 from django.db.models import Sum, Avg, Max, Min
 from django.shortcuts import render
 
