@@ -114,7 +114,7 @@
 
     {% if m.estado == "pendiente" %}
         <button class="eliminar">
-            <a href="{% url 'crear_devolucion' m.id_movimiento %}" 
+            <a onclick="abrirModalDevolucion('{% url 'crear_devolucion' m.id_movimiento %}')" 
                style="text-decoration: none; color: white;">
                 Devolver
             </a>
@@ -122,7 +122,7 @@
 
     {% elif m.estado == "parcial" %}
         <button style="background-color: orange; border:none; padding:6px 10px;">
-            <a href="{% url 'crear_devolucion' m.id_movimiento %}" 
+            <a onclick="abrirModalDevolucion('{% url 'crear_devolucion' m.id_movimiento %}')" 
                style="text-decoration: none; color: white;">
                 Parcial
             </a>
@@ -164,7 +164,68 @@
 {% endfor %}
 </tbody>
 </table>
+<!-- MODAL PARA DEVOLUCIONES -->
+<div class="modal fade" id="modalDevolucion" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" id="contenidoModalDevolucion">
+            <!-- Aquí se cargará el contenido de devolver.html -->
+        </div>
+    </div>
+</div>
 
+<script>
+function abrirModalDevolucion(url) {
+    fetch(url)
+        .then(response => response.text())
+        .then(html => {
+            const contenedor = document.getElementById('contenidoModalDevolucion');
+            contenedor.innerHTML = html;
+            
+            let modal = new bootstrap.Modal(document.getElementById('modalDevolucion'));
+            modal.show();
+
+            // --- VALIDACIÓN SÚPER SEGURA ---
+            const form = contenedor.querySelector('form'); // Buscamos el form que acabamos de meter
+            
+            form.onsubmit = function(e) {
+                // Buscamos los inputs por su atributo 'name' (que es más seguro)
+                const inputCantidad = form.querySelector('[name="cantidad"]');
+                const inputObs = form.querySelector('[name="observaciones"]');
+                
+                // El restante lo sacamos del atributo 'max' del input de cantidad
+                const cantidad = parseInt(inputCantidad.value) || 0;
+                const restante = parseInt(inputCantidad.getAttribute('max')) || 0;
+                const observacion = inputObs.value.trim();
+
+                console.log("Validando -> Cantidad:", cantidad, "Restante:", restante);
+
+                if (cantidad < 1) {
+                    alert("Por favor, ingresa una cantidad válida.");
+                    e.preventDefault();
+                    return false;
+                }
+
+                if (cantidad > restante) {
+                    alert("No puedes devolver más de lo que resta (" + restante + ").");
+                    e.preventDefault();
+                    return false;
+                }
+
+                // VALIDACIÓN DE OBSERVACIÓN (Aquí está el arreglo)
+                // Solo si cantidad es estrictamente MENOR que el restante Y no hay observación
+                if (cantidad < restante && observacion === "") {
+                    alert("Es obligatorio explicar por qué no se devuelve el total en las observaciones.");
+                    e.preventDefault();
+                    inputObs.focus();
+                    return false;
+                }
+                
+                // Si llegó aquí, todo está bien y el form se envía
+            };
+        });
+}
+
+</script>
 <script>
 document.addEventListener("DOMContentLoaded", function () {
 

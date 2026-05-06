@@ -247,7 +247,7 @@ def crear_devolucion(request, id_movimiento):
             return HttpResponse("Excede lo prestado")
 
         if cantidad < restante and not observaciones:
-            return HttpResponse("Debe explicar faltante")
+            return HttpResponse("Debe explicar por qué la devolución es parcial (faltantes).")
 
         usuario = Usuario.objects.get(pk=request.session.get("usuario_id"))
 
