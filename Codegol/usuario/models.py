@@ -68,7 +68,7 @@ class Usuario(models.Model):
     nombre_completo = models.CharField(
         max_length=30,
         validators=[
-            MinLengthValidator(2),
+            MinLengthValidator(3),
             nombre_sin_numeros
         ],
         blank=False,

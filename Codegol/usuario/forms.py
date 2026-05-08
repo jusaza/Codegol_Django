@@ -165,6 +165,7 @@ class EditarPerfil(forms.ModelForm):
             "correo",
             "contrasena",
             "num_identificacion",
+            "tipo_documento",
             "telefono_1",
             "telefono_2",
             "direccion",
