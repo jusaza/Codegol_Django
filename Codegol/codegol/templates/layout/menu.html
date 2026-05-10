@@ -7,65 +7,334 @@
   <title>{% block title %}Escuela de Fútbol Pinze{% endblock %}</title>
 
   <link rel="stylesheet" href="{% static 'css/style_pag_prin.css' %}">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <style>
+
+    /* ===== SIDEBAR ===== */
+
+    .menu{
+      width: 260px;
+      min-height: 100vh;
+      background: #1e293b;
+      padding: 15px;
+      overflow-y: auto;
+    }
+
+    .menu ul{
+      padding: 0;
+      margin: 0;
+    }
+
+    .menu li{
+      list-style: none;
+    }
+
+    .logo{
+      display: flex;
+      justify-content: center;
+      margin-bottom: 15px;
+    }
+
+    .logo img{
+      width: 120px;
+      border-radius: 12px;
+    }
+
+    .menu h2{
+      color: white;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    /* ===== ITEMS ===== */
+
+    .menu-item{
+      margin-bottom: 10px;
+    }
+
+    .menu-item > a,
+    .menu-title{
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      text-decoration: none;
+      color: white;
+      padding: 12px;
+      border-radius: 8px;
+      transition: 0.3s;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .menu-item > a:hover,
+    .menu-title:hover{
+      background: #334155;
+    }
+
+    /* ===== ITEM ACTIVO ===== */
+
+    .menu-item.active > a,
+    .menu-item.active .menu-title{
+      background: #0f172a;
+      border-left: 5px solid #38bdf8;
+    }
+
+    /* ===== SUBMENU ===== */
+
+    .submenu{
+      display: none;
+      margin-top: 5px;
+      padding-left: 10px;
+    }
+
+    .menu-item.open .submenu{
+      display: block;
+    }
+
+    .submenu li{
+      margin: 5px 0;
+    }
+
+    .submenu a{
+      display: block;
+      text-decoration: none;
+      color: #cbd5e1;
+      padding: 10px;
+      border-radius: 6px;
+      transition: 0.3s;
+    }
+
+    .submenu a:hover{
+      background: #334155;
+    }
+
+    /* ===== SUBMENU ACTIVO ===== */
+
+    .submenu-active{
+      background: #475569 !important;
+      color: white !important;
+      border-left: 4px solid #38bdf8;
+    }
+
+    /* ===== BOTON CERRAR SESION ===== */
+
+    .cerrar-sesion{
+      display: block;
+      margin-top: 30px;
+      text-align: center;
+      background: #dc2626;
+      color: white;
+      text-decoration: none;
+      padding: 12px;
+      border-radius: 8px;
+      transition: 0.3s;
+    }
+
+    .cerrar-sesion:hover{
+      background: #b91c1c;
+    }
+
+  </style>
 
   {% block extra_css %}
   {% endblock %}
 </head>
+
 <body>
+
   <aside class="menu">
-    <a href="{% url 'pagina_original' %}" class="logo" aria-label="Logo Escuela de Fútbol Pinze">
-      <img src="{% static 'imagenes/logo.jpg' %}" alt="Logo Escuela de Fútbol Pinze" />
+
+    <a href="{% url 'inicio' %}" class="logo">
+      <img src="{% static 'imagenes/logo.jpg' %}" alt="Logo Escuela de Fútbol Pinze">
     </a>
 
     <h2>⚽ Menú ⚽</h2>
+
     <ul>
-      {% if "Administrador" in request.session.roles %}
-      <li>
-        <a href="{% url 'usuario' %}">Usuarios</a>
-      </li>
-      {% endif %}
-      {% if "Administrador" in request.session.roles or "Entrenador" in request.session.roles or "Jugador" in request.session.roles %}
-      <li>
-        <a href="{% url 'mi_perfil' request.session.usuario_id %}">Mi Perfil</a>
-      </li>
-      {% endif %}
+
+      <!-- dashboard -->
+<li class="menu-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+    <a href="{% url 'dashboard' %}">
+        Inicio
+    </a>
+</li>
+
+<!-- USUARIOS -->
+{% if "Administrador" in request.session.roles %}
+<li class="menu-item {% if request.resolver_match.url_name == 'usuario' %}active{% endif %}">
+    <a href="{% url 'usuario' %}">
+        Usuarios
+    </a>
+</li>
+{% endif %}
+
+<!-- MI PERFIL -->
+{% if "Administrador" in request.session.roles or "Entrenador" in request.session.roles or "Jugador" in request.session.roles %}
+<li class="menu-item {% if request.resolver_match.url_name == 'mi_perfil' %}active{% endif %}">
+    <a href="{% url 'mi_perfil' request.session.usuario_id %}">
+        Mi Perfil
+    </a>
+</li>
+{% endif %}
+
+      <!-- INVENTARIO -->
       {% if "Administrador" in request.session.roles or "Entrenador" in request.session.roles %}
-      <li>
-        <a href="{% url 'lista_inventario' %}">Inventario</a>
+      <li class="menu-item {% if 'inventario' in request.path %}active{% endif %}">
+        <a href="{% url 'lista_inventario' %}">
+          Inventario
+        </a>
       </li>
       {% endif %}
+
+      <!-- ENTRENAMIENTO -->
+
+{% if "Administrador" in request.session.roles or "Entrenador" in request.session.roles or "Jugador" in request.session.roles %}
+
+    <!-- SI ES ADMIN O ENTRENADOR = MENU DESPLEGABLE -->
+    {% if "Administrador" in request.session.roles or "Entrenador" in request.session.roles %}
+
+    <li class="menu-item {% if 'entrenamiento' in request.path or 'posicion_actividad' in request.path or 'atributo_actividad' in request.path %}active open{% endif %}">
+
+        <div class="menu-title" onclick="toggleMenu('entrenamiento-menu')">
+            Entrenamiento
+            <span>▼</span>
+        </div>
+
+        <ul id="entrenamiento-menu" class="submenu">
+
+            <!-- VER ENTRENAMIENTOS -->
+            <li>
+                <a href="{% url 'panel_entrenamiento' %}"
+                   class="{% if 'entrenamiento' in request.path and 'posicion_actividad' not in request.path and 'atributo_actividad' not in request.path %}submenu-active{% endif %}">
+                    Ver Entrenamientos
+                </a>
+            </li>
+
+            <!-- ACTIVIDADES -->
+            <li>
+                <a href="{% url 'panel_posicion_actividad' %}"
+                   class="{% if 'posicion_actividad' in request.path %}submenu-active{% endif %}">
+                    Actividades
+                </a>
+            </li>
+
+            <!-- ATRIBUTOS -->
+            <li>
+                <a href="{% url 'panel_actividad_atributo' %}"
+                   class="{% if 'atributo_actividad' in request.path %}submenu-active{% endif %}">
+                    Atributos a Evaluar
+                </a>
+            </li>
+
+        </ul>
+
+    </li>
+
+    {% else %}
+
+    <!-- SI SOLO ES JUGADOR = ENLACE NORMAL -->
+
+    <li class="menu-item {% if 'entrenamiento/panel' in request.path %}active{% endif %}">
+        <a href="{% url 'panel_entrenamiento' %}">
+            Entrenamiento
+        </a>
+    </li>
+
+    {% endif %}
+
+{% endif %}
+
+      <!-- RENDIMIENTO -->
       {% if "Administrador" in request.session.roles or "Entrenador" in request.session.roles or "Jugador" in request.session.roles %}
-      <li>
-        <a href="{% url 'lista_entrenamientos' %}">Entrenamiento</a>
+      <li class="menu-item {% if 'rendimiento' in request.path %}active{% endif %}">
+        <a href="{% url 'historial_rendimiento' %}">
+          Rendimiento
+        </a>
       </li>
       {% endif %}
-      {% if "Administrador" in request.session.roles or "Entrenador" in request.session.roles or "Jugador" in request.session.roles %}
-      <li>
-        <a href="{% url 'lista_jugadores' %}">Rendimiento</a>
-      </li>
-      {% endif %}
-      {% if "Administrador" in request.session.roles %}
-      <li>
-        <a href="{% url 'lista_categoria' %}">Categoría</a>
-      </li>
-      {% endif %}
-      {% if "Administrador" in request.session.roles or "Entrenador" in request.session.roles or "Jugador" in request.session.roles %}
-      <li>
-        <a href="{% url 'lista_matricula' %}">Matrícula</a>
-      </li>
-      {% endif %}
+
+      <!-- MATRICULA -->
+
+{% if "Administrador" in request.session.roles or "Entrenador" in request.session.roles or "Jugador" in request.session.roles %}
+
+    <!-- ADMIN = DESPLEGABLE -->
+    {% if "Administrador" in request.session.roles %}
+
+    <li class="menu-item {% if 'matricula' in request.path or 'categoria' in request.path %}active open{% endif %}">
+
+        <div class="menu-title" onclick="toggleMenu('matricula-menu')">
+            Matrícula
+            <span>▼</span>
+        </div>
+
+        <ul id="matricula-menu" class="submenu">
+
+            <li>
+                <a href="{% url 'lista_matricula' %}"
+                   class="{% if 'matricula' in request.path %}submenu-active{% endif %}">
+                    Ver Matrículas
+                </a>
+            </li>
+
+            <li>
+                <a href="{% url 'lista_categoria' %}"
+                   class="{% if 'categoria' in request.path %}submenu-active{% endif %}">
+                    Categorías
+                </a>
+            </li>
+
+        </ul>
+
+    </li>
+
+    {% else %}
+
+    <!-- ENTRENADOR/JUGADOR = SOLO LINK -->
+
+    <li class="menu-item {% if 'matricula' in request.path %}active{% endif %}">
+        <a href="{% url 'lista_matricula' %}">
+            Matrícula
+        </a>
+    </li>
+
+    {% endif %}
+
+{% endif %}
+
+      <!-- PAGOS -->
       {% if "Administrador" in request.session.roles or "Jugador" in request.session.roles %}
-      <li>
-        <a href="{% url 'lista_pagos' %}">Pago</a>
+      <li class="menu-item {% if 'pago' in request.path %}active{% endif %}">
+        <a href="{% url 'lista_pagos' %}">
+          Pago
+        </a>
       </li>
       {% endif %}
+
     </ul>
 
-    <a href="{% url 'logout' %}" class="cerrar-sesion">Cerrar sesión</a>
+    <a href="{% url 'logout' %}" class="cerrar-sesion">
+      Cerrar sesión
+    </a>
+
   </aside>
 
-{% block content %}
-{% endblock %}
-    
+  {% block content %}
+  {% endblock %}
+
+  <script>
+
+    function toggleMenu(id) {
+
+      const menu = document.getElementById(id);
+
+      menu.parentElement.classList.toggle('open');
+
+    }
+
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
 </body>
 </html>

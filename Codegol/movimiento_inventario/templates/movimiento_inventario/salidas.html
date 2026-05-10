@@ -10,38 +10,68 @@
 
 <h2>Salidas de inventario</h2>
 
-<form method="post">
-    {% csrf_token %}
-<div class="barra-busqueda">
-    <input type="text" id="buscador" placeholder="Buscar inventario...">
+<div class="modal fade" id="modalSalida">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content" >
 
-    <select name="inventario_id" id="inventario_select" required>
-        {% for i in inventarios %}
-            <option value="{{ i.id_inventario }}"
-                    data-stock="{{ i.stock }}"
-                    {% if i.stock <= 0 %}disabled{% endif %}>
-                    
-                {{ i.nombre_articulo }} (Stock: {{ i.stock }})
-            </option>
-        {% endfor %}
-    </select>
+      <form method="post" >
+        {% csrf_token %}
 
-    <input type="number" id="cantidad" name="cantidad" placeholder="Cantidad" min="1"  required>
+        <div class="modal-header text-white" style="background-color: #001f3f;">
+          <h5>Registrar salida</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
 
-    <input type="text" name="observaciones" placeholder="Observación">
-    <button type="submit" class="boton-registrar">
-        Registrar salida
-    </button>
+        <div class="modal-body">
+
+          <!-- 🔎 BUSCADOR -->
+          <input type="text" id="buscador" class="form-control mb-2" placeholder="Buscar inventario...">
+
+          <!-- 📦 SELECT -->
+          <select name="inventario_id" id="inventario_select" class="form-control mb-2" required>
+              {% for i in inventarios %}
+                  <option value="{{ i.id_inventario }}"
+                          data-stock="{{ i.stock }}"
+                          {% if i.stock <= 0 %}disabled{% endif %}>
+                      {{ i.nombre_articulo }} (Stock: {{ i.stock }})
+                  </option>
+              {% endfor %}
+          </select>
+
+          <!-- 📊 CANTIDAD -->
+          <input type="number" id="cantidad" name="cantidad" class="form-control mb-2"
+                 placeholder="Cantidad" min="1" required>
+
+          <!-- 📝 OBS -->
+          <input type="text" name="observaciones" class="form-control"
+                 placeholder="Observación">
+
+        </div>
+
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-success" style="background-color: #001f3f;">
+              Registrar salida
+          </button>
+        </div>
+
+      </form>
+
     </div>
-</form>
-
+  </div>
+</div>
 <hr>
 
 <div class="acciones">
     <button onclick="guardarCambios()" class="actualizar">
         Guardar cambios
     </button>
+    <button class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#modalSalida" style="color: white; background-color: #001f3f; border-color: #001f3f;">
+        + Registrar salida
+    </button>
 </div>
+
+
+
 
 <!-- 🔥 TABLA -->
 <table border="1">
@@ -84,7 +114,7 @@
 
     {% if m.estado == "pendiente" %}
         <button class="eliminar">
-            <a href="{% url 'crear_devolucion' m.id_movimiento %}" 
+            <a onclick="abrirModalDevolucion('{% url 'crear_devolucion' m.id_movimiento %}')" 
                style="text-decoration: none; color: white;">
                 Devolver
             </a>
@@ -92,7 +122,7 @@
 
     {% elif m.estado == "parcial" %}
         <button style="background-color: orange; border:none; padding:6px 10px;">
-            <a href="{% url 'crear_devolucion' m.id_movimiento %}" 
+            <a onclick="abrirModalDevolucion('{% url 'crear_devolucion' m.id_movimiento %}')" 
                style="text-decoration: none; color: white;">
                 Parcial
             </a>
@@ -134,7 +164,68 @@
 {% endfor %}
 </tbody>
 </table>
+<!-- MODAL PARA DEVOLUCIONES -->
+<div class="modal fade" id="modalDevolucion" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" id="contenidoModalDevolucion">
+            <!-- Aquí se cargará el contenido de devolver.html -->
+        </div>
+    </div>
+</div>
 
+<script>
+function abrirModalDevolucion(url) {
+    fetch(url)
+        .then(response => response.text())
+        .then(html => {
+            const contenedor = document.getElementById('contenidoModalDevolucion');
+            contenedor.innerHTML = html;
+            
+            let modal = new bootstrap.Modal(document.getElementById('modalDevolucion'));
+            modal.show();
+
+            // --- VALIDACIÓN SÚPER SEGURA ---
+            const form = contenedor.querySelector('form'); // Buscamos el form que acabamos de meter
+            
+            form.onsubmit = function(e) {
+                // Buscamos los inputs por su atributo 'name' (que es más seguro)
+                const inputCantidad = form.querySelector('[name="cantidad"]');
+                const inputObs = form.querySelector('[name="observaciones"]');
+                
+                // El restante lo sacamos del atributo 'max' del input de cantidad
+                const cantidad = parseInt(inputCantidad.value) || 0;
+                const restante = parseInt(inputCantidad.getAttribute('max')) || 0;
+                const observacion = inputObs.value.trim();
+
+                console.log("Validando -> Cantidad:", cantidad, "Restante:", restante);
+
+                if (cantidad < 1) {
+                    alert("Por favor, ingresa una cantidad válida.");
+                    e.preventDefault();
+                    return false;
+                }
+
+                if (cantidad > restante) {
+                    alert("No puedes devolver más de lo que resta (" + restante + ").");
+                    e.preventDefault();
+                    return false;
+                }
+
+                // VALIDACIÓN DE OBSERVACIÓN (Aquí está el arreglo)
+                // Solo si cantidad es estrictamente MENOR que el restante Y no hay observación
+                if (cantidad < restante && observacion === "") {
+                    alert("Es obligatorio explicar por qué no se devuelve el total en las observaciones.");
+                    e.preventDefault();
+                    inputObs.focus();
+                    return false;
+                }
+                
+                // Si llegó aquí, todo está bien y el form se envía
+            };
+        });
+}
+
+</script>
 <script>
 document.addEventListener("DOMContentLoaded", function () {
 

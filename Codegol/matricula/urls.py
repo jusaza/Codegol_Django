@@ -10,5 +10,6 @@ urlpatterns = [
     path('historial_categoria/<int:id>/', views.ver_historial_categoria, name='historial_categoria'),
     path('certificado/<int:id>/', views.generar_certificado, name='certificado'),
     path('exportar-excel/', views.exportar_matriculas_excel, name='exportar_excel'),
+    path('modal-filtro-excel/',views.modal_filtro_excel,name='modal_filtro_excel'),
 
 ]

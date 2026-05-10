@@ -24,9 +24,9 @@ urlpatterns = [
 
     # Paginas generales
     path('', views.inicio, name='inicio'),
+    path('dashboard', views.dashboard, name='dashboard'),
     path('nosotros/', views.nosotros, name='nosotros'),
     path('servicios/', views.servicios, name='servicios'),
-    path('pagina_original/', views.pagina_original, name='pagina_original'),
     path('400/', views.error400, name='error400'),
 
     path('', include('usuario.urls')),
@@ -41,4 +41,12 @@ urlpatterns = [
     path('categoria/', include('categoria.urls')),
 
     path('rendimiento/', include('rendimiento.urls')),
+
+    path('posicion_actividad/', include('posicion_actividad.urls')),
+
+    path('atributo_actividad/', include('atributo_actividad.urls')),
+
+    path('sesiones/', include('sesion_entrenamiento.urls')),
+
+    path('asistencia/', include('asistencia.urls')),
 ]

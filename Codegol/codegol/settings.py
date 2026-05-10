@@ -24,10 +24,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-w&5&8fm@qa^nzcx@4$rkjs(g49$)##aix4qp%tt##t8yxq2_@j'
 
 # SECURITY WARNING: don't run with debug turned on in production!
+
 DEBUG = True
 
 ALLOWED_HOSTS = []
 
+#DEBUG = False
+
+#ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 
 # Application definition
 
@@ -40,15 +44,21 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'usuario',
     'entrenamientos',
+    'entrenamiento_actividad',
     'sesion_entrenamiento',
     'inventario',
-    'movimiento_inventario', 
+    'movimiento_inventario',
     'matricula',
     'asistencia',
     'rendimiento',
     'categoria',
     'codegol',
     'pago',
+    'posicion',
+    'actividad',
+    'atributo',
+    'posicion_actividad',
+    'atributo_actividad',
 ]
 
 MIDDLEWARE = [
@@ -59,6 +69,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'codegol.middleware.documentos.BloqueoDocumentosMiddleware',
 ]
 
 ROOT_URLCONF = 'codegol.urls'
@@ -73,6 +84,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'usuario.context_processors.documentos_faltantes',
             ],
         },
     },
@@ -126,6 +138,7 @@ USE_I18N = True
 USE_TZ = True
 
 
+
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
@@ -137,3 +150,12 @@ STATICFILES_DIRS = [
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'sandbox.smtp.mailtrap.io'
+EMAIL_PORT = 2525
+EMAIL_HOST_USER = 'a343e7bd69df11'
+EMAIL_HOST_PASSWORD = 'abf63dbcf86884'
+EMAIL_USE_TLS = True
+EMAIL_USE_SSL = False
+

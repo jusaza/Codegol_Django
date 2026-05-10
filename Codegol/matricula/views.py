@@ -11,6 +11,7 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet
 from openpyxl import Workbook
 from django.http import HttpResponse
+from posicion.models import Posicion
 
 
 from django.db.models import Q
@@ -51,6 +52,7 @@ def lista_matricula(request):
 # CREAR
 def crear_matricula(request):
     usuarios = Usuario.objects.filter(roles__rol_usuario='Jugador').distinct()
+    posiciones = Posicion.objects.filter()
 
     if request.method == 'POST':
         fecha_inicio = request.POST.get('fecha_inicio')
@@ -59,6 +61,7 @@ def crear_matricula(request):
         nivel = request.POST.get('nivel')
         observaciones = request.POST.get('observaciones')
         id_jugador = request.POST.get('id_jugador')
+        posicion_id = request.POST.get('posicion')
 
         if not id_jugador:
             return render(request, 'matricula/crear.html', {
@@ -68,40 +71,99 @@ def crear_matricula(request):
 
         jugador = Usuario.objects.get(id_usuario=id_jugador)
 
-        Matricula.objects.create(
-            fecha_inicio=fecha_inicio,
-            fecha_fin=fecha_fin,
-            fecha_matricula=fecha_matricula,
-            nivel=nivel,
-            observaciones=observaciones,
-            estado=True,
-            id_jugador=jugador
-        )
+        matricula = Matricula.objects.create(
+        fecha_inicio=fecha_inicio,
+        fecha_fin=fecha_fin,
+        fecha_matricula=fecha_matricula,
+        nivel=nivel,
+        observaciones=observaciones,
+        estado=True,
+        id_jugador=jugador,
+        posicion=Posicion.objects.get(id_posicion=posicion_id) if posicion_id else None
+    )
+        categoria_id = request.POST.get('categoria')
+
+        if categoria_id:
+            HistorialCategoria.objects.create(
+                id_matricula=matricula,
+                id_categoria_id=categoria_id,
+                fecha_registro=date.today(),
+                estado=True
+            )
 
         return redirect('lista_matricula')
 
-    return render(request, 'matricula/crear.html', {
-        'usuarios': usuarios
-    })
+    return render(request, 'matricula/form.html', {
+    'usuarios': usuarios,
+    'posiciones': posiciones,
+    'categorias': Categoria.objects.filter(estado=True),
+    'error': 'Debe seleccionar un jugador'
+})
 
 
 # EDITAR
 def editar_matricula(request, id):
+
     matricula = get_object_or_404(Matricula, id=id)
 
+    posiciones = Posicion.objects.all()
+
+    categorias = Categoria.objects.filter(estado=True)
+
+    ultima_categoria = HistorialCategoria.objects.filter(
+        id_matricula=matricula,
+        estado=True
+    ).order_by('-fecha_registro', '-id_historial').first()
+
     if request.method == 'POST':
+
+        # DATOS MATRÍCULA
         matricula.fecha_inicio = request.POST.get('fecha_inicio')
         matricula.fecha_fin = request.POST.get('fecha_fin')
         matricula.fecha_matricula = request.POST.get('fecha_matricula')
         matricula.nivel = request.POST.get('nivel')
         matricula.observaciones = request.POST.get('observaciones')
 
+        # POSICIÓN
+        posicion_id = request.POST.get('posicion')
+
+        if posicion_id:
+            matricula.posicion = Posicion.objects.get(
+                id_posicion=posicion_id
+            )
+
         matricula.save()
+
+        # CATEGORÍA NUEVA
+        categoria_nueva = request.POST.get('categoria')
+
+        # OBSERVACIÓN DEL CAMBIO
+        observacion_categoria = request.POST.get(
+            'observacion_categoria'
+        )
+
+        # VALIDAR SI CAMBIÓ LA CATEGORÍA
+        if (
+            ultima_categoria and
+            str(ultima_categoria.id_categoria.id_categoria)
+            != str(categoria_nueva)
+        ):
+
+            HistorialCategoria.objects.create(
+                id_matricula=matricula,
+                id_categoria_id=categoria_nueva,
+                fecha_registro=date.today(),
+                observacion=observacion_categoria,
+                estado=True
+            )
 
         return redirect('lista_matricula')
 
-    return render(request, 'matricula/editar.html', {
-        'matricula': matricula
+    return render(request, 'matricula/form.html', {
+        'matricula': matricula,
+        'posiciones': posiciones,
+        'categorias': categorias,
+        'ultima_categoria': ultima_categoria
     })
 
 
@@ -219,15 +281,94 @@ def generar_certificado(request, id):
 
     return response
 
+def modal_filtro_excel(request):
 
+    categorias = Categoria.objects.filter(estado=True)
+    posiciones = Posicion.objects.all()
+
+    return render(request, 'matricula/modal_filtro_excel.html', {
+        'categorias': categorias,
+        'posiciones': posiciones
+    })
 
 def exportar_matriculas_excel(request):
 
     matriculas = Matricula.objects.filter(estado=True)
 
+    categoria = request.GET.get('categoria')
+    nivel = request.GET.get('nivel')
+    posicion = request.GET.get('posicion')
+    fecha_inicio = request.GET.get('fecha_inicio')
+    fecha_fin = request.GET.get('fecha_fin')
+
+    # FILTRO NIVEL
+    if nivel:
+        matriculas = matriculas.filter(
+            nivel=nivel
+        )
+
+    # FILTRO POSICIÓN
+    if posicion:
+        matriculas = matriculas.filter(
+            posicion_id=posicion
+        )
+
+    # FILTRO FECHAS
+    if fecha_inicio:
+        matriculas = matriculas.filter(
+            fecha_inicio__gte=fecha_inicio
+        )
+
+    if fecha_fin:
+        matriculas = matriculas.filter(
+            fecha_fin__lte=fecha_fin
+        )
+
+    # FILTRO CATEGORÍA
+    if categoria:
+
+        matriculas = matriculas.filter(
+            historialcategoria__id_categoria_id=categoria,
+            historialcategoria__estado=True
+        ).distinct()
+
+    # TOTAL
+    total = matriculas.count()
+
+    # CREAR EXCEL
     wb = Workbook()
+
     ws = wb.active
+
     ws.title = "Matrículas"
+
+    # INFORMACIÓN REPORTE
+    ws.append(["REPORTE DE MATRÍCULAS"])
+    ws.append([])
+
+    ws.append(["TOTAL JUGADORES", total])
+
+    ws.append([
+        "FILTROS APLICADOS"
+    ])
+
+    ws.append([
+        f"Nivel: {nivel or 'Todos'}"
+    ])
+
+    ws.append([
+        f"Posición: {posicion or 'Todas'}"
+    ])
+
+    ws.append([
+        f"Fecha Inicio: {fecha_inicio or 'Todas'}"
+    ])
+
+    ws.append([
+        f"Fecha Fin: {fecha_fin or 'Todas'}"
+    ])
+
+    ws.append([])
 
     # ENCABEZADOS
     ws.append([
@@ -244,6 +385,7 @@ def exportar_matriculas_excel(request):
 
     # DATOS
     for m in matriculas:
+
         jugador = m.id_jugador
 
         ws.append([
@@ -262,7 +404,10 @@ def exportar_matriculas_excel(request):
     response = HttpResponse(
         content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     )
-    response['Content-Disposition'] = 'attachment; filename="reporte_matriculas.xlsx"'
+
+    response[
+        'Content-Disposition'
+    ] = 'attachment; filename="reporte_matriculas.xlsx"'
 
     wb.save(response)
 

@@ -21,18 +21,14 @@ def lista_inventario(request):
 
 def crear_inventario(request):
     if request.method == 'POST':
-        nombre = request.POST.get('nombre_articulo')
-        descripcion = request.POST.get('descripcion')
-
         Inventario.objects.create(
-            nombre_articulo=nombre,
-            descripcion=descripcion,
-            estado=True 
+            nombre_articulo=request.POST.get('nombre_articulo'),
+            descripcion=request.POST.get('descripcion'),
+            estado=True
         )
-
         return redirect('lista_inventario')
 
-    return render(request, 'inventario/crear.html')
+    return render(request, 'inventario/form.html')
 
 
 def editar_inventario(request, id):
@@ -45,7 +41,7 @@ def editar_inventario(request, id):
 
         return redirect('lista_inventario')
 
-    return render(request, 'inventario/editar.html', {
+    return render(request, 'inventario/form.html', {
         'inventario': inventario
     })
 

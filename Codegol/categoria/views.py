@@ -31,7 +31,7 @@ def crear_categoria(request):
 
         return redirect('lista_categoria')
 
-    return render(request, 'categoria/crear.html')
+    return render(request, 'categoria/form.html')
 
 
 def editar_categoria(request, id):
@@ -46,7 +46,7 @@ def editar_categoria(request, id):
 
         return redirect('lista_categoria')
 
-    return render(request, 'categoria/editar.html', {
+    return render(request, 'categoria/form.html', {
         'categoria': categoria
     })
 

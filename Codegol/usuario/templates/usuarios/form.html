@@ -1,10 +1,61 @@
+{% extends 'layout/form.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/style_forms.css' %}">
+<link rel="stylesheet" href="{% static 'css/stylepag.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<style>
+  .proceso {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.paso {
+    padding: 10px 15px;
+    border-radius: 8px;
+    background: #ddd;
+    font-size: 14px;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.paso.activo {
+    background: #007bff;
+    color: white;
+}
+
+.paso.completado {
+    background: #28a745;
+    color: white;
+}
+</style>
+
+<div class="proceso">
+    <div class="paso activo">🧑 Paso 1: Usuario</div>
+
+    {% if formulario.instance.pk %}
+        <a href="{% url 'documentos' formulario.instance.id_usuario %}" class="paso">
+            📄 Paso 2: Documentos
+        </a>
+    {% else %}
+        <div class="paso" style="opacity: 0.5; cursor: not-allowed;">
+            📄 Paso 2: Documentos
+        </div>
+    {% endif %}
+    
+</div>
+
 <div class="login-box" role="main">
 
 <form enctype="multipart/form-data" method="post">
   {% csrf_token %}
 
   {% for campo in formulario %}
-
   <div class="Formgrupo">
     <label>{{ campo.label }}:</label>
 
@@ -33,7 +84,7 @@
     {% else %}
 
       {% if campo.field.widget.input_type == 'file' and campo.value %}
-        <img src="{{ MEDIA_URL }}/media/{{ campo.value }}" width="100"><br>
+        <img src="{{ campo.value.url }}" width="100"><br>
       {% endif %}
 
       <input 
@@ -43,12 +94,16 @@
         placeholder="{{ campo.label }}">
     {% endif %}
 
-    <div class="error">{{ campo.errors }}</div>
+    {% if campo.errors %}
+      <div class="error">
+        {% for error in campo.errors %}
+          <p>{{ error }}</p>
+        {% endfor %}
+      </div>
+    {% endif %}
   </div>
-
   {% endfor %}
 
-  <!-- 🔥 SELECT DE PAISES DESDE API -->
   <div class="Formgrupo">
     <label>País de nacimiento:</label>
     <select name="lugar_nacimiento" required>
@@ -60,7 +115,7 @@
           {{ p.nombre }}
         </option>
       {% endfor %}
-      
+    
     </select>
   </div>
 
@@ -68,11 +123,11 @@
     {% if formulario.instance.pk %}
       Actualizar Usuario
     {% else %}
-      Guardar Usuario
+      Siguente paso.
     {% endif %}
   </button>
 
   <button type="button" onclick="history.back()">Volver</button>
-
 </form>
 </div>
+{% endblock %}

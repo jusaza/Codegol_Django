@@ -9,6 +9,10 @@
   {% block extra_css %}
   {% endblock %}
 </head>
+
+  {% block extra_js %}
+  {% endblock %}
+  
 <body>
 
   <header>
@@ -17,8 +21,8 @@
             {% url 'inicio' %}
         {% else %}
             {{ request.META.HTTP_REFERER|default:'/' }}
-        {% endif %}
-        "" class="logo" aria-label="Logo Escuela de Fútbol Pinze">
+        {% endif %}" 
+        class="logo" aria-label="Logo Escuela de Fútbol Pinze">
       <img src="{% static 'imagenes/logo.jpg' %}" alt="Logo Escuela de Fútbol Pinze" />
     </a>
     <a href="

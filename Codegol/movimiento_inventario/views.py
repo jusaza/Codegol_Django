@@ -138,7 +138,7 @@ def salidas_sesion(request, id_sesion):
     query = request.GET.get('q')
 
     movimientos = MovimientoInventario.objects.filter(
-        tipo_movimiento='salida'
+        tipo_movimiento='salida',
     ).select_related('usuario', 'inventario')\
      .prefetch_related('devoluciones')\
      .order_by('-fecha')
@@ -247,7 +247,7 @@ def crear_devolucion(request, id_movimiento):
             return HttpResponse("Excede lo prestado")
 
         if cantidad < restante and not observaciones:
-            return HttpResponse("Debe explicar faltante")
+            return HttpResponse("Debe explicar por qué la devolución es parcial (faltantes).")
 
         usuario = Usuario.objects.get(pk=request.session.get("usuario_id"))
 

@@ -1,6 +1,5 @@
-from django.urls import path
+from django.urls import path, include
 from . import views
-from django.urls import include
 
 urlpatterns = [
     path('<int:id_entrenamiento>/', views.lista_sesiones, name='lista_sesiones'),
@@ -8,5 +7,4 @@ urlpatterns = [
     path('editar/<int:id>/', views.editar_sesion, name='editar_sesion'),
     path('eliminar/<int:id>/', views.eliminar_sesion, name='eliminar_sesion'),
     path('salidas/', include('movimiento_inventario.urls')),
-    path('asistencia/', include('asistencia.urls')),
 ]

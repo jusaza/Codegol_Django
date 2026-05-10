@@ -2,95 +2,347 @@
 {% load static %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/stylepag.css' %}">
+<style>
+
+/* 🎨 COLORES DEL SISTEMA */
+:root {
+    --azul-oscuro: #0d2b4d;
+    --azul-claro: #1e73be;
+}
+
+/* BOTONES */
+.btn-primary {
+    background-color: var(--azul-oscuro) !important;
+    border-color: var(--azul-oscuro) !important;
+}
+
+.btn-primary:hover {
+    background-color: #154b85 !important;
+}
+
+.btn-success {
+    background-color: var(--azul-oscuro) !important;
+    border-color: var(--azul-claro) !important;
+}
+
+.btn-success:hover {
+    background-color: #155a96 !important;
+}
+
+.btn-dark {
+    background-color: var(--azul-oscuro) !important;
+}
+
+.btn-info {
+    background-color: var(--azul-claro) !important;
+    border: none;
+}
+
+.btn-warning {
+    background-color: #ffc107;
+}
+
+/* MODALES */
+.modal-header.bg-primary,
+.modal-header.bg-success,
+.modal-header.bg-dark {
+    background-color: var(--azul-oscuro) !important;
+}
+
+/* CARDS */
+.card {
+    border-radius: 15px !important;
+    background-color: rgb(235, 235, 235);
+}
+
+/* BADGES */
+.badge.bg-primary {
+    background-color: var(--azul-oscuro) !important;
+}
+
+.badge.bg-success {
+    background-color: var(--azul-claro) !important;
+}
+
+/* INPUT */
+.form-control:focus {
+    border-color: var(--azul-oscuro);
+    box-shadow: 0 0 5px rgba(13, 43, 77, 0.5);
+}
+
+</style>
 {% endblock %}
 
 {% block content %}
 
-<div class="contenido">
+<div class="container mt-4">
 
-  <br>
+    <!-- HEADER -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1>Sesiones - {{ entrenamiento.descripcion }}</h1>
 
-  <div class="barra-top">
-    <div class="barra-busqueda">
-        <form method="get">
-            <input type="text" name="q"
-                placeholder="Buscar sesión...(DD/MM/AAAA)"
-                value="{{ query|default:'' }}">
-        </form>
+        <div>
+            <a href="{% url 'panel_entrenamiento' %}" class="btn btn-dark">
+                ← Volver
+            </a>
+
+            <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalSesion">
+                + Nueva Sesión
+            </button>
+        </div>
     </div>
 
-    <a href="{% url 'crear_sesion' entrenamiento.id_entrenamiento %}" class="boton-registrar">
-      Registrar sesión
-    </a>
-  </div>
+    <!-- CARDS -->
+    <div class="row">
 
-  <table>
-    <thead>
-      <tr>
-        <th>ID</th>
-        <th>Entrenamiento</th>
-        <th>Entrenador</th>
-        <th>Fecha</th>
-        <th>Hora inicio</th>
-        <th>Hora fin</th>
-        <th>Acciones</th>
-      </tr>
-    </thead>
+        {% for s in sesiones %}
+        <div class="col-md-4 mb-4">
 
-    <tbody>
-      {% for sesion in sesiones %}
-      <tr>
-        <td>{{ sesion.id_sesion }}</td>
-        <td>
-          {{ sesion.id_entrenamiento.descripcion }} - 
-          {{ sesion.id_entrenamiento.lugar }}
-        </td>
-        <td>{{ sesion.id_entrenador }}</td>
-        <td>{{ sesion.fecha|date:"d/m/Y" }}</td>
-        <td>{{ sesion.hora_inicio }}</td>
-        <td>{{ sesion.hora_fin }}</td>
+            <div class="card shadow-sm border-0">
 
-        <td class="acciones">
-          <button class="actualizar">
-            <a style="text-decoration: none; color: white;"
-               href="{% url 'editar_sesion' sesion.id_sesion %}">
-               Actualizar
-            </a>
-          </button>
+                <div class="card-body">
 
-          <button class="eliminar">
-            <a style="text-decoration: none; color: white;"
-               href="{% url 'eliminar_sesion' sesion.id_sesion %}">
-               Eliminar
-            </a>
-          </button>
-        </td>
+                    <!-- HEADER CARD -->
+                    <div class="d-flex justify-content-between align-items-center">
 
-          <td class = "acciones">
-            <button class="actualizar" style="background-color: green;">
-                <a style="text-decoration: none; color: white;"
-                    href="{% url 'salidas_sesion' sesion.id_sesion %}">
-                Ver movimientos
-                </a>
-            </button>
-            <button class="actualizar" style="background-color: green;">
-                <a style="text-decoration: none; color: white;"
-                    href="{% url 'tabla_asistencia' sesion.id_sesion %}">
-                Ver Asistencia y Rendimiento
-                </a>
-            </button>
-        </td>
-      </tr>
+                        <span class="badge bg-success">ACTIVA</span>
 
-      {% empty %}
-      <tr>
-        <td colspan="7">No hay sesiones registradas</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+                        <div class="d-flex gap-2">
+
+                            <!-- EDITAR -->
+                            <button class="btn btn-sm btn-warning"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#editarSesion{{ s.id_sesion }}">
+                                ✏️
+                            </button>
+
+                            <!-- ELIMINAR -->
+                            <a href="{% url 'eliminar_sesion' s.id_sesion %}"
+                               class="btn btn-sm btn-danger"
+                               onclick="return confirm('¿Eliminar?')">
+                               🗑️
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                    <!-- INFO -->
+                    <h5 class="mt-2 text-center fw-bold">{{ s.fecha }}</h5>
+
+                    <p class="text-center">⏰ {{ s.hora_inicio }} - {{ s.hora_fin }}</p>
+                    <p class="text-center">👨‍🏫 {{ s.id_entrenador.nombre_completo }}</p>
+
+                    <hr>
+
+                    <!-- SELECT CATEGORIA -->
+                    <select id="cat_{{ s.id_sesion }}" class="form-control mb-2">
+                        <option value="">Seleccione categoría</option>
+                        {% for c in categorias %}
+                            <option value="{{ c.id_categoria }}">
+                                {{ c.nombre_categoria }}
+                            </option>
+                        {% endfor %}
+                    </select>
+
+                    <!-- BOTONES -->
+                    <div class="d-flex gap-2">
+
+                        <button class="btn btn-primary w-50"
+                                onclick="abrirAsistencia({{ s.id_sesion }})">
+                            📋 Asistencia
+                        </button>
+
+                        <button class="btn btn-warning w-50"
+                                onclick="irRendimiento({{ s.id_sesion }})">
+                            📊 Rendimiento
+                        </button>
+
+                        <button class="btn btn-warning w-50" style="background-color: green; border-color: green; ">
+                            <a style="text-decoration: none; color: white;"
+                                href="{% url 'salidas_sesion' s.id_sesion %}">
+                            Ver movimientos
+                            </a>
+                        </button>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- ================= MODAL EDITAR ================= -->
+        <div class="modal fade" id="editarSesion{{ s.id_sesion }}">
+          <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+
+              <form method="post" action="{% url 'editar_sesion' s.id_sesion %}">
+                {% csrf_token %}
+
+                <div class="modal-header bg-primary text-white">
+                  <h5>Editar Sesión</h5>
+                  <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+
+                  <input type="date" name="fecha" class="form-control mb-2"
+                    value="{{ s.fecha|date:'Y-m-d' }}" required>
+
+                  <input type="time" name="hora_inicio" class="form-control mb-2" value="{{ s.hora_inicio }}" required>
+
+                  <input type="time" name="hora_fin" class="form-control mb-2" value="{{ s.hora_fin }}" required>
+
+                  <select name="id_entrenador" class="form-control">
+                      {% for e in entrenadores %}
+                          <option value="{{ e.id_usuario }}"
+                              {% if e.id_usuario == s.id_entrenador.id_usuario %}selected{% endif %}>
+                              {{ e.nombre_completo }}
+                          </option>
+                      {% endfor %}
+                  </select>
+
+                </div>
+
+                <div class="modal-footer">
+                  <button class="btn btn-success">Actualizar</button>
+                </div>
+
+              </form>
+
+            </div>
+          </div>
+        </div>
+
+        {% endfor %}
+
+    </div>
 
 </div>
+
+<!-- ================= MODAL CREAR ================= -->
+<div class="modal fade" id="modalSesion">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+
+      <form method="post" action="{% url 'crear_sesion' entrenamiento.id_entrenamiento %}">
+        {% csrf_token %}
+
+        <div class="modal-header bg-success text-white">
+          <h5>Nueva Sesión</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+
+        <div class="modal-body">
+
+          <input type="date" name="fecha" class="form-control mb-2" required>
+          <input type="time" name="hora_inicio" class="form-control mb-2" required>
+          <input type="time" name="hora_fin" class="form-control mb-2" required>
+
+          <select name="id_categoria" class="form-control mb-2">
+              <option value="">Seleccione categoría</option>
+              {% for c in categorias %}
+                  <option value="{{ c.id_categoria }}">{{ c.nombre_categoria }}</option>
+              {% endfor %}
+          </select>
+
+          <select name="id_entrenador" class="form-control">
+              {% for e in entrenadores %}
+                  <option value="{{ e.id_usuario }}"
+                      {% if request.session.usuario_id == e.id_usuario %}selected{% endif %}>
+                      {{ e.nombre_completo }}
+                  </option>
+              {% endfor %}
+          </select>
+
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn btn-success">Guardar</button>
+        </div>
+
+      </form>
+
+    </div>
+  </div>
+</div>
+
+<!-- ================= MODAL ASISTENCIA ================= -->
+<div class="modal fade" id="modalAsistencia">
+  <div class="modal-dialog modal-xl modal-dialog-scrollable">
+    <div class="modal-content">
+
+      <div class="modal-header bg-dark text-white">
+        <h5>Asistencia</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body" id="contenidoAsistencia">
+        Cargando...
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ================= JS ================= -->
+<script>
+function abrirAsistencia(idSesion){
+
+    let categoria = document.getElementById("cat_" + idSesion).value;
+
+    if(!categoria){
+        alert("Seleccione una categoría");
+        return;
+    }
+
+    let url = `/asistencia/sesion/${idSesion}/categoria/${categoria}/`;
+
+    fetch(url)
+    .then(res => res.text())
+    .then(html => {
+
+        document.getElementById("contenidoAsistencia").innerHTML = html;
+
+        let modal = new bootstrap.Modal(document.getElementById('modalAsistencia'));
+        modal.show();
+
+    });
+}
+
+function irRendimiento(idSesion){
+
+    let categoria = document.getElementById("cat_" + idSesion).value;
+
+    if(!categoria){
+        alert("Seleccione categoría");
+        return;
+    }
+
+    window.location.href = `/rendimiento/sesion/${idSesion}/categoria/${categoria}/`;
+}
+</script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    document.querySelectorAll("form").forEach(form => {
+
+        form.addEventListener("submit", function (e) {
+
+            let inicio = form.querySelector("input[name='hora_inicio']").value;
+            let fin = form.querySelector("input[name='hora_fin']").value;
+
+            if (inicio && fin && inicio >= fin) {
+                alert("La hora de inicio no puede ser mayor o igual a la hora final");
+                e.preventDefault();
+            }
+
+        });
+
+    });
+
+});
+</script>
 
 {% endblock %}

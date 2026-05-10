@@ -1,10 +1,13 @@
 import csv
 import requests
+import json
 
+from datetime import date
+from django.core.mail import send_mail
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from .models import Usuario, DetallesUsuarioRol, Documentos, Rol
-from .forms import UsuarioForm, LoginForm, DocumentoForm, EditarPerfil
+from .models import Usuario, DetallesUsuarioRol, Documentos, Rol, HistorialDocumentos
+from .forms import UsuarioForm, LoginForm, DocumentoForm, DOCUMENTOS_POR_ROL, EditarPerfil, es_menor
 from .decorators import rol_requerido
 from django.db.models import Q
 
@@ -28,7 +31,7 @@ def login(request):
                 request.session["usuario_id"] = usuario.id_usuario    #Nombres personalizados para guardar la sesion ejemplo [usuario_id] y despues va el campo de la base de datos.
                 request.session["nombre"] = usuario.nombre_completo
                 request.session["roles"] = lista_roles
-                return redirect("pagina_original")
+                return redirect("dashboard")
             except Usuario.DoesNotExist:
                 messages.error(request, "Documento o contraseña incorrectos")
                 return redirect("login")
@@ -139,33 +142,210 @@ def usuario(request):
     return render(request, "usuarios/list.html", {'usuarios': usuarios,'roles': roles,'busqueda': busqueda,'rol_id': rol_id})
 
 @rol_requerido(["Administrador", "Entrenador", "Jugador"])
-def documentos(request,id):
+def documentos(request, id, categoria=None):
+
     usuario = Usuario.objects.get(id_usuario=id)
     documentos = Documentos.objects.filter(usuario=usuario)
+    historial = HistorialDocumentos.objects.filter(usuario=usuario).order_by('-fecha_eliminacion')
+
     usuario_sesion_id = request.session.get("usuario_id")
-    roles = request.session.get("roles", [])
-    if "Administrador" not in roles and usuario_sesion_id != id:
+    roles_sesion = request.session.get("roles", [])
+
+    if "Administrador" not in roles_sesion and usuario_sesion_id != id:
         return redirect('error400')
+
+    roles_usuario = usuario.roles.values_list('rol_usuario', flat=True)
+
+    documentos_requeridos = set()
+    categorias_permitidas = set()
+
+    # 🔥 ROLES → DOCUMENTOS + CATEGORIAS PERMITIDAS
+    for rol in roles_usuario:
+        if rol == "Jugador" and es_menor(usuario):
+            docs = DOCUMENTOS_POR_ROL.get("JugadorMenor", [])
+        else:
+            docs = DOCUMENTOS_POR_ROL.get(rol, [])
+
+        documentos_requeridos.update(docs)
+
+        for doc in docs:
+            cat = Documentos.DOCUMENTOS_CATEGORIA_MAP.get(doc)
+            if cat:
+                categorias_permitidas.add(cat)
+
+    # 🔥 FILTRO POR CATEGORIA (URL)
+    if categoria:
+        categoria = categoria.upper()
+        documentos = documentos.filter(categoria=categoria)
+
+    documentos_subidos = set(
+        documentos.values_list('tipo_documento', flat=True)
+    )
+
+    faltantes = documentos_requeridos - documentos_subidos
+    request.session["docs_completos"] = len(faltantes) == 0
+
+    # 🔥 FILTRO DE FALTANTES POR CATEGORIA
+    if categoria:
+        faltantes = {
+            doc for doc in faltantes
+            if Documentos.DOCUMENTOS_CATEGORIA_MAP.get(doc) == categoria
+        }
+
+    dict_documentos = dict(Documentos.DOCUMENTACION)
+
+    faltantes_display = [
+        dict_documentos.get(doc, doc)
+        for doc in faltantes
+    ]
+
+    total_requeridos = len(documentos_requeridos)
+    total_subidos = len(documentos_subidos)
+
+    progreso = int((total_subidos / total_requeridos) * 100) if total_requeridos > 0 else 0
+
+    # 🔥 AGRUPAR SOLO CATEGORÍAS PERMITIDAS
+    docs_por_categoria = {}
+
+    for doc in documentos:
+        cat = doc.categoria
+
+        if cat not in categorias_permitidas:
+            continue
+
+        if cat not in docs_por_categoria:
+            docs_por_categoria[cat] = []
+
+        docs_por_categoria[cat].append(doc)
+
+    # 🔥 FILTRO FINAL SI VIENE CATEGORÍA
+    if categoria:
+        docs_por_categoria = {
+            categoria: docs_por_categoria.get(categoria, [])
+        }
+
+    # FORMULARIO
     if request.method == 'POST':
-        formulario = DocumentoForm(request.POST, request.FILES)
+        formulario = DocumentoForm(
+            request.POST,
+            request.FILES,
+            usuario=usuario,
+            categoria=categoria
+        )
+
         if formulario.is_valid():
-            documento = formulario.save(commit=False)  # se crea pero todavia no se guarda.
-            documento.usuario = usuario          # aquí se asigna al usuario.
-            documento.save()                     # ahora sí se guarda el archivo.
+            doc = formulario.save(commit=False)
+
+            doc.usuario = usuario
+
+            if categoria:
+                doc.categoria = categoria
+
+            doc.estado = "PENDIENTE"
+            doc.save()
+
+            messages.success(request, "Documento subido correctamente")
             return redirect('documentos', id=usuario.id_usuario)
+
+        else:
+            for field, errors in formulario.errors.items():
+                for error in errors:
+                    messages.error(request, f"Error: {error}")
+
     else:
-        formulario = DocumentoForm()
-    return render(request, 'usuarios/documentos.html', {'formulario': formulario, 'documentos': documentos, 'usuario': usuario})
+        formulario = DocumentoForm(
+            usuario=usuario,
+            categoria=categoria,
+            categorias_permitidas=categorias_permitidas
+        )
+
+    documentos_categoria_json = json.dumps({
+        doc: cat
+        for doc, cat in Documentos.DOCUMENTOS_CATEGORIA_MAP.items()
+        if doc in documentos_requeridos
+    })
+
+    return render(request, 'usuarios/documentos.html', {
+        'formulario': formulario,
+        'usuario': usuario,
+        'documentos': documentos,
+        'faltantes': faltantes_display,
+        'progreso': progreso,
+        'total_subidos': total_subidos,
+        'total_requeridos': total_requeridos,
+        'docs_por_categoria': docs_por_categoria,
+        'documentos_categoria_json': documentos_categoria_json,
+        'categoria_actual': categoria,
+        'categorias_permitidas': categorias_permitidas,
+        'historial': historial
+    })
+
+def cambiar_estado_documento(request, id):
+    doc = get_object_or_404(Documentos, id_archivo=id)
+
+    if request.method == "POST":
+        estado = request.POST.get("estado")
+
+        # 🔴 DEVUELTO → guardar historial + borrar
+        if estado == "DEVUELTO":
+            observacion = request.POST.get("observacion_rechazo")
+
+            if not observacion or len(observacion.strip()) < 3:
+                messages.error(request, "Debe escribir una observación")
+                return redirect(request.META.get('HTTP_REFERER'))
+
+            # 🔥 GUARDAR HISTORIAL ANTES DE BORRAR
+            HistorialDocumentos.objects.create(
+                usuario=doc.usuario,
+                tipo_documento=doc.tipo_documento,
+                nombre=doc.nombre,
+                observaciones=doc.observaciones,
+                observaciones_rechazo=observacion.strip()
+            )
+
+            # 🔥 BORRAR ARCHIVO FÍSICO
+            if doc.archivo:
+                doc.archivo.delete(save=False)
+
+            doc.delete()
+
+            messages.success(request, "Documento eliminado y guardado en historial")
+
+            return redirect("documentos", id=doc.usuario.id_usuario)
+
+        # 🟢 OTROS ESTADOS
+        elif estado in ["APROBADO", "PENDIENTE"]:
+            doc.estado = estado
+            doc.save()
+
+            messages.success(request, "Estado actualizado correctamente")
+
+    return redirect(request.META.get('HTTP_REFERER'))
+
+def historial_documentos(request, id):
+    usuario = get_object_or_404(Usuario, id_usuario=id)
+
+    historial = HistorialDocumentos.objects.filter(usuario=usuario).order_by('-fecha_eliminacion')
+
+    return render(request, "usuarios/historial_modal.html", {
+        "historial": historial,
+        "usuario": usuario
+    })
 
 def borrar_documento(request, id):
-    usuario_id = request.session.get("usuario_id")
-    if not usuario_id:
-        return redirect("login") 
+    usuario_sesion_id = request.session.get("usuario_id")
+    roles_sesion = request.session.get("roles", [])
+    if not usuario_sesion_id:
+        return redirect("login")
     documento = get_object_or_404(Documentos, id_archivo=id)
-    if documento.usuario.id_usuario == usuario_id:
+    usuario_id = documento.usuario.id_usuario
+    if documento.usuario.id_usuario == usuario_sesion_id or "Administrador" in roles_sesion:
         if documento.archivo:
             documento.archivo.delete(save=False)
         documento.delete()
+        messages.success(request, "Documento eliminado correctamente")
+    else:
+        messages.error(request, "No tienes permiso")
     return redirect("documentos", id=usuario_id)
 
 @rol_requerido(["Administrador"])
@@ -186,7 +366,25 @@ def crear_usuario(request):
         usuario.lugar_nacimiento = request.POST.get('lugar_nacimiento')
         usuario.save()
         formulario.save_m2m()
-        return redirect('usuario')
+        roles = usuario.roles.all()
+        nombres_roles = ", ".join([rol.rol_usuario for rol in roles])
+        print("Correo del usuario:", usuario.correo)
+        print("Roles:", nombres_roles)
+        send_mail(
+            'Usuario creado - Credenciales de Acceso',
+            f'''
+            Hola {usuario.nombre_completo},
+            Tu cuenta ha sido creada correctamente.
+            📧 Usuario: {usuario.num_identificacion}
+            🔑 Contraseña: {usuario.contrasena}
+            👤 Roles: {nombres_roles}
+            Bienvenido al sistema.
+            ''',
+            'administrativo@codegol.com',
+            [usuario.correo],
+            fail_silently=False,
+        )
+        return redirect('documentos', id=usuario.id_usuario)
     return render(request, "usuarios/usuario_form.html", {'formulario': formulario,'paises': paises})
 
 def consulta_especifica_usuario(request, id):

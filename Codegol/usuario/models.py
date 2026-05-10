@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.validators import MinLengthValidator, RegexValidator, MaxValueValidator, MinValueValidator
 
 # Create your models here.
 
@@ -36,36 +37,83 @@ class Usuario(models.Model):
     )
 
     correo = models.EmailField(
+        validators=[MinLengthValidator(10)],
         max_length=60,
-        unique=True
+        unique=True,
+        blank=False,
+        null=False
+    )
+
+    password_validator = RegexValidator(
+    regex=r'^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&]).{10,}$',
+    message="La contraseña debe tener mínimo 10 caracteres, una mayúscula, una minúscula, un número y un carácter especial."
     )
 
     contrasena = models.CharField(
-        max_length=60
+        max_length=60,
+        validators=[
+            MinLengthValidator(10),
+            password_validator
+        ],
+        default="codegol12345",
+        blank=False,
+        null=False
     )
 
+    nombre_sin_numeros = RegexValidator(
+    regex=r'^[A-Za-zÁÉÍÓÚáéíóúñÑ\s]+$',
+    message="El nombre no puede contener números ni caracteres especiales."
+    )   
+
     nombre_completo = models.CharField(
-        max_length=60
+        max_length=30,
+        validators=[
+            MinLengthValidator(3),
+            nombre_sin_numeros
+        ],
+        blank=False,
+        null=False
     )
 
     num_identificacion = models.PositiveIntegerField(
-        unique = True
+        unique=True,
+        validators=[
+            MinValueValidator(100000),      
+            MaxValueValidator(9999999999)   
+        ],
+        blank=False,
+        null=False
     )
 
     tipo_documento = models.CharField(
         max_length=4,
-        choices=TIPO_DOCUMENTO
+        choices=TIPO_DOCUMENTO,
+        blank=False,
+        null=False
     )
 
-    telefono_1 = models.PositiveBigIntegerField()
+    telefono_validator = RegexValidator(
+    regex=r'^\d{7,10}$',
+    message="El teléfono debe tener entre 7 y 10 dígitos."
+    )
 
-    telefono_2 = models.PositiveBigIntegerField(
+    telefono_1 = models.CharField(
+        max_length=10,
+        validators=[telefono_validator]
+    )
+
+    telefono_2 = models.CharField(
+        max_length=10,
         null=True,
-        blank=True
+        blank=True,
+        validators=[telefono_validator]
     )
 
     direccion = models.CharField(
-        max_length=50
+        max_length=50,
+        validators=[
+            MinLengthValidator(4)
+        ]
     )
 
     genero = models.CharField(
@@ -159,22 +207,91 @@ class DetallesUsuarioRol(models.Model):
 
 
 class Documentos(models.Model):
-    DOCUMENTACION = [
-        ('DNI', 'Documento de Identidad (DNI/CC/TI)'),
-        ('PASAPORTE', 'Pasaporte'),
-        ('LICENCIA_MEDICA', 'Licencia Médica o Certificado de Salud'),
-        ('FOTO', 'Fotografía Reciente'),
-        ('AUTORIZACION', 'Autorización de Representante Legal'),
-        ('CONSTANCIA_ESTUDIO', 'Constancia de Estudio o Escolaridad'),
-        ('CONTRATO', 'Contrato de Inscripción o Membresía'),
-        ('SEGURO', 'Póliza de Seguro Médico o Deportiva'),
-        ('OTRO', 'Otro Documento'),
+    CATEGORIA_CHOICES = [
+        ('LEGAL', 'Legal'),
+        ('MEDICO', 'Médico'),
+        ('ACADEMICO', 'Académico'),
+        ('DEPORTIVO', 'Deportivo'),
+        ('PERSONAL', 'Personal'),
     ]
 
+    ESTADO_CHOICES = [
+    ('PENDIENTE', 'Pendiente'),
+    ('APROBADO', 'Aprobado'),
+    ('DEVUELTO', 'Devuelto'),
+    ]
+
+    DOCUMENTACION = [
+        ('DNI', 'Documento de Identidad'),
+        ('PASAPORTE', 'Pasaporte'),
+        ('HOJA_VIDA', 'Hoja de Vida'),
+        ('CERT_ANTECEDENTES', 'Certificado de Antecedentes'),
+        ('CERT_ESTUDIOS', 'Certificados Académicos'),
+        ('LICENCIA_ENTRENADOR', 'Licencia de Entrenador'),
+        ('CERT_MEDICO', 'Certificado Médico'),
+        ('EPS', 'Certificado EPS'),
+        ('ARL', 'Certificado ARL'),
+        ('SEGURO', 'Póliza de Seguro'),
+        ('FOTO', 'Fotografía'),
+        ('AUTORIZACION_PADRES', 'Autorización de Padres'),
+        ('REGISTRO_CIVIL', 'Registro Civil'),
+        ('CONTRATO', 'Contrato'),
+        ('COMPROMISO', 'Carta de Compromiso'),
+    ]
+
+    DOCUMENTOS_CATEGORIA_MAP = {
+        'DNI': 'LEGAL',
+        'PASAPORTE': 'LEGAL',
+        'HOJA_VIDA': 'PERSONAL',
+        'CERT_ANTECEDENTES': 'LEGAL',
+        'CERT_ESTUDIOS': 'ACADEMICO',
+        'LICENCIA_ENTRENADOR': 'DEPORTIVO',
+        'CERT_MEDICO': 'MEDICO',
+        'EPS': 'MEDICO',
+        'ARL': 'MEDICO',
+        'SEGURO': 'MEDICO',
+        'FOTO': 'PERSONAL',
+        'AUTORIZACION_PADRES': 'LEGAL',
+        'REGISTRO_CIVIL': 'LEGAL',
+        'CONTRATO': 'LEGAL',
+        'COMPROMISO': 'LEGAL',
+    }
+
     id_archivo = models.AutoField(primary_key=True)
-    archivo = models.FileField(upload_to='documentos/')
-    tipo_documento = models.CharField(max_length=50, choices=DOCUMENTACION)  
-    nombre = models.CharField(max_length=255)  # 
-    observaciones = models.CharField(max_length=255, default='N.A')
-    fecha_subida = models.DateTimeField(auto_now_add=True)
     usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE)
+    categoria = models.CharField(
+        max_length=20,
+        choices=CATEGORIA_CHOICES,
+        default="SIN_CATEGORIA"
+    )
+    tipo_documento = models.CharField(
+        max_length=50,
+        choices=DOCUMENTACION
+    )
+    archivo = models.FileField(upload_to='documentos/')
+    nombre = models.CharField(max_length=255)
+    observaciones = models.CharField(max_length=255, 
+            default='N.A',
+            validators=[MinLengthValidator(3)])
+    observaciones_rechazo = models.CharField(
+        max_length=255,
+        default='N.A',
+        validators=[MinLengthValidator(3)])
+    fecha_subida = models.DateTimeField(auto_now_add=True)
+    estado = models.CharField(
+        max_length=20,
+        choices=ESTADO_CHOICES,
+        default='PENDIENTE'
+    )
+
+    def __str__(self):
+        return f"{self.nombre} - {self.usuario}"
+    
+class HistorialDocumentos(models.Model):
+    usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE)
+    tipo_documento = models.CharField(max_length=100)
+    nombre = models.CharField(max_length=255)
+    observaciones = models.CharField(max_length=255, blank=True, null=True)
+    observaciones_rechazo = models.CharField(max_length=255)
+    fecha_eliminacion = models.DateTimeField(auto_now_add=True)
+    

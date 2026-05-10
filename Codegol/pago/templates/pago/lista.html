@@ -1,4 +1,4 @@
-{% extends 'layout/menu.html' %} 
+{% extends 'layout/menu.html' %}
 {% load static %}
 
 {% block extra_css %}
@@ -12,24 +12,38 @@
   <br>
 
   <div class="barra-top">
+
     <div class="barra-busqueda">
-        <form method="get">
-            <input type="text" name="q"
-                placeholder="Buscar pago..."
-                value="{{ query|default:'' }}">
-        </form>
+      <form method="get">
+        <input type="text"
+               name="q"
+               placeholder="Buscar pago..."
+               value="{{ query|default:'' }}">
+      </form>
     </div>
+
     {% if "Administrador" in request.session.roles %}
-    <a href="{% url 'reporte_pagos_pdf' %}" class="boton-registrar">
+
+    <a href="{% url 'reporte_pagos_pdf' %}"
+       class="boton-registrar">
+
       Descargar Reporte PDF
+
     </a>
-    <a href="{% url 'crear_pago' %}" class="boton-registrar">
+
+    <a class="boton-registrar"
+       onclick="abrirModalPago('{% url 'crear_pago' %}')">
+
       Registrar pago
+
     </a>
+
     {% endif %}
+
   </div>
 
   <table>
+
     <thead>
       <tr>
         <th>ID</th>
@@ -37,13 +51,18 @@
         <th>Fecha</th>
         <th>Método</th>
         <th>Valor Total</th>
-        {% if "Administrador" in request.session.roles %}<th>Acciones</th>{% endif %}
+
+        {% if "Administrador" in request.session.roles %}
+        <th>Acciones</th>
+        {% endif %}
       </tr>
     </thead>
 
     <tbody>
+
       {% for pago in pagos %}
       <tr>
+
         <td>{{ pago.id }}</td>
         <td>{{ pago.concepto_pago }}</td>
         <td>{{ pago.fecha_pago }}</td>
@@ -52,39 +71,153 @@
 
         {% if "Administrador" in request.session.roles %}
         <td class="acciones">
+
           <button class="actualizar">
-            <a style="text-decoration: none; color: white;"
-               href="{% url 'editar_pago' pago.id %}">
-               Actualizar
+
+            <a onclick="abrirModalPago('{% url 'editar_pago' pago.id %}')"
+               style="text-decoration:none;
+                      color:white;
+                      cursor:pointer;">
+
+              Actualizar
+
             </a>
+
           </button>
 
           {% if pago.cancelado %}
-    <button style="background-color: green;">
-        <a style="text-decoration: none; color: white;"
-           href="{% url 'cancelar_pago' pago.id %}">
-           Aprobar
-        </a>
-    </button>
-{% else %}
-    <button style="background-color: red;">
-        <a style="text-decoration: none; color: white;"
-           href="{% url 'cancelar_pago' pago.id %}">
-           Cancelar
-        </a>
-    </button>
-{% endif %}
+
+          <button style="background-color: green;">
+
+            <a style="text-decoration:none;
+                      color:white;"
+               href="{% url 'cancelar_pago' pago.id %}">
+
+              Aprobar
+
+            </a>
+
+          </button>
+
+          {% else %}
+
+          <button style="background-color: red;">
+
+            <a style="text-decoration:none;
+                      color:white;"
+               href="{% url 'cancelar_pago' pago.id %}">
+
+              Cancelar
+
+            </a>
+
+          </button>
+
+          {% endif %}
+
         </td>
         {% endif %}
+
       </tr>
+
       {% empty %}
+
       <tr>
-        <td colspan="6">No hay pagos registrados</td>
+        <td colspan="6">
+          No hay pagos registrados
+        </td>
       </tr>
+
       {% endfor %}
+
     </tbody>
+
   </table>
 
 </div>
+
+<!-- MODAL -->
+<div class="modal fade"
+     id="modalPago">
+
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+
+        <div class="modal-content"
+             id="contenidoModalPago">
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
+function abrirModalPago(url){
+
+    fetch(url)
+
+    .then(response => response.text())
+
+    .then(html => {
+
+        document.getElementById(
+            'contenidoModalPago'
+        ).innerHTML = html;
+
+        let modal = new bootstrap.Modal(
+            document.getElementById('modalPago')
+        );
+
+        modal.show();
+
+        activarBusquedaUsuario();
+
+    });
+
+}
+
+function activarBusquedaUsuario(){
+
+    const buscar =
+        document.getElementById('buscarUsuario');
+
+    const select =
+        document.querySelector(
+            'select[name="id_matricula"]'
+        );
+
+    if(!buscar || !select) return;
+
+    buscar.addEventListener('keyup', function(){
+
+        let filtro =
+            this.value.toLowerCase();
+
+        let opciones =
+            select.querySelectorAll('option');
+
+        opciones.forEach(op => {
+
+            if(
+                op.text.toLowerCase()
+                .includes(filtro)
+            ){
+
+                op.style.display = '';
+
+            }else{
+
+                op.style.display = 'none';
+
+            }
+
+        });
+
+    });
+
+}
+
+</script>
 
 {% endblock %}

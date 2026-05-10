@@ -1,184 +1,122 @@
-{% extends 'layout/menu.html' %}
-{% load static %}
+<h4 class="text-center mb-3">Asistencia de la sesión</h4>
 
-{% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/stylepag.css' %}">
-{% endblock %}
+<form method="POST" action="{% url 'guardar_asistencia' id_sesion %}">
+    {% csrf_token %}
 
-{% block content %}
+    <table class="table table-bordered table-sm">
 
-<div class="contenido">
+        <thead class="table-dark">
+        <tr>
+            <th>#</th>
+            <th>Jugador</th>
+            <th>Asistencia</th>
+            <th>Justificación</th>
+            <th>Observación</th>
+        </tr>
+        </thead>
 
-<h2>Asistencia de la sesión</h2>
+        <tbody>
 
-<div class="acciones">
-    <button onclick="guardar()" class="actualizar">
-        Guardar cambios
-    </button>
-</div>
+        {% for a in asistencias %}
+        <tr>
 
-<form id="formTabla">
+            <td>{{ forloop.counter }}</td>
 
-<table border="1">
+            <td>{{ a.id_matricula.id_jugador.nombre_completo }}</td>
 
-<thead>
-<tr>
-    <th>#</th>
-    <th>Jugador</th>
-    <th>Asistencia</th>
-    <th>Justificación</th>
-    <th>Observación</th>
+            <td>
+                <select name="tipo_{{ a.id_asistencia }}" class="form-control tipo-asistencia" required>
+                    <option value="">Seleccione</option>
+                    <option value="asiste" {% if a.tipo_asistencia == "asiste" %}selected{% endif %}>Asiste</option>
+                    <option value="inasiste" {% if a.tipo_asistencia == "inasiste" %}selected{% endif %}>Inasiste</option>
+                    <option value="llegada_tarde" {% if a.tipo_asistencia == "llegada_tarde" %}selected{% endif %}>Tarde</option>
+                </select>
+            </td>
 
-    {% if hay_rendimiento %}
-        <th>Def</th>
-        <th>Pase</th>
-        <th>Reg</th>
-        <th>Tec</th>
-        <th>Vel</th>
-        <th>Tiro</th>
-        <th>Pos</th>
-        <th>Obs R</th>
-        <th>Prom</th>
-    {% endif %}
-</tr>
-</thead>
+            <td>
+                <input type="text"
+                    name="just_{{ a.id_asistencia }}"
+                    value="{{ a.justificacion|default:'' }}"
+                    class="form-control justificacion">
+            </td>
 
-<tbody>
+            <td>
+                <input type="text"
+                    name="obs_{{ a.id_asistencia }}"
+                    value="{{ a.observaciones|default:'' }}"
+                    class="form-control observacion">
+            </td>
 
-{% for item in data %}
-<tr>
+        </tr>
+        {% endfor %}
 
-<td>{{ forloop.counter }}</td>
+        </tbody>
+    </table>
 
-<td>
-{{ item.asistencia.id_matricula.id_jugador.nombre_completo }}
-</td>
-
-<td>
-<select name="tipo_{{ item.asistencia.id_asistencia }}">
-    <option value="">---</option>
-    <option value="asiste" {% if item.asistencia.tipo_asistencia == "asiste" %}selected{% endif %}>Asiste</option>
-    <option value="inasiste" {% if item.asistencia.tipo_asistencia == "inasiste" %}selected{% endif %}>Inasiste</option>
-    <option value="llegada_tarde" {% if item.asistencia.tipo_asistencia == "llegada_tarde" %}selected{% endif %}>Tarde</option>
-</select>
-</td>
-
-<td>
-<input type="text"
-       name="just_{{ item.asistencia.id_asistencia }}"
-       value="{{ item.asistencia.justificacion|default:'' }}">
-</td>
-
-<td>
-<input type="text"
-       name="obs_{{ item.asistencia.id_asistencia }}"
-       value="{{ item.asistencia.observaciones|default:'' }}">
-</td>
-
-{% if hay_rendimiento %}
-
-    {% if item.rendimiento and item.rendimiento.estado %}
-
-        <td>
-            <input type="number" min="1" max="100"
-            name="def_{{ item.asistencia.id_asistencia }}"
-            value="{{ item.rendimiento.defensa|default:1 }}">
-        </td>
-
-        <td>
-            <input type="number" min="1" max="100"
-            name="pase_{{ item.asistencia.id_asistencia }}"
-            value="{{ item.rendimiento.pase|default:1 }}">
-        </td>
-
-        <td>
-            <input type="number" min="1" max="100"
-            name="reg_{{ item.asistencia.id_asistencia }}"
-            value="{{ item.rendimiento.regate|default:1 }}">
-        </td>
-
-        <td>
-            <input type="number" min="1" max="100"
-            name="tec_{{ item.asistencia.id_asistencia }}"
-            value="{{ item.rendimiento.tecnica|default:1 }}">
-        </td>
-
-        <td>
-            <input type="number" min="1" max="100"
-            name="vel_{{ item.asistencia.id_asistencia }}"
-            value="{{ item.rendimiento.velocidad|default:1 }}">
-        </td>
-
-        <td>
-            <input type="number" min="1" max="100"
-            name="tir_{{ item.asistencia.id_asistencia }}"
-            value="{{ item.rendimiento.potencia_tiro|default:1 }}">
-        </td>
-
-        <!-- 🔥 SELECT POSICIONES -->
-        <td>
-            <select name="pos_{{ item.asistencia.id_asistencia }}">
-                {% for key, value in item.rendimiento.POSICIONES %}
-                    <option value="{{ key }}"
-                        {% if item.rendimiento.posicion == key %}selected{% endif %}>
-                        {{ value }}
-                    </option>
-                {% endfor %}
-            </select>
-        </td>
-
-        <td>
-            <input type="text"
-            name="obsr_{{ item.asistencia.id_asistencia }}"
-            value="{{ item.rendimiento.observaciones|default:'' }}">
-        </td>
-
-        <td>
-            {{ item.rendimiento.promedio|floatformat:1 }}
-        </td>
-
-    {% else %}
-
-        <!-- 🔥 mantiene estructura -->
-        <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-
-    {% endif %}
-
-{% endif %}
-
-</tr>
-{% endfor %}
-
-</tbody>
-</table>
+    <button class="btn btn-success">Guardar cambios</button>
 
 </form>
-
-</div>
-
-<!-- 🔥 SCRIPT -->
 <script>
-function guardar() {
+document.addEventListener("DOMContentLoaded", function () {
 
-    let form = document.getElementById("formTabla");
-    let data = new FormData(form);
+    const form = document.querySelector("#contenidoAsistencia form");
 
-    fetch("{% url 'guardar_asistencia' id_sesion %}", {
-        method: "POST",
-        headers: {
-            "X-CSRFToken": "{{ csrf_token }}"
-        },
-        body: data
-    })
-    .then(res => res.json())
-    .then(() => {
-        alert("Cambios guardados correctamente 🔥");
-        location.reload();
-    })
-    .catch(() => {
-        alert("Error al guardar");
+    form.addEventListener("submit", function (e) {
+
+        let valido = true;
+
+        document.querySelectorAll("tbody tr").forEach(row => {
+
+            let tipo = row.querySelector(".tipo-asistencia").value;
+            let just = row.querySelector(".justificacion");
+            let obs = row.querySelector(".observacion");
+
+            if (tipo === "inasiste" || tipo === "llegada_tarde") {
+
+                if (!just.value.trim() || !obs.value.trim()) {
+                    valido = false;
+
+                    just.style.border = "2px solid red";
+                    obs.style.border = "2px solid red";
+                } else {
+                    just.style.border = "";
+                    obs.style.border = "";
+                }
+
+            } else {
+                // limpiar estilos si no aplica
+                just.style.border = "";
+                obs.style.border = "";
+            }
+
+        });
+
+        if (!valido) {
+            alert("Debe llenar justificación y observación cuando hay inasistencia o llegada tarde");
+            e.preventDefault();
+        }
+
     });
-}
-</script>
 
-{% endblock %}
+});
+</script>
+<script>
+document.addEventListener("change", function(e){
+
+    if(e.target.classList.contains("tipo-asistencia")){
+
+        let row = e.target.closest("tr");
+        let just = row.querySelector(".justificacion");
+        let obs = row.querySelector(".observacion");
+
+        if(e.target.value === "inasiste" || e.target.value === "llegada_tarde"){
+            just.required = true;
+            obs.required = true;
+        } else {
+            just.required = false;
+            obs.required = false;
+        }
+    }
+
+});
+</script>

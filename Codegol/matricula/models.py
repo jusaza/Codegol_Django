@@ -34,6 +34,12 @@ class Matricula(models.Model):
         db_column='id_jugador' 
     )
 
+        
+    posicion = models.ForeignKey(
+        'posicion.Posicion',
+        on_delete=models.PROTECT
+    )
+
     class Meta:
         db_table = "matricula"  
 
@@ -60,7 +66,12 @@ class HistorialCategoria(models.Model):
     fecha_registro = models.DateField()
 
     estado = models.BooleanField(default=True)
-
+    
+    observacion = models.CharField(
+    max_length=255,
+    blank=True,
+    null=True
+)
     class Meta:
         db_table = 'historial_categoria'
 
