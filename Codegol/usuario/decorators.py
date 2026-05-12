@@ -24,6 +24,7 @@ def rol_requerido(roles_permitidos):
 
     return permiso
 
+
 def bloqueo_documentos_completos(vista):
 
     @wraps(vista)
@@ -32,54 +33,87 @@ def bloqueo_documentos_completos(vista):
         usuario_id = request.session.get("usuario_id")
         roles_sesion = request.session.get("roles", [])
 
+        # ===== SIN SESION =====
+
         if not usuario_id:
             return redirect("login")
 
-        # 🔥 ADMIN nunca bloqueado
+        # ===== ADMIN NUNCA BLOQUEADO =====
+
         if "Administrador" in roles_sesion:
+
+            request.session["docs_completos"] = True
+
             return vista(request, *args, **kwargs)
 
         try:
-            usuario = Usuario.objects.get(id_usuario=usuario_id)
 
-            roles_usuario = usuario.roles.values_list('rol_usuario', flat=True)
+            usuario = Usuario.objects.get(
+                id_usuario=usuario_id
+            )
+
+            roles_usuario = usuario.roles.values_list(
+                'rol_usuario',
+                flat=True
+            )
 
             documentos_requeridos = set()
 
+            # ===== DOCUMENTOS POR ROL =====
+
             for rol in roles_usuario:
+
                 if rol == "Jugador" and es_menor(usuario):
+
                     documentos_requeridos.update(
-                        DOCUMENTOS_POR_ROL.get("JugadorMenor", [])
+                        DOCUMENTOS_POR_ROL.get(
+                            "JugadorMenor",
+                            []
+                        )
                     )
+
                 else:
+
                     documentos_requeridos.update(
-                        DOCUMENTOS_POR_ROL.get(rol, [])
+                        DOCUMENTOS_POR_ROL.get(
+                            rol,
+                            []
+                        )
                     )
+
+            # ===== DOCUMENTOS SUBIDOS =====
 
             documentos_subidos = set(
-                Documentos.objects.filter(usuario=usuario)
-                .values_list('tipo_documento', flat=True)
+
+                Documentos.objects.filter(
+                    usuario=usuario
+                ).values_list(
+                    'tipo_documento',
+                    flat=True
+                )
+
             )
 
-            faltantes = documentos_requeridos - documentos_subidos
+            # ===== FALTANTES =====
 
-            # 🔥 GUARDAR EN SESIÓN (OPCIONAL PERO ÚTIL)
-            request.session["docs_completos"] = len(faltantes) == 0
+            faltantes = (
+                documentos_requeridos -
+                documentos_subidos
+            )
 
-            # 🔥 BLOQUEO GLOBAL SI FALTAN DOCUMENTOS
-            if faltantes:
+            # ===== ACTUALIZAR SESION =====
 
-                url_name = getattr(request.resolver_match, "url_name", "")
+            request.session["docs_completos"] = (
+                len(faltantes) == 0
+            )
 
-                rutas_permitidas = ["documentos", "login"]
+            # ===== BLOQUEAR SI FALTAN =====
 
-                if url_name not in rutas_permitidas:
-                    return redirect("documentos", id=usuario_id)
-
+            
         except Usuario.DoesNotExist:
+
             return redirect("login")
 
         return vista(request, *args, **kwargs)
 
     return wrapper
-

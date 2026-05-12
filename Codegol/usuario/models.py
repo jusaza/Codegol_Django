@@ -175,6 +175,9 @@ class Rol(models.Model):
     )
 
     rol_usuario = models.CharField(
+        validators=(
+            MinLengthValidator(3),
+        ),
         max_length=255
     )
 
@@ -260,16 +263,26 @@ class Documentos(models.Model):
     id_archivo = models.AutoField(primary_key=True)
     usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE)
     categoria = models.CharField(
+        validators=(
+            MinLengthValidator(3),
+        ),
         max_length=20,
         choices=CATEGORIA_CHOICES,
         default="SIN_CATEGORIA"
     )
     tipo_documento = models.CharField(
+        validators=(
+            MinLengthValidator(3),
+        ),
         max_length=50,
         choices=DOCUMENTACION
     )
     archivo = models.FileField(upload_to='documentos/')
-    nombre = models.CharField(max_length=255)
+    nombre = models.CharField(
+        validators=(MinLengthValidator(3),
+        ),
+        max_length=255
+        )
     observaciones = models.CharField(max_length=255, 
             default='N.A',
             validators=[MinLengthValidator(3)])

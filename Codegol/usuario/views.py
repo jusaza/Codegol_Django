@@ -8,34 +8,117 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from .models import Usuario, DetallesUsuarioRol, Documentos, Rol, HistorialDocumentos
 from .forms import UsuarioForm, LoginForm, DocumentoForm, DOCUMENTOS_POR_ROL, EditarPerfil, es_menor
-from .decorators import rol_requerido
+from .decorators import bloqueo_documentos_completos, rol_requerido
 from django.db.models import Q
 
 # Create your views here.
 
 def login(request):
+
     form = LoginForm()
+
     if request.method == "POST":
+
         form = LoginForm(request.POST)
+
         if form.is_valid():
+
             documento = form.cleaned_data["documento"]
             contrasena = form.cleaned_data["contrasena"]
+
             try:
+
                 usuario = Usuario.objects.get(
-                    num_identificacion = documento,
-                    contrasena = contrasena
+                    num_identificacion=documento,
+                    contrasena=contrasena
                 )
+
                 roles = DetallesUsuarioRol.objects.filter(
-                    id_usuario=usuario).select_related("id_rol")
-                lista_roles = [r.id_rol.rol_usuario for r in roles]
-                request.session["usuario_id"] = usuario.id_usuario    #Nombres personalizados para guardar la sesion ejemplo [usuario_id] y despues va el campo de la base de datos.
+                    id_usuario=usuario
+                ).select_related("id_rol")
+
+                lista_roles = [
+                    r.id_rol.rol_usuario
+                    for r in roles
+                ]
+
+                # ===== SESIONES =====
+
+                request.session["usuario_id"] = usuario.id_usuario
+
                 request.session["nombre"] = usuario.nombre_completo
+
                 request.session["roles"] = lista_roles
+
+                # ===== ADMIN =====
+
+                if "Administrador" in lista_roles:
+
+                    return redirect("dashboard")
+
+                # ===== DOCUMENTOS =====
+
+                documentos_requeridos = set()
+
+                for rol in lista_roles:
+
+                    if rol == "Jugador" and es_menor(usuario):
+
+                        documentos_requeridos.update(
+                            DOCUMENTOS_POR_ROL.get(
+                                "JugadorMenor",
+                                []
+                            )
+                        )
+
+                    else:
+
+                        documentos_requeridos.update(
+                            DOCUMENTOS_POR_ROL.get(
+                                rol,
+                                []
+                            )
+                        )
+
+                documentos_subidos = set(
+
+                    Documentos.objects.filter(
+                        usuario=usuario
+                    ).values_list(
+                        'tipo_documento',
+                        flat=True
+                    )
+
+                )
+
+                faltantes = (
+                    documentos_requeridos -
+                    documentos_subidos
+                )
+
+                # ===== REDIRECCION =====
+
+                if faltantes:
+
+                    return redirect(
+                        "mi_perfil",
+                        usuario.id_usuario
+                    )
+
                 return redirect("dashboard")
+
             except Usuario.DoesNotExist:
-                messages.error(request, "Documento o contraseña incorrectos")
+
+                messages.error(
+                    request,
+                    "Documento o contraseña incorrectos"
+                )
+
                 return redirect("login")
-    return render(request, "login.html", {"form" : form})
+
+    return render(request, "login.html", {
+        "form": form
+    })
 
 def logout(request):
     request.session.flush()

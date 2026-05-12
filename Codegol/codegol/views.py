@@ -1,4 +1,6 @@
 from django.shortcuts import render
+
+from usuario.decorators import bloqueo_documentos_completos
 from . import views 
 from django.shortcuts import render
 from usuario.models import Usuario, Documentos
@@ -14,6 +16,7 @@ from django.shortcuts import render
 def inicio(request):
     return render(request, 'inicio.html')
 
+@bloqueo_documentos_completos
 def dashboard(request):
     usuarios_total = Usuario.objects.count()
     usuarios_activos = Usuario.objects.filter(estado=True).count()

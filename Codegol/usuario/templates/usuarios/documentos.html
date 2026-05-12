@@ -662,12 +662,30 @@ th {
         {% endwith %}
 
         {% comment %} FINAL {% endcomment %}
-        {% with i=8 %}
-        <a href="{% url 'usuario' %}" class="paso finalizar">
-            ✔ Paso {{ i }}: Finalizar
-        </a>
-        {% endwith %}
 
+        {% with i=8 %}
+
+            {% if docs_completos %}
+
+                <a href="{% url 'usuario' %}"
+                class="paso finalizar">
+
+                    ✔ Paso {{ i }}: Finalizar
+
+                </a>
+
+            {% else %}
+
+                <a href="{% url 'mi_perfil' request.session.usuario_id %}"
+                class="paso finalizar">
+
+                    ✔ Paso {{ i }}: Finalizar
+
+                </a>
+
+            {% endif %}
+
+        {% endwith %}
     {% endwith %}
 
 </div>
