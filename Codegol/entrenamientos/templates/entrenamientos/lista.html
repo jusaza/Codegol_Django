@@ -156,12 +156,27 @@
                                 ✏️
                             </button>
 
-                            <form method="post" style="display:inline;">
-                                {% csrf_token %}
-                                <input type="hidden" name="tipo" value="eliminar_entrenamiento">
-                                <input type="hidden" name="id" value="{{ e.id_entrenamiento }}">
-                                <button class="btn btn-sm btn-danger">🗑️</button>
-                            </form>
+                            <form method="post"
+      style="display:inline;"
+      class="formEliminar">
+
+    {% csrf_token %}
+
+    <input type="hidden"
+           name="tipo"
+           value="eliminar_entrenamiento">
+
+    <input type="hidden"
+           name="id"
+           value="{{ e.id_entrenamiento }}">
+
+    <button type="button"
+            class="btn btn-sm btn-danger"
+            onclick="confirmarEliminar(this, '{{ e.descripcion }}')">
+        🗑️
+    </button>
+
+</form>
 
                         </div>
 
@@ -288,8 +303,57 @@
     </div>
   </div>
 </div>
+<!-- MODAL ELIMINAR -->
+<div class="modal fade" id="modalEliminar" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
 
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title">
+          Confirmar eliminación
+        </h5>
+
+        <button type="button"
+                class="btn-close btn-close-white"
+                data-bs-dismiss="modal">
+        </button>
+      </div>
+
+      <div class="modal-body text-center">
+
+        <h4>¿Eliminar entrenamiento?</h4>
+
+        <p id="textoEliminar"></p>
+
+        <small class="text-danger">
+          Esta acción no se puede deshacer.
+        </small>
+
+      </div>
+
+      <div class="modal-footer">
+
+        <button type="button"
+                class="btn btn-secondary"
+                data-bs-dismiss="modal">
+            Cancelar
+        </button>
+
+        <button type="button"
+                class="btn btn-danger"
+                id="btnConfirmarEliminar">
+            Sí, eliminar
+        </button>
+
+      </div>
+
+    </div>
+  </div>
+</div>
 <script>
+
+let formularioEliminar = null;
+
 function editarEntrenamiento(btn) {
     document.getElementById('tipoForm').value = 'editar_entrenamiento';
     document.getElementById('idEntrenamiento').value = btn.dataset.id;
@@ -318,7 +382,6 @@ function setDuracion(id, valor, btn) {
     const input = document.getElementById('duracion_' + id);
     const container = btn.parentElement;
 
-    // 👉 SI YA ESTÁ SELECCIONADO → DESACTIVAR
     if (input.value == valor) {
 
         input.value = '';
@@ -329,18 +392,43 @@ function setDuracion(id, valor, btn) {
         return;
     }
 
-    // 👉 LIMPIAR OTROS BOTONES
     container.querySelectorAll('button').forEach(b => {
         b.classList.remove('btn-primary');
         b.classList.add('btn-outline-primary');
     });
 
-    // 👉 ACTIVAR ESTE
     input.value = valor;
 
     btn.classList.remove('btn-outline-primary');
     btn.classList.add('btn-primary');
 }
+
+/* =========================
+   ELIMINAR ENTRENAMIENTO
+========================= */
+
+function confirmarEliminar(btn, descripcion) {
+
+    formularioEliminar = btn.closest('form');
+
+    document.getElementById('textoEliminar').innerHTML =
+        `El entrenamiento <strong>${descripcion}</strong> será eliminado.`;
+
+    let modal = new bootstrap.Modal(
+        document.getElementById('modalEliminar')
+    );
+
+    modal.show();
+}
+
+document.getElementById('btnConfirmarEliminar')
+.addEventListener('click', function () {
+
+    if (formularioEliminar) {
+        formularioEliminar.submit();
+    }
+
+});
 
 </script>
 

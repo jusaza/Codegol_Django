@@ -1,49 +1,91 @@
-<form method="post" action="{% if inventario %}{% url 'editar_inventario' inventario.id_inventario %}{% else %}{% url 'crear_inventario' %}{% endif %}">
+<form id="formInventario"
+      method="post"
+      action="{% if inventario %}{% url 'editar_inventario' inventario.id_inventario %}{% else %}{% url 'crear_inventario' %}{% endif %}">
+
   {% csrf_token %}
 
   <!-- HEADER -->
-  <div class="modal-header text-white" style="background-color: #001f3f;">
+  <div class="modal-header text-white"
+       style="background-color: #001f3f;">
+
     <h5>
-      {% if inventario %}Editar{% else %}Registrar{% endif %} artículo
+      {% if inventario %}
+        Editar
+      {% else %}
+        Registrar
+      {% endif %}
+      artículo
     </h5>
-    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+
+    <button type="button"
+            class="btn-close btn-close-white"
+            data-bs-dismiss="modal">
+    </button>
+
   </div>
 
   <!-- BODY -->
   <div class="modal-body">
 
+    <!-- NOMBRE -->
     <div class="mb-3">
-      <label class="form-label fw-bold">Nombre del artículo</label>
+
+      <label class="form-label fw-bold">
+        Nombre del artículo
+      </label>
+
       <input type="text"
              name="nombre_articulo"
+             id="nombreArticulo"
              class="form-control"
              value="{{ inventario.nombre_articulo|default:'' }}"
+             data-original="{{ inventario.nombre_articulo|default:'' }}"
              placeholder="Ingrese el nombre del artículo"
-             required>
+             required
+             minlength="2"
+             maxlength="100">
+
+      <div id="errorNombre"
+           class="text-danger mt-1"
+           style="display:none;">
+      </div>
+
     </div>
 
+    <!-- DESCRIPCIÓN -->
     <div class="mb-3">
-      <label class="form-label fw-bold">Descripción</label>
+
+      <label class="form-label fw-bold">
+        Descripción
+      </label>
+
       <input type="text"
              name="descripcion"
              class="form-control"
              value="{{ inventario.descripcion|default:'' }}"
-             placeholder="Ingrese la descripción">
+             placeholder="Ingrese la descripción"
+             maxlength="255">
+
     </div>
 
   </div>
 
   <!-- FOOTER -->
   <div class="modal-footer">
+
     <button type="submit"
             class="btn btn-success"
-            style="background-color: #001f3f; border-color: #001f3f;">
+            style="background-color:#001f3f;
+                   border-color:#001f3f;">
+
       {% if inventario %}
         Actualizar
       {% else %}
         Guardar
       {% endif %}
+
     </button>
+
   </div>
 
 </form>

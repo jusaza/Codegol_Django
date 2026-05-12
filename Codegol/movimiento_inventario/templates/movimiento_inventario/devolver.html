@@ -18,14 +18,16 @@
                 <label>Cantidad a devolver:</label>
                 <!-- EL ATRIBUTO MAX ES LA CLAVE -->
                 <input type="number" name="cantidad" class="form-control" 
-                       value="{{ restante }}" min="1" max="{{ restante }}" required>
+                       value="{{ restante }}" min="1" max="{{ restante }}" required min ="1" >
             </div>
         </div>
 
         <div class="mt-3">
             <label>Observación:</label>
             <textarea name="observaciones" class="form-control" 
-                      placeholder="Obligatoria si no devuelve todo"></textarea>
+                      placeholder="Obligatoria si no devuelve todo"
+                      
+ maxlength="255"></textarea>
         </div>
     </div>
 

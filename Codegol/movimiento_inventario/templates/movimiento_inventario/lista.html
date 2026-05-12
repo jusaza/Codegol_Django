@@ -64,11 +64,23 @@
     <td>{{ m.fecha|date:"d/m/Y H:i" }}</td>
 
     <td>
+
+    {% if m.tipo_movimiento == 'devolucion' or m.tipo_movimiento == 'salida' %}
+
+        {{ m.observaciones|default:"-" }}
+
+    {% else %}
+
         <input type="text"
                value="{{ m.observaciones }}"
                class="obs"
-               data-id="{{ m.id_movimiento }}">
-    </td>
+               data-id="{{ m.id_movimiento }}"
+               
+               maxlength="255">
+
+    {% endif %}
+
+</td>
 
     <td>
         {% if m.tipo_movimiento == 'devolucion' and m.movimiento_padre %}
@@ -99,11 +111,23 @@
             <td>{{ d.fecha|date:"d/m/Y H:i" }}</td>
 
             <td>
-                <input type="text"
-                       value="{{ d.observaciones }}"
-                       class="obs"
-                       data-id="{{ d.id_movimiento }}">
-            </td>
+
+    {% if d.tipo_movimiento == 'devolucion' or d.tipo_movimiento == 'salida' %}
+
+        {{ d.observaciones|default:"-" }}
+
+    {% else %}
+
+        <input type="text"
+               value="{{ d.observaciones }}"
+               class="obs"
+               data-id="{{ d.id_movimiento }}"
+               
+               maxlength="255">
+
+    {% endif %}
+
+</td>
 
             <td>
                 De salida #{{ m.id_movimiento }}
