@@ -1,0 +1,172 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #001f3f;
+  text-align: center;
+}
+
+body {
+  background: url('../imagenes/fondo-formulario.jpg') no-repeat center center fixed;
+  background-size: cover;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  padding-top: 90px;
+}
+
+/* Header */
+header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 70px;
+  background-color: #0b1649;
+  border-bottom: 3px solid #00bfff;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  z-index: 1000;
+  gap: 15px;
+}
+
+.logo {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid #00bfff;
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.logo:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 10px rgba(0,191,255,0.6);
+}
+
+.volver {
+  font-size: 20px;
+  font-weight: 600;
+  color: #ffffff;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.volver:hover {
+  color: #00bfff;
+  text-decoration: underline;
+}
+
+/* Caja del login */
+.login-box {
+  background: rgba(255,255,255,0.9);
+  max-width: 400px;
+  width: 90%;
+  padding: 40px 30px;
+  border-radius: 10px;
+  border: 4px solid #0a4f8b;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  text-align: center;
+  text-align: center;
+}
+
+.login-box h1 {
+  font-size: 24px;
+  margin-bottom: 30px;
+  color: #0b1649;
+}
+
+/* Formulario */
+form.form-solo {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Grupo único del form */
+.Formgrupo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.Formgrupo label {
+  width: 100%;
+  text-align: center;
+  margin-bottom: 6px;
+  font-weight: 600;
+  font-size: 15px;
+  padding-top: 10px;
+}
+
+input[type="number"],
+input[type="password"] {
+  width: 100%;
+  padding: 10px 14px;
+  font-size: 15px;
+  border: 1.5px solid #001f3f;
+  border-radius: 6px;
+  background-color: white;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+input[type="number"]:focus,
+input[type="password"]:focus {
+  border-color: #00bfff;
+  box-shadow: 0 0 5px rgba(0,191,255,0.4);
+  outline: none;
+}
+
+button {
+  background-color: #001f3f;
+  color: white;
+  padding: 12px 25px;
+  font-size: 15px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+button:hover {
+  background-color: #0074d9;
+  transform: translateY(-2px);
+}
+
+/* Enlaces adicionales */
+.extra-links {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.extra-links a {
+  color: #001f3f;
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.extra-links a:hover {
+  color: #00bfff;
+  text-decoration: underline;
+}
+
+/* Responsivo */
+@media (max-width: 480px) {
+  .login-box {
+    padding: 30px 20px;
+  }
+}
