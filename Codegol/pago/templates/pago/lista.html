@@ -87,33 +87,43 @@
 
           {% if pago.cancelado %}
 
-          <button style="background-color: green;">
+<button style="background-color: green;">
 
-            <a style="text-decoration:none;
-                      color:white;"
-               href="{% url 'cancelar_pago' pago.id %}">
+  <a onclick="confirmarPago(
+        '{% url 'cancelar_pago' pago.id %}',
+        'aprobar'
+     )"
+     style="text-decoration:none;
+            color:white;
+            cursor:pointer;">
 
-              Aprobar
+    Aprobar
 
-            </a>
+  </a>
 
-          </button>
+</button>
 
-          {% else %}
+{% else %}
 
-          <button style="background-color: red;">
+<button style="background-color: red;">
 
-            <a style="text-decoration:none;
-                      color:white;"
-               href="{% url 'cancelar_pago' pago.id %}">
+  <a onclick="confirmarPago(
+        '{% url 'cancelar_pago' pago.id %}',
+        'cancelar'
+     )"
+     style="text-decoration:none;
+            color:white;
+            cursor:pointer;">
 
-              Cancelar
+    Cancelar
 
-            </a>
+  </a>
 
-          </button>
+</button>
 
-          {% endif %}
+{% endif %}
+
+          
 
         </td>
         {% endif %}
@@ -150,7 +160,65 @@
     </div>
 
 </div>
+<!-- MODAL CONFIRMAR -->
+<div class="modal fade"
+     id="modalEliminar"
+     tabindex="-1">
 
+  <div class="modal-dialog modal-dialog-centered">
+
+    <div class="modal-content">
+
+      <div class="modal-header bg-danger text-white">
+
+        <h5 class="modal-title"
+            id="tituloModalEliminar">
+
+          Confirmar acción
+
+        </h5>
+
+        <button type="button"
+                class="btn-close btn-close-white"
+                data-bs-dismiss="modal">
+        </button>
+
+      </div>
+
+      <div class="modal-body text-center">
+
+        <h4 id="mensajeModalEliminar">
+          ¿Estás seguro?
+        </h4>
+
+        <p id="textoEliminar"></p>
+
+      </div>
+
+      <div class="modal-footer">
+
+        <button type="button"
+                class="btn btn-secondary"
+                data-bs-dismiss="modal">
+
+          Volver
+
+        </button>
+
+        <a id="btnEliminarConfirmado"
+           class="btn btn-danger">
+
+           Confirmar
+
+        </a>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
 <script>
 
 function abrirModalPago(url){
@@ -219,5 +287,75 @@ function activarBusquedaUsuario(){
 }
 
 </script>
+<script>
 
+function confirmarPago(url, accion){
+
+    const titulo =
+        document.getElementById(
+            'tituloModalEliminar'
+        );
+
+    const mensaje =
+        document.getElementById(
+            'mensajeModalEliminar'
+        );
+
+    const texto =
+        document.getElementById(
+            'textoEliminar'
+        );
+
+    const boton =
+        document.getElementById(
+            'btnEliminarConfirmado'
+        );
+
+    if(accion === 'cancelar'){
+
+        titulo.innerHTML =
+            'Cancelar pago';
+
+        mensaje.innerHTML =
+            '¿Deseas cancelar este pago?';
+
+        texto.innerHTML =
+            'El pago cambiará a estado cancelado.';
+
+        boton.innerHTML =
+            'Sí, cancelar';
+
+        boton.className =
+            'btn btn-danger';
+
+    }else{
+
+        titulo.innerHTML =
+            'Aprobar pago';
+
+        mensaje.innerHTML =
+            '¿Deseas aprobar este pago?';
+
+        texto.innerHTML =
+            'El pago volverá a estado aprobado.';
+
+        boton.innerHTML =
+            'Sí, aprobar';
+
+        boton.className =
+            'btn btn-success';
+
+    }
+
+    boton.href = url;
+
+    let modal = new bootstrap.Modal(
+        document.getElementById('modalEliminar')
+    );
+
+    modal.show();
+
+}
+
+</script>
 {% endblock %}

@@ -44,7 +44,7 @@
 
           <!-- 📝 OBS -->
           <input type="text" name="observaciones" class="form-control"
-                 placeholder="Observación">
+                 placeholder="Observación" minlength="0" maxlength="255" >
 
         </div>
 
@@ -106,7 +106,7 @@
     <td>{{ m.fecha|date:"d/m/Y H:i" }}</td>
 
     <td>
-        <input type="text" value="{{ m.observaciones }}">
+        <input type="text" value="{{ m.observaciones }}"  maxlength="255">
     </td>
 
 <td class="acciones"> 
@@ -154,7 +154,8 @@
                 value="{{ d.observaciones }}"
                 class="obs"
                 data-id="{{ d.id_movimiento }}"
-                data-estado="{{ m.estado }}">
+                data-estado="{{ m.estado }}"
+                maxlength="255">
         </td>
         <td>-</td>
     </tr>

@@ -131,7 +131,8 @@
             <input type="text"
                    name="observaciones"
                    class="form-control"
-                   value="{% if matricula %}{{ matricula.observaciones }}{% endif %}">
+                   value="{% if matricula %}{{ matricula.observaciones }}{% endif %}"
+                   maxlength="255">
         </div>
 
         <!-- POSICIÓN -->
