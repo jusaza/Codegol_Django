@@ -16,26 +16,124 @@ def panel_entrenamiento(request):
 
         # ================= CREAR ENTRENAMIENTO =================
         if tipo == 'crear_entrenamiento':
+
+            descripcion = request.POST.get(
+                'descripcion',
+                ''
+            ).strip()
+
+            lugar = request.POST.get(
+                'lugar',
+                ''
+            ).strip()
+
+            observaciones = request.POST.get(
+                'observaciones',
+                ''
+            ).strip()
+
+            if len(descripcion) < 5:
+
+                messages.error(
+                    request,
+                    'La descripción debe tener mínimo 5 caracteres'
+                )
+
+                return redirect('panel_entrenamiento')
+
+            if len(lugar) < 3:
+
+                messages.error(
+                    request,
+                    'El lugar debe tener mínimo 3 caracteres'
+                )
+
+                return redirect('panel_entrenamiento')
+
+            if observaciones and len(observaciones) < 10:
+
+                messages.error(
+                    request,
+                    'Las observaciones deben tener mínimo 10 caracteres'
+                )
+
+                return redirect('panel_entrenamiento')
+
             Entrenamiento.objects.create(
-                descripcion=request.POST.get('descripcion'),
-                lugar=request.POST.get('lugar'),
+                descripcion=descripcion,
+                lugar=lugar,
                 estado=True,
-                observaciones=request.POST.get('observaciones')
+                observaciones=observaciones
             )
 
-            messages.success(request, "Entrenamiento creado")
+            messages.success(
+                request,
+                "Entrenamiento creado"
+            )
+
             return redirect('panel_entrenamiento')
 
         # ================= EDITAR =================
         elif tipo == 'editar_entrenamiento':
-            ent = get_object_or_404(Entrenamiento, pk=request.POST.get('id'))
 
-            ent.descripcion = request.POST.get('descripcion')
-            ent.lugar = request.POST.get('lugar')
-            ent.observaciones = request.POST.get('observaciones')
+            ent = get_object_or_404(
+                Entrenamiento,
+                pk=request.POST.get('id')
+            )
+
+            descripcion = request.POST.get(
+                'descripcion',
+                ''
+            ).strip()
+
+            lugar = request.POST.get(
+                'lugar',
+                ''
+            ).strip()
+
+            observaciones = request.POST.get(
+                'observaciones',
+                ''
+            ).strip()
+
+            if len(descripcion) < 5:
+
+                messages.error(
+                    request,
+                    'La descripción debe tener mínimo 5 caracteres'
+                )
+
+                return redirect('panel_entrenamiento')
+
+            if len(lugar) < 3:
+
+                messages.error(
+                    request,
+                    'El lugar debe tener mínimo 3 caracteres'
+                )
+
+                return redirect('panel_entrenamiento')
+
+            if observaciones and len(observaciones) < 10:
+
+                messages.error(
+                    request,
+                    'Las observaciones deben tener mínimo 10 caracteres'
+                )
+
+                return redirect('panel_entrenamiento')
+
+            ent.descripcion = descripcion
+            ent.lugar = lugar
+            ent.observaciones = observaciones
+
             ent.save()
 
-            messages.success(request, "Entrenamiento actualizado")
+            messages.success(
+                request,
+                "Entrenamiento actualizado"
+            )
+
             return redirect('panel_entrenamiento')
 
         # ================= ELIMINAR =================

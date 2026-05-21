@@ -221,7 +221,22 @@ function abrirModal(url){
     });
 
 }
+function confirmarEliminacion(url, nombre){
 
+    document.getElementById('textoEliminar').innerHTML =
+        `El artículo <strong>${nombre}</strong> será eliminado.`;
+
+    document.getElementById(
+        'btnConfirmarEliminar'
+    ).href = url;
+
+    let modal = new bootstrap.Modal(
+        document.getElementById('modalEliminar')
+    );
+
+    modal.show();
+
+}
 </script>
 
 {% endblock %}
