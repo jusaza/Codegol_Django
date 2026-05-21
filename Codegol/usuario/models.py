@@ -45,8 +45,8 @@ class Usuario(models.Model):
     )
 
     password_validator = RegexValidator(
-    regex=r'^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&]).{10,}$',
-    message="La contraseña debe tener mínimo 10 caracteres, una mayúscula, una minúscula, un número y un carácter especial."
+    regex=r'^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[^A-Za-z0-9]).{10,}$',
+    message='La contraseña debe tener mínimo 10 caracteres, una mayúscula, una minúscula, un número y un carácter especial.'
     )
 
     contrasena = models.CharField(
@@ -112,8 +112,9 @@ class Usuario(models.Model):
     direccion = models.CharField(
         max_length=50,
         validators=[
-            MinLengthValidator(4)
-        ]
+            MinLengthValidator(4),
+        ],
+        blank = True
     )
 
     genero = models.CharField(
