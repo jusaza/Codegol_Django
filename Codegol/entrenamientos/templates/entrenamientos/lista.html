@@ -226,9 +226,28 @@
         </div>
 
         <div class="modal-body">
-          <input id="descripcion" name="descripcion" class="form-control mb-2" placeholder="Descripción" required>
-          <input id="lugar" name="lugar" class="form-control mb-2" placeholder="Lugar">
-          <input id="observaciones" name="observaciones" class="form-control" placeholder="Observaciones">
+          <input id="descripcion"
+            name="descripcion"
+            class="form-control mb-2"
+            placeholder="Descripción"
+            minlength="5"
+            maxlength="100"
+            required>
+
+        <input id="lugar"
+            name="lugar"
+            class="form-control mb-2"
+            placeholder="Lugar"
+            minlength="3"
+            maxlength="50"
+            required>
+
+        <input id="observaciones"
+            name="observaciones"
+            class="form-control"
+            placeholder="Observaciones"
+            minlength="10"
+            maxlength="100">
         </div>
 
         <div class="modal-footer">
