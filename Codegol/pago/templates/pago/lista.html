@@ -25,6 +25,7 @@
     {% if "Administrador" in request.session.roles %}
 
     <a href="{% url 'reporte_pagos_pdf' %}"
+        target="_blank"
        class="boton-registrar">
 
       Descargar Reporte PDF

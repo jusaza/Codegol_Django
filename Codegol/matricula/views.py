@@ -13,7 +13,17 @@ from openpyxl import Workbook
 from django.http import HttpResponse
 from posicion.models import Posicion
 
+from datetime import datetime
 
+from openpyxl import Workbook
+from openpyxl.styles import (
+    Font,
+    PatternFill,
+    Alignment,
+    Border,
+    Side
+)
+from openpyxl.utils import get_column_letter
 from django.db.models import Q
 
 def lista_matricula(request):
@@ -219,7 +229,7 @@ def generar_certificado(request, id):
     ).order_by('fecha_registro')
 
     response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = 'attachment; filename="certificado_matricula.pdf"'
+    response['Content-Disposition'] = 'inline; filename="certificado_matricula.pdf"'
 
     doc = SimpleDocTemplate(response, pagesize=letter)
     styles = getSampleStyleSheet()
@@ -293,7 +303,9 @@ def modal_filtro_excel(request):
 
 def exportar_matriculas_excel(request):
 
-    matriculas = Matricula.objects.filter(estado=True)
+    matriculas = Matricula.objects.filter(
+        estado=True
+    )
 
     categoria = request.GET.get('categoria')
     nivel = request.GET.get('nivel')
@@ -301,19 +313,20 @@ def exportar_matriculas_excel(request):
     fecha_inicio = request.GET.get('fecha_inicio')
     fecha_fin = request.GET.get('fecha_fin')
 
-    # FILTRO NIVEL
+    # =========================
+    # FILTROS
+    # =========================
+
     if nivel:
         matriculas = matriculas.filter(
             nivel=nivel
         )
 
-    # FILTRO POSICIÓN
     if posicion:
         matriculas = matriculas.filter(
             posicion_id=posicion
         )
 
-    # FILTRO FECHAS
     if fecha_inicio:
         matriculas = matriculas.filter(
             fecha_inicio__gte=fecha_inicio
@@ -324,7 +337,6 @@ def exportar_matriculas_excel(request):
             fecha_fin__lte=fecha_fin
         )
 
-    # FILTRO CATEGORÍA
     if categoria:
 
         matriculas = matriculas.filter(
@@ -332,46 +344,110 @@ def exportar_matriculas_excel(request):
             historialcategoria__estado=True
         ).distinct()
 
-    # TOTAL
     total = matriculas.count()
 
-    # CREAR EXCEL
+    # =========================
+    # EXCEL
+    # =========================
+
     wb = Workbook()
 
     ws = wb.active
-
     ws.title = "Matrículas"
 
-    # INFORMACIÓN REPORTE
-    ws.append(["REPORTE DE MATRÍCULAS"])
-    ws.append([])
+    # =========================
+    # ESTILOS
+    # =========================
 
-    ws.append(["TOTAL JUGADORES", total])
+    titulo_fill = PatternFill(
+        "solid",
+        fgColor="0D2B4D"
+    )
 
-    ws.append([
-        "FILTROS APLICADOS"
-    ])
+    header_fill = PatternFill(
+        "solid",
+        fgColor="1F4E78"
+    )
 
-    ws.append([
-        f"Nivel: {nivel or 'Todos'}"
-    ])
+    header_font = Font(
+        bold=True,
+        color="FFFFFF"
+    )
 
-    ws.append([
-        f"Posición: {posicion or 'Todas'}"
-    ])
+    titulo_font = Font(
+        bold=True,
+        color="FFFFFF",
+        size=16
+    )
 
-    ws.append([
-        f"Fecha Inicio: {fecha_inicio or 'Todas'}"
-    ])
+    borde = Border(
+        left=Side(style="thin"),
+        right=Side(style="thin"),
+        top=Side(style="thin"),
+        bottom=Side(style="thin")
+    )
 
-    ws.append([
-        f"Fecha Fin: {fecha_fin or 'Todas'}"
-    ])
+    # =========================
+    # TITULO
+    # =========================
 
-    ws.append([])
+    ws.merge_cells("A1:I1")
 
+    ws["A1"] = "REPORTE DE MATRÍCULAS"
+
+    ws["A1"].fill = titulo_fill
+    ws["A1"].font = titulo_font
+
+    ws["A1"].alignment = Alignment(
+        horizontal="center",
+        vertical="center"
+    )
+
+    # =========================
+    # RESUMEN
+    # =========================
+
+    ws["A3"] = "Fecha de generación"
+    ws["B3"] = datetime.now().strftime(
+        "%d/%m/%Y %H:%M"
+    )
+
+    ws["A4"] = "Total jugadores"
+    ws["B4"] = total
+
+    ws["A5"] = "Nivel"
+    ws["B5"] = nivel or "Todos"
+
+    ws["A6"] = "Posición"
+    ws["B6"] = posicion or "Todas"
+
+    ws["A7"] = "Categoría"
+    ws["B7"] = categoria or "Todas"
+
+    ws["A8"] = "Fecha Inicio"
+    ws["B8"] = fecha_inicio or "Todas"
+
+    ws["A9"] = "Fecha Fin"
+    ws["B9"] = fecha_fin or "Todas"
+
+    for fila in range(3, 10):
+
+        ws[f"A{fila}"].font = Font(
+            bold=True
+        )
+
+        ws[f"A{fila}"].fill = PatternFill(
+            "solid",
+            fgColor="D9EAD3"
+        )
+
+    # =========================
     # ENCABEZADOS
-    ws.append([
+    # =========================
+
+    fila_header = 11
+
+    headers = [
         "ID",
         "Jugador",
         "Tipo Documento",
@@ -381,14 +457,38 @@ def exportar_matriculas_excel(request):
         "Fecha Fin",
         "Fecha Matrícula",
         "Observaciones"
-    ])
+    ]
 
+    for col_num, texto in enumerate(
+        headers,
+        start=1
+    ):
+
+        cell = ws.cell(
+            row=fila_header,
+            column=col_num
+        )
+
+        cell.value = texto
+        cell.fill = header_fill
+        cell.font = header_font
+        cell.border = borde
+
+        cell.alignment = Alignment(
+            horizontal="center"
+        )
+
+    # =========================
     # DATOS
+    # =========================
+
+    fila = 12
+
     for m in matriculas:
 
         jugador = m.id_jugador
 
-        ws.append([
+        datos = [
             m.id,
             jugador.nombre_completo,
             jugador.get_tipo_documento_display(),
@@ -397,17 +497,71 @@ def exportar_matriculas_excel(request):
             str(m.fecha_inicio),
             str(m.fecha_fin),
             str(m.fecha_matricula),
-            m.observaciones
-        ])
+            m.observaciones or ""
+        ]
 
+        for col_num, valor in enumerate(
+            datos,
+            start=1
+        ):
+
+            cell = ws.cell(
+                row=fila,
+                column=col_num
+            )
+
+            cell.value = valor
+            cell.border = borde
+
+        fila += 1
+
+    # =========================
+    # AJUSTAR COLUMNAS
+    # =========================
+
+    for columna in ws.columns:
+
+        try:
+
+            longitud = 0
+
+            letra = get_column_letter(
+                columna[0].column
+            )
+
+            for celda in columna:
+
+                if celda.value:
+
+                    longitud = max(
+                        longitud,
+                        len(str(celda.value))
+                    )
+
+            ws.column_dimensions[
+                letra
+            ].width = longitud + 5
+
+        except:
+            pass
+
+    # =========================
     # RESPUESTA
+    # =========================
+
     response = HttpResponse(
-        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        content_type=(
+            "application/vnd.openxmlformats-"
+            "officedocument.spreadsheetml.sheet"
+        )
     )
 
     response[
-        'Content-Disposition'
-    ] = 'attachment; filename="reporte_matriculas.xlsx"'
+        "Content-Disposition"
+    ] = (
+        'attachment; '
+        'filename="reporte_matriculas.xlsx"'
+    )
 
     wb.save(response)
 
