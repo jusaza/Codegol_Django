@@ -1,0 +1,36 @@
+<form method="post" action="{% url 'crear_movimiento' inventario.id_inventario %}">
+  {% csrf_token %}
+
+  <div class="modal-header text-white" style="background-color: #001f3f;">
+    <h5>Registrar entrada</h5>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+  </div>
+
+  <div class="modal-body">
+
+    <div class="mb-3">
+      <label class="form-label fw-bold">Cantidad</label>
+      <input type="number" name="cantidad"
+             class="form-control"
+             placeholder="Ingrese la cantidad" required min="1" max="9999">
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label fw-bold">Observación</label>
+      <input type="text" name="observaciones"
+             class="form-control"
+             placeholder="Opcional" maxlength="255"
+             >
+    </div>
+
+  </div>
+
+  <div class="modal-footer">
+    <button type="submit"
+            class="btn btn-success"
+            style="background-color: #001f3f; border-color:#001f3f;">
+      Registrar entrada
+    </button>
+  </div>
+
+</form>
