@@ -1,1 +1,0 @@
-# Codegol_Django
