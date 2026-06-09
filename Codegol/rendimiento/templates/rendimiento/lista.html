@@ -1,80 +1,52 @@
 {% extends 'layout/menu.html' %}
 {% load static %}
+{% load rendimiento_tags %}
 
 {% block extra_css %}
 <style>
 
-:root {
-    --azul-oscuro: #0d2b4d;
-    --azul-claro: #1e73be;
+.card-header{
+    background:#0d2b4d;
+    color:white;
 }
 
-/* BOTONES */
-.btn-primary {
-    background-color: var(--azul-oscuro) !important;
+.table-responsive{
+    overflow-x:auto;
 }
 
-.btn-success {
-    background-color: var(--azul-oscuro) !important;
+.table th{
+    font-size:12px;
+    white-space:nowrap;
+    text-align:center;
 }
 
-/* CARD */
-.card {
-    border-radius: 15px;
-    background-color: rgb(235, 235, 235);
+.table td{
+    text-align:center;
+    vertical-align:middle;
 }
 
-/* HEADER CARD */
-.card-header {
-    background-color: var(--azul-oscuro);
-    color: white;
-    text-align: center;
+.rubrica-btns{
+    display:flex;
+    justify-content:center;
+    gap:3px;
 }
 
-/* POSICIÓN */
-.posicion {
-    font-size: 12px;
-    opacity: 0.8;
+.rubrica-btns .btn{
+    min-width:35px;
+    padding:4px;
 }
 
-/* INPUT FOCUS */
-.form-control:focus {
-    border-color: var(--azul-oscuro);
-    box-shadow: 0 0 5px rgba(13, 43, 77, 0.5);
+.rubrica-btns .active{
+    border:3px solid #000 !important;
 }
 
-/* 🔥 RÚBRICA */
-.rubrica-btns {
-    display: flex;
-    gap: 4px;
+.filtro-jugador{
+    max-width:400px;
 }
 
-.rubrica-btns .btn {
-    display: flex;
-    flex-direction: column;
-    font-size: 11px;
-    padding: 4px;
-    line-height: 1;
-    width: 50px;
-}
-
-.rubrica-btns small {
-    font-size: 9px;
-}
-
-/* ACTIVO */
-.rubrica-btns .active {
-    border: 2px solid black;
-}
-
-/* RESUMEN */
-.resumen {
-    background: white;
-    border-radius: 8px;
-    padding: 8px;
-    margin-top: 10px;
-    text-align: center;
-    font-weight: bold;
+.promedio-badge{
+    font-size:14px;
+    padding:6px 10px;
 }
 
 </style>
@@ -82,214 +54,306 @@
 
 {% block content %}
 
-<div class="container mt-4">
+<div class="container-fluid mt-4">
 
-    <h2>Rendimiento por Rúbrica</h2>
+    <h2 class="mb-4">
+        Rendimiento por Rúbrica
+    </h2>
 
-    <!-- FILTRO -->
-    <div class="mb-4" style="width:300px;">
-        <label class="fw-bold">Buscar jugador</label>
-        <select id="filtroJugador" class="form-control">
-            <option value="">-- Todos --</option>
+    <!-- BUSCADOR -->
+    <div class="mb-4 filtro-jugador">
 
-            {% regroup data by jugador_id as jugadores %}
-            {% for j in jugadores %}
-                <option value="{{ j.grouper }}">
-                    {{ j.list.0.jugador_nombre }}
-                </option>
-            {% endfor %}
-        </select>
+        <input
+            type="text"
+            id="buscarJugador"
+            class="form-control"
+            placeholder="Buscar jugador..."
+        >
+
     </div>
 
-    <form method="POST" action="{% url 'guardar_rendimiento' id_sesion %}">
+    <form method="POST"
+          action="{% url 'guardar_rendimiento' id_sesion %}">
+
         {% csrf_token %}
 
-        <div class="row">
+        {% for nombre_posicion, posicion in posiciones.items %}
 
-        {% regroup data by jugador_id as jugadores %}
+        <div class="card shadow mb-4">
 
-        {% for jugador in jugadores %}
-        <div class="col-md-6 mb-4 card-jugador" data-jugador="{{ jugador.grouper }}">
+            <div class="card-header">
 
-            <div class="card shadow">
+                <h4 class="mb-0">
+                    {{ nombre_posicion }}
+                </h4>
 
-                <!-- HEADER -->
-                <div class="card-header">
-                    {{ jugador.list.0.jugador_nombre }}
-                    <div class="posicion">
-                        {{ jugador.list.0.posicion }}
-                    </div>
-                </div>
+            </div>
 
-                <div class="card-body">
+            <div class="card-body">
 
-                    <table class="table table-sm text-center">
+                <div class="table-responsive">
+
+                    <table class="table table-bordered align-middle tabla-rendimiento">
 
                         <thead>
+
                             <tr>
-                                <th>Actividad</th>
-                                <th>Atributo</th>
-                                <th>Valor</th>
-                                <th>Peso</th>
-                                <th>Puntaje</th>
+
+                                <th style="min-width:220px">
+                                    Jugador
+                                </th>
+
+                                {% for columna in posicion.columnas %}
+                                <th style="min-width:170px">
+                                    {{ columna }}
+                                </th>
+                                {% endfor %}
+
+                                <th style="min-width:120px">
+                                    Promedio
+                                </th>
+
                             </tr>
+
                         </thead>
 
                         <tbody>
 
-                        {% for item in jugador.list %}
-                        <tr>
+                        {% for jugador_id, jugador in posicion.jugadores.items %}
 
-                            <td>{{ item.actividad }}</td>
+                        <tr class="fila-jugador">
 
-                            <td>{{ item.atributo }}</td>
-
-                            <td>
-
-                                <!-- 🔥 BOTONES RÚBRICA -->
-                                <div class="rubrica-btns">
-
-                                    <button type="button" class="btn btn-outline-danger btn-sm"
-                                        onclick="setValor('{{ item.id_rendimiento }}', 1, this)">
-                                        1 <small>Malo</small>
-                                    </button>
-
-                                    <button type="button" class="btn btn-outline-warning btn-sm"
-                                        onclick="setValor('{{ item.id_rendimiento }}', 2, this)">
-                                        2 <small>Regular</small>
-                                    </button>
-
-                                    <button type="button" class="btn btn-outline-info btn-sm"
-                                        onclick="setValor('{{ item.id_rendimiento }}', 3, this)">
-                                        3 <small>Bueno</small>
-                                    </button>
-
-                                    <button type="button" class="btn btn-outline-success btn-sm"
-                                        onclick="setValor('{{ item.id_rendimiento }}', 4, this)">
-                                        4 <small>Excelente</small>
-                                    </button>
-
-                                </div>
-
-                                <!-- 🔥 INPUT OCULTO -->
-                                <input type="hidden"
-                                       name="valor_{{ item.id_rendimiento }}"
-                                       id="valor_{{ item.id_rendimiento }}"
-                                       class="valor-input"
-                                       data-peso="{{ item.peso }}"
-                                       value="{{ item.valor|default:'' }}">
-
+                            <td class="fw-bold nombre-jugador">
+                                {{ jugador.nombre }}
                             </td>
 
-                            <td>{{ item.peso }}</td>
+                            {% for columna in posicion.columnas %}
 
-                            <td class="puntaje">0</td>
+                                {% with celda=jugador.celdas|get_item:columna %}
+
+                                <td>
+
+                                    {% if celda %}
+
+                                    <div class="rubrica-btns">
+
+                                        <button
+    type="button"
+    data-valor="1"
+    class="btn btn-outline-danger btn-sm"
+    onclick="setValor('{{ celda.id_rendimiento }}',1,this)">
+    1
+</button>
+
+<button
+    type="button"
+    data-valor="2"
+    class="btn btn-outline-warning btn-sm"
+    onclick="setValor('{{ celda.id_rendimiento }}',2,this)">
+    2
+</button>
+
+<button
+    type="button"
+    data-valor="3"
+    class="btn btn-outline-info btn-sm"
+    onclick="setValor('{{ celda.id_rendimiento }}',3,this)">
+    3
+</button>
+
+<button
+    type="button"
+    data-valor="4"
+    class="btn btn-outline-success btn-sm"
+    onclick="setValor('{{ celda.id_rendimiento }}',4,this)">
+    4
+</button>
+
+                                    </div>
+
+                                    <input
+                                        type="hidden"
+                                        class="valor-input"
+                                        id="valor_{{ celda.id_rendimiento }}"
+                                        name="valor_{{ celda.id_rendimiento }}"
+                                        value="{{ celda.valor|default:'' }}">
+
+                                    {% endif %}
+
+                                </td>
+
+                                {% endwith %}
+
+                            {% endfor %}
+
+                            <td>
+                                <span class="badge bg-secondary promedio-badge">
+                                    0.00
+                                </span>
+                            </td>
 
                         </tr>
+
                         {% endfor %}
 
                         </tbody>
 
                     </table>
 
-                    <!-- RESUMEN -->
-                    <div class="resumen">
-                        Total: <span class="total">0</span> |
-                        Promedio: <span class="promedio">0</span>
-                    </div>
-
                 </div>
 
             </div>
 
         </div>
+
         {% endfor %}
 
-        </div>
+        <div class="text-end mb-4">
 
-        <div class="text-end">
-            <button class="btn btn-success">
+            <button class="btn btn-success btn-lg">
                 💾 Guardar rendimiento
             </button>
+
         </div>
 
     </form>
 
 </div>
 
-<!-- ================= JS ================= -->
 <script>
 
-// FILTRO
-document.getElementById("filtroJugador").addEventListener("change", function () {
-    let jugador = this.value;
-    document.querySelectorAll(".card-jugador").forEach(card => {
-        card.style.display = (jugador === "" || card.dataset.jugador === jugador) ? "" : "none";
-    });
-});
+function calcularPromedioFila(fila){
 
-// 🔥 SELECCIONAR / DESELECCIONAR
+    const inputs = fila.querySelectorAll('.valor-input');
+
+    let suma = 0;
+    let cantidad = 0;
+
+    inputs.forEach(input=>{
+
+        let valor = parseFloat(input.value);
+
+        if(!isNaN(valor)){
+            suma += valor;
+            cantidad++;
+        }
+
+    });
+
+    let promedio = cantidad > 0
+        ? (suma / cantidad)
+        : 0;
+
+    const badge = fila.querySelector('.promedio-badge');
+
+    badge.innerText = promedio.toFixed(2);
+
+    badge.classList.remove(
+        'bg-danger',
+        'bg-warning',
+        'bg-success',
+        'bg-secondary'
+    );
+
+    if(promedio === 0){
+        badge.classList.add('bg-secondary');
+    }
+    else if(promedio < 2){
+        badge.classList.add('bg-danger');
+    }
+    else if(promedio < 3.5){
+        badge.classList.add('bg-warning');
+    }
+    else{
+        badge.classList.add('bg-success');
+    }
+}
+
 function setValor(id, valor, btn){
 
-    const input = document.getElementById('valor_' + id);
-    const container = btn.parentElement;
+    const input = document.getElementById(
+        'valor_' + id
+    );
 
-    // si vuelve a hacer click → quitar
+    const grupo = btn.parentElement;
+
     if(input.value == valor){
+
         input.value = '';
+
         btn.classList.remove('active');
-        calcularCard(btn);
+
+        calcularPromedioFila(
+            btn.closest('tr')
+        );
+
         return;
     }
 
-    // limpiar
-    container.querySelectorAll('button').forEach(b => b.classList.remove('active'));
-
-    // activar
-    input.value = valor;
-    btn.classList.add('active');
-
-    calcularCard(btn);
-}
-
-// 🔥 CALCULAR POR CARD
-function calcularCard(element){
-
-    const card = element.closest('.card-jugador');
-    const inputs = card.querySelectorAll('.valor-input');
-
-    let total = 0;
-    let totalPeso = 0;
-
-    inputs.forEach(inp => {
-
-        let valor = parseFloat(inp.value) || 0;
-        let peso = parseFloat(inp.dataset.peso) || 0;
-
-        let puntaje = valor * peso;
-
-        total += puntaje;
-        totalPeso += peso;
-
-        inp.closest('tr').querySelector('.puntaje').innerText = puntaje.toFixed(2);
+    grupo.querySelectorAll('button').forEach(b=>{
+        b.classList.remove('active');
     });
 
-    let promedio = totalPeso > 0 ? total / totalPeso : 0;
+    input.value = valor;
 
-    card.querySelector('.total').innerText = total.toFixed(2);
-    card.querySelector('.promedio').innerText = promedio.toFixed(2);
+    btn.classList.add('active');
 
-    // color
-    let promEl = card.querySelector('.promedio');
-
-    if(promedio < 3){
-        promEl.style.color = 'red';
-    } else if(promedio < 4){
-        promEl.style.color = 'orange';
-    } else {
-        promEl.style.color = 'green';
-    }
+    calcularPromedioFila(
+        btn.closest('tr')
+    );
 }
+
+document.addEventListener('DOMContentLoaded', ()=>{
+
+document.querySelectorAll('.valor-input').forEach(input=>{
+
+    if(!input.value) return;
+
+    const grupo = input.previousElementSibling;
+
+    grupo.querySelectorAll('button').forEach(btn=>{
+
+        if(
+            parseFloat(btn.dataset.valor) ===
+            parseFloat(input.value)
+        ){
+            btn.classList.add('active');
+        }
+
+    });
+
+});
+
+    document.querySelectorAll('.fila-jugador').forEach(fila=>{
+        calcularPromedioFila(fila);
+    });
+
+    // BUSCADOR
+
+    document.getElementById('buscarJugador')
+        .addEventListener('keyup', function(){
+
+        let texto = this.value.toLowerCase();
+
+        document
+            .querySelectorAll('.fila-jugador')
+            .forEach(fila=>{
+
+                let nombre = fila
+                    .querySelector('.nombre-jugador')
+                    .innerText
+                    .toLowerCase();
+
+                fila.style.display =
+                    nombre.includes(texto)
+                    ? ''
+                    : 'none';
+
+            });
+
+    });
+
+});
 
 </script>
 

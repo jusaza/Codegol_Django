@@ -227,26 +227,6 @@ body{
                                 </div>
 
                             </div>
-
-                            <div class="mt-2 d-flex gap-2">
-
-                                <button type="button" class="btn btn-warning btn-sm"
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#editarActividad{{ r.actividad.id_actividad }}">
-
-                                    ✏️
-
-                                </button>
-
-                                <a href="{% url 'eliminar_actividad' r.actividad.id_actividad %}"
-                                   class="btn btn-danger btn-sm btn-eliminar">
-
-                                    🗑️
-
-                                </a>
-
-                            </div>
-
                         </div>
 
                         {% endif %}
@@ -311,7 +291,7 @@ body{
 
 <div class="modal-footer">
 
-<button type="button" class="btn btn-success">
+<button type="submit" class="btn btn-success">
 
 Guardar
 
@@ -385,7 +365,7 @@ Activo
 
 <div class="modal-footer">
 
-<button type="button" class="btn btn-success">
+<button type="submit" class="btn btn-success">
 
 Guardar
 
@@ -480,7 +460,7 @@ Obligatorio
 
 <div class="modal-footer">
 
-<button type="button" class="btn btn-success">
+<button type="submit" class="btn btn-success">
 
 Guardar
 
@@ -534,86 +514,7 @@ Guardar
 
 <div class="modal-footer">
 
-<button type="button" class="btn btn-success">
-
-Actualizar
-
-</button>
-
-</div>
-
-</form>
-
-</div>
-</div>
-</div>
-
-{% endfor %}
-
-<!-- MODAL EDITAR ACTIVIDAD -->
-{% for a in actividades %}
-
-<div class="modal fade"
-     id="editarActividad{{ a.id_actividad }}">
-
-<div class="modal-dialog modal-dialog-centered">
-
-<div class="modal-content">
-
-<form method="post"
-      action="{% url 'editar_actividad' a.id_actividad %}">
-
-{% csrf_token %}
-
-<div class="modal-header">
-
-<h5>Editar Actividad</h5>
-
-<button type="button" class="btn-close btn-close-white"
-        data-bs-dismiss="modal"></button>
-
-</div>
-
-<div class="modal-body">
-
-<label>Nombre</label>
-
-<input type="text"
-       name="nombre"
-       class="form-control mb-3"
-       value="{{ a.nombre }}"
-       minlength="2"
-       maxlength="20"
-       required>
-
-<label>Descripción</label>
-
-<textarea name="descripcion"
-          class="form-control"
-          minlength="10"
-          maxlength="60"
-          required>{{ a.descripcion }}</textarea>
-
-<div class="form-check mt-3">
-
-<input class="form-check-input"
-       type="checkbox"
-       name="estado"
-       {% if a.estado %}checked{% endif %}>
-
-<label class="form-check-label">
-
-Activo
-
-</label>
-
-</div>
-
-</div>
-
-<div class="modal-footer">
-
-<button type="button" class="btn btn-success">
+<button type="submit" class="btn btn-success">
 
 Actualizar
 

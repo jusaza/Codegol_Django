@@ -117,7 +117,7 @@ def cancelar_pago(request, id):
 
 def reporte_pagos_pdf(request):
     response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = 'attachment; filename="reporte_pagos.pdf"'
+    response['Content-Disposition'] = 'inline; filename="reporte_pagos.pdf"'
 
     p = canvas.Canvas(response)
 
