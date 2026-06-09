@@ -96,13 +96,16 @@ WSGI_APPLICATION = 'codegol.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
+print("MYSQL_HOST =", os.getenv("MYSQL_HOST"))
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'codegol',
-        'USER' : 'root',
-        'PASSWORD' : '',
-        'PORT' : '3307',
+    'ENGINE': 'django.db.backends.mysql',
+    'NAME': os.getenv('MYSQLDATABASE'),
+    'USER': os.getenv('MYSQLUSER'),
+    'PASSWORD': os.getenv('MYSQLPASSWORD'),
+    'HOST': os.getenv('MYSQLHOST'),
+    'PORT': os.getenv('MYSQLPORT'),
     }
 }
 
