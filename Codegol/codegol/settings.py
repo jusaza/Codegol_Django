@@ -27,11 +27,17 @@ SECRET_KEY = 'django-insecure-w&5&8fm@qa^nzcx@4$rkjs(g49$)##aix4qp%tt##t8yxq2_@j
 
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+#ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '.trycloudflare.com']
 
-#DEBUG = False
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '.ngrok-free.app','.ngrok-free.dev','untagged-dude-strung.ngrok-free.dev']
 
-#ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
+SECURE_SSL_REDIRECT = False
+SESSION_COOKIE_SECURE = False
+CSRF_COOKIE_SECURE = False
+
+#CSRF_TRUSTED_ORIGINS = ['https://*.trycloudflare.com']
+
+CSRF_TRUSTED_ORIGINS = ['https://*.ngrok-free.app','https://*.ngrok-free.dev',]
 
 # Application definition
 
@@ -96,16 +102,13 @@ WSGI_APPLICATION = 'codegol.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
-print("MYSQL_HOST =", os.getenv("MYSQL_HOST"))
-
 DATABASES = {
     'default': {
-    'ENGINE': 'django.db.backends.mysql',
-    'NAME': os.getenv('MYSQLDATABASE'),
-    'USER': os.getenv('MYSQLUSER'),
-    'PASSWORD': os.getenv('MYSQLPASSWORD'),
-    'HOST': os.getenv('MYSQLHOST'),
-    'PORT': os.getenv('MYSQLPORT'),
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'codegol',
+        'USER' : 'root',
+        'PASSWORD' : '',
+        'PORT' : '3307',
     }
 }
 
@@ -148,7 +151,7 @@ USE_TZ = True
 STATIC_URL = 'static/'
 
 STATICFILES_DIRS = [
-    BASE_DIR / 'codegol' / 'static' / 'staticfiles',
+    BASE_DIR / 'codegol' / 'static',
 ]
 
 MEDIA_URL = '/media/'
@@ -161,4 +164,3 @@ EMAIL_HOST_USER = 'a343e7bd69df11'
 EMAIL_HOST_PASSWORD = 'abf63dbcf86884'
 EMAIL_USE_TLS = True
 EMAIL_USE_SSL = False
-
