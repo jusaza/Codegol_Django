@@ -29,7 +29,9 @@ DEBUG = True
 
 #ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '.trycloudflare.com']
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '.ngrok-free.app','.ngrok-free.dev','untagged-dude-strung.ngrok-free.dev']
+#ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '.ngrok-free.app','.ngrok-free.dev','untagged-dude-strung.ngrok-free.dev']
+
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'codegol.tunnelto.me']
 
 SECURE_SSL_REDIRECT = False
 SESSION_COOKIE_SECURE = False
@@ -37,7 +39,9 @@ CSRF_COOKIE_SECURE = False
 
 #CSRF_TRUSTED_ORIGINS = ['https://*.trycloudflare.com']
 
-CSRF_TRUSTED_ORIGINS = ['https://*.ngrok-free.app','https://*.ngrok-free.dev',]
+#CSRF_TRUSTED_ORIGINS = ['https://*.ngrok-free.app','https://*.ngrok-free.dev','https://*.tunnelto.me']
+
+CSRF_TRUSTED_ORIGINS = ['https://*.tunnelto.me']
 
 # Application definition
 
