@@ -1,0 +1,178 @@
+{% extends 'layout/menu.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/stylepag.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<style>
+.upload-container {
+    width: 100%;
+    min-height: 80vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(135deg, #0f172a, white);
+}
+
+.upload-form {
+    background: #ffffff;
+    padding: 30px;
+    border-radius: 16px;
+    width: 420px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    text-align: center;
+    animation: fadeIn 0.6s ease-in-out;
+}
+
+.upload-form h2 {
+    margin-bottom: 15px;
+    color: #1e3a8a;
+}
+
+.upload-form input[type="file"] {
+    width: 100%;
+    padding: 12px;
+    border: 2px dashed #1e3a8a;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    cursor: pointer;
+    background: #f8fafc;
+    transition: 0.3s;
+}
+
+.upload-form input[type="file"]:hover {
+    background: #e0e7ff;
+}
+
+.upload-form button {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 10px;
+    background: #1e3a8a;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.upload-form button:hover {
+    background: #3b82f6;
+    transform: scale(1.05);
+}
+
+.btn-descarga {
+    display: inline-block;
+    padding: 12px 18px;
+    background: linear-gradient(135deg, #1e3a8a, #2563eb);
+    color: white;
+    text-decoration: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    margin-bottom: 15px;
+}
+
+.btn-descarga:hover {
+    transform: translateY(-2px);
+    background: linear-gradient(135deg, #2563eb, #1e40af);
+}
+
+.msg-error {
+    padding: 10px;
+    border-radius: 8px;
+    color: white;
+    font-weight: bold;
+    margin-bottom: 15px;
+    background-color: #dc3545;
+    animation: fadeIn 0.4s ease-in-out;
+}
+
+.msg-success {
+    padding: 10px;
+    border-radius: 8px;
+    color: white;
+    font-weight: bold;
+    margin-bottom: 15px;
+    background-color: #28a745;
+    animation: fadeIn 0.4s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+hr {
+    margin-top: 15px;
+    border: none;
+    height: 1px;
+    background: #e5e7eb;
+}
+
+pre {
+    text-align: left;
+    background: #f8fafc;
+    padding: 12px;
+    border-radius: 10px;
+    font-size: 12px;
+    overflow-x: auto;
+}
+</style>
+
+<div class="upload-container">
+
+    <form method="POST" enctype="multipart/form-data" class="upload-form">
+
+        <h2>Carga Masiva de Matrículas</h2>
+
+        <a href="{% static 'csv/matriculas_original.csv' %}" download class="btn-descarga">
+            📥 Descargar archivo de ejemplo
+        </a>
+
+        <hr>
+
+        {% csrf_token %}
+
+        {% if messages %}
+            {% for message in messages %}
+                {% if message.tags == 'error' %}
+                    <div class="msg-error">
+                {% else %}
+                    <div class="msg-success">
+                {% endif %}
+                        {{ message }}
+                    </div>
+            {% endfor %}
+        {% endif %}
+
+        <input type="file" name="archivo" accept=".csv" required>
+
+        <button type="submit">Cargar Matrículas</button>
+
+        <hr>
+
+        <h3>Formato esperado del CSV</h3>
+
+        <pre>
+num_identificacion,fecha_inicio,fecha_fin,nivel,observaciones,posicion,categoria
+12345678,2026-01-01,2026-12-31,Alto,Jugador destacado,Portero,Sub-15
+87654321,2026-01-01,2026-12-31,Medio,Nuevo ingreso,Defensa,Sub-17
+        </pre>
+
+    </form>
+
+</div>
+
+{% endblock %}

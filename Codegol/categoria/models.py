@@ -7,3 +7,4 @@ class Categoria(models.Model):
     
     class Meta:
         db_table = 'categoria'
+        

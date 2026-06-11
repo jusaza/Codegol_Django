@@ -1,3 +1,6 @@
+import csv
+from django.contrib import messages
+
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import Matricula, HistorialCategoria
 from usuario.models import Usuario, DetallesUsuarioRol
@@ -25,6 +28,129 @@ from openpyxl.styles import (
 )
 from openpyxl.utils import get_column_letter
 from django.db.models import Q
+
+def cargar_matriculas_csv(request):
+
+    if request.method == "POST":
+
+        archivo = request.FILES.get('archivo')
+
+        if not archivo:
+            messages.error(request, "Debes seleccionar un archivo CSV.")
+            return redirect('carga_masiva_matricula')
+
+        # Leer archivo CSV
+        decoded_file = archivo.read().decode('utf-8-sig').splitlines()
+        reader = csv.DictReader(decoded_file)
+
+        columnas_requeridas = [
+            'num_identificacion',
+            'fecha_inicio',
+            'fecha_fin',
+            'nivel',
+            'observaciones',
+            'posicion',
+            'categoria'
+        ]
+
+        columnas_faltantes = [
+            col for col in columnas_requeridas
+            if col not in reader.fieldnames
+        ]
+
+        if columnas_faltantes:
+            messages.error(
+                request,
+                f"❌ Faltan columnas en el CSV: {', '.join(columnas_faltantes)}"
+            )
+            return redirect('carga_masiva_matricula')
+
+        matriculas_data = []
+        errores = []
+
+        # 🔹 Cargar datos
+        for row in reader:
+
+            documento = row['num_identificacion']
+
+            # Usuario
+            try:
+                jugador = Usuario.objects.get(num_identificacion=documento)
+            except Usuario.DoesNotExist:
+                errores.append(f"Usuario no existe: {documento}")
+                continue
+
+            # Evitar duplicados de matrícula activa
+            if Matricula.objects.filter(
+                id_jugador=jugador,
+                estado=True
+            ).exists():
+                errores.append(f"Matrícula duplicada: {documento}")
+                continue
+
+            # Posición
+            try:
+                posicion = Posicion.objects.get(nombre=row['posicion'])
+            except Posicion.DoesNotExist:
+                errores.append(f"Posición inválida: {row['posicion']}")
+                continue
+
+            # Crear objeto (NO guardar aún)
+            matricula = Matricula(
+                fecha_inicio=row['fecha_inicio'],
+                fecha_fin=row['fecha_fin'],
+                nivel=row['nivel'],
+                observaciones=row['observaciones'],
+                id_jugador=jugador,
+                posicion=posicion,
+                estado=True
+            )
+
+            matriculas_data.append({
+                "matricula": matricula,
+                "categoria": row['categoria']
+            })
+
+        # 🔹 Insertar matrículas en BD
+        objs = [m["matricula"] for m in matriculas_data]
+        Matricula.objects.bulk_create(objs)
+
+        # 🔹 Relación con categoría e historial
+        for item in matriculas_data:
+
+            matricula = item["matricula"]
+            categoria_nombre = item["categoria"]
+
+            try:
+                categoria = Categoria.objects.get(nombre_categoria=categoria_nombre)
+
+                HistorialCategoria.objects.create(
+                    id_matricula=matricula,
+                    id_categoria=categoria,
+                    fecha_registro=matricula.fecha_inicio,
+                    estado=True
+                )
+
+            except Categoria.DoesNotExist:
+                continue
+
+        # 🔹 Mensajes finales
+        if matriculas_data:
+            messages.success(
+                request,
+                f"✅ Matrículas creadas: {len(matriculas_data)}"
+            )
+
+        if len(errores) > 0:
+            messages.error(
+                request,
+                f"❌ Registros omitidos: {len(errores)}\n"
+                + "\n".join(errores[:10])
+            )
+
+        return redirect('carga_masiva_matricula')
+
+    return render(request, 'matricula/cargar.html')
 
 def lista_matricula(request):
     query = request.GET.get('q')

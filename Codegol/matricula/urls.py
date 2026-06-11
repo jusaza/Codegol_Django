@@ -11,5 +11,5 @@ urlpatterns = [
     path('certificado/<int:id>/', views.generar_certificado, name='certificado'),
     path('exportar-excel/', views.exportar_matriculas_excel, name='exportar_excel'),
     path('modal-filtro-excel/',views.modal_filtro_excel,name='modal_filtro_excel'),
-
+    path('carga-masiva/',views.cargar_matriculas_csv,name='carga_masiva_matricula'),
 ]
