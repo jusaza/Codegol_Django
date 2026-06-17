@@ -1,0 +1,128 @@
+<form method="GET"
+      action="{% url 'exportar_excel' %}">
+
+    <div class="modal-header text-white"
+         style="background-color:#001f3f;">
+
+        <h5>Filtros Reporte Excel</h5>
+
+        <button type="button"
+                class="btn-close btn-close-white"
+                data-bs-dismiss="modal">
+        </button>
+
+    </div>
+
+    <div class="modal-body"
+         style="display:grid;
+                grid-template-columns:1fr 1fr;
+                gap:20px;">
+
+        <!-- CATEGORÍA -->
+        <div>
+            <label class="fw-bold">
+                Categoría
+            </label>
+
+            <select name="categoria"
+                    class="form-control">
+
+                <option value="">
+                    Todas
+                </option>
+
+                {% for c in categorias %}
+                <option value="{{ c.id_categoria }}">
+                    {{ c.nombre_categoria }}
+                </option>
+                {% endfor %}
+
+            </select>
+        </div>
+
+        <!-- NIVEL -->
+        <div>
+            <label class="fw-bold">
+                Nivel
+            </label>
+
+            <select name="nivel"
+                    class="form-control">
+
+                <option value="">
+                    Todos
+                </option>
+
+                <option value="Alto">
+                    Alto
+                </option>
+
+                <option value="Medio">
+                    Medio
+                </option>
+
+                <option value="Bajo">
+                    Bajo
+                </option>
+
+            </select>
+        </div>
+
+        <!-- POSICIÓN -->
+        <div>
+            <label class="fw-bold">
+                Posición
+            </label>
+
+            <select name="posicion"
+                    class="form-control">
+
+                <option value="">
+                    Todas
+                </option>
+
+                {% for p in posiciones %}
+                <option value="{{ p.id_posicion }}">
+                    {{ p.nombre }}
+                </option>
+                {% endfor %}
+
+            </select>
+        </div>
+
+        <!-- FECHA INICIO -->
+        <div>
+            <label class="fw-bold">
+                Fecha Inicio Desde
+            </label>
+
+            <input type="date"
+                   name="fecha_inicio"
+                   class="form-control">
+        </div>
+
+        <!-- FECHA FIN -->
+        <div>
+            <label class="fw-bold">
+                Fecha Fin Hasta
+            </label>
+
+            <input type="date"
+                   name="fecha_fin"
+                   class="form-control">
+        </div>
+
+    </div>
+
+    <div class="modal-footer">
+
+        <button type="submit"
+                class="btn btn-success">
+
+            Descargar Excel
+
+        </button>
+
+    </div>
+
+</form>

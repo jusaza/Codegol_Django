@@ -1,0 +1,958 @@
+{% extends 'layout/menu.html' %}
+{% load static %}
+
+{% block extra_css %}
+<style>
+
+/* 🎨 COLORES DEL SISTEMA */
+:root {
+    --azul-oscuro: #0d2b4d;
+    --azul-claro: #1e73be;
+}
+
+/* BOTONES */
+.btn-primary {
+    background-color: var(--azul-oscuro) !important;
+    border-color: var(--azul-oscuro) !important;
+}
+
+.btn-primary:hover {
+    background-color: #154b85 !important;
+}
+
+.btn-success {
+    background-color: var(--azul-oscuro) !important;
+    border-color: var(--azul-claro) !important;
+}
+
+.btn-success:hover {
+    background-color: #155a96 !important;
+}
+
+.btn-dark {
+    background-color: var(--azul-oscuro) !important;
+}
+
+.btn-info {
+    background-color: var(--azul-claro) !important;
+    border: none;
+}
+
+.btn-warning {
+    background-color: #ffc107;
+}
+
+/* MODALES */
+.modal-header.bg-primary,
+.modal-header.bg-success,
+.modal-header.bg-dark {
+    background-color: var(--azul-oscuro) !important;
+}
+
+/* CARDS */
+.card {
+    border-radius: 15px !important;
+    background-color: rgb(235, 235, 235);
+}
+
+/* BADGES */
+.badge.bg-primary {
+    background-color: var(--azul-oscuro) !important;
+}
+
+.badge.bg-success {
+    background-color: var(--azul-claro) !important;
+}
+
+/* INPUT */
+.form-control:focus {
+    border-color: var(--azul-oscuro);
+    box-shadow: 0 0 5px rgba(13, 43, 77, 0.5);
+}
+
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+    <!-- HEADER -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1>Sesiones - {{ entrenamiento.descripcion }}</h1>
+
+        <div>
+            <a href="{% url 'panel_entrenamiento' %}" class="btn btn-dark">
+                ← Volver
+            </a>
+
+            <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalSesion">
+                + Nueva Sesión
+            </button>
+        </div>
+    </div>
+
+    <!-- CARDS -->
+    <div class="row">
+
+        {% for s in sesiones %}
+        <div class="col-md-4 mb-4">
+
+            <div class="card shadow-sm border-0">
+
+                <div class="card-body">
+
+                    <!-- HEADER CARD -->
+                    <div class="d-flex justify-content-between align-items-center">
+
+                        <span class="badge bg-success">ACTIVA</span>
+
+                        <div class="d-flex gap-2">
+
+                            <!-- EDITAR -->
+                            <button class="btn btn-sm btn-warning"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#editarSesion{{ s.id_sesion }}">
+                                ✏️
+                            </button>
+
+                            <!-- ELIMINAR -->
+                            <a class="btn btn-sm btn-danger"
+                                    onclick="confirmarEliminar(
+                                        '{% url 'eliminar_sesion' s.id_sesion %}',
+                                        '{{ s.fecha }}'
+                                    )">
+                                🗑️
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                    <!-- INFO -->
+                    <h5 class="mt-2 text-center fw-bold">{{ s.fecha }}</h5>
+
+                    <p class="text-center">⏰ {{ s.hora_inicio }} - {{ s.hora_fin }}</p>
+                    <p class="text-center">👨‍🏫 {{ s.id_entrenador.nombre_completo }}</p>
+
+                    <hr>
+                            
+                    <!-- SELECT CATEGORIA -->
+                    <select
+                        id="cat_{{ s.id_sesion }}"
+                        class="form-control mb-2">
+
+                        <option value="">
+                            Seleccione categoría
+                        </option>
+
+                        {% for sc in s.categorias_registradas %}
+                            <option
+                                value="{{ sc.id_categoria.id_categoria }}"
+                                data-rendimiento="{% if sc.asistencia_completa %}1{% else %}0{% endif %}">
+                                {{ sc.id_categoria.nombre_categoria }}
+                            </option>
+                        {% endfor %}
+
+                    </select>
+
+<!-- BOTONES -->
+<div class="row g-2">
+
+    <div class="col-12">
+        <button class="btn btn-primary w-100"
+                onclick="abrirAsistencia({{ s.id_sesion }})">
+            📋 Asistencia
+        </button>
+    </div>
+
+    <div class="col-6">
+                <button
+            id="btnRendimiento_{{ s.id_sesion }}"
+            class="btn btn-warning w-100"
+            onclick="irRendimiento({{ s.id_sesion }})">
+            📊 Rendimiento
+        </button>
+    </div>
+
+    <div class="col-6">
+        <a class="btn text-white w-100"
+           style="background:green;border-color:green"
+           href="{% url 'salidas_sesion' s.id_sesion %}">
+            📦 Movimientos
+        </a>
+    </div>
+
+</div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- ================= MODAL EDITAR ================= -->
+        <div class="modal fade" id="editarSesion{{ s.id_sesion }}">
+          <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+
+              <form method="post" action="{% url 'editar_sesion' s.id_sesion %}">
+                {% csrf_token %}
+
+                <div class="modal-header bg-primary text-white">
+                  <h5>Editar Sesión</h5>
+                  <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+
+                  <input type="date" name="fecha" class="form-control mb-2"
+                    value="{{ s.fecha|date:'Y-m-d' }}" required>
+
+                  <input type="time" name="hora_inicio" class="form-control mb-2" value="{{ s.hora_inicio }}" required>
+
+                  <input type="time" name="hora_fin" class="form-control mb-2" value="{{ s.hora_fin }}" required>
+
+                  <hr>
+
+<label class="fw-bold">Categorías</label>
+
+<div id="contenedor-categorias-editar-{{ s.id_sesion }}">
+
+    {% for sc in s.categorias_registradas %}
+    <div class="categoria-item d-flex mb-2">
+
+        <select name="categorias[]" class="form-control">
+
+            {% for c in categorias %}
+            <option
+                value="{{ c.id_categoria }}"
+                {% if c.id_categoria == sc.id_categoria.id_categoria %}
+                selected
+                {% endif %}
+            >
+                {{ c.nombre_categoria }}
+            </option>
+            {% endfor %}
+
+        </select>
+
+        <button
+            type="button"
+            class="btn btn-danger ms-2 eliminar-categoria">
+            ✖
+        </button>
+
+    </div>
+    {% endfor %}
+
+</div>
+
+<button
+    type="button"
+    class="btn btn-success"
+    onclick="agregarCategoriaEditar({{ s.id_sesion }})">
+    ➕ Agregar categoría
+</button>
+
+                </div>
+
+                <div class="modal-footer">
+                  <button class="btn btn-success">Actualizar</button>
+                </div>
+
+              </form>
+
+            </div>
+          </div>
+        </div>
+
+        {% endfor %}
+
+    </div>
+
+</div>
+
+<!-- ================= MODAL CREAR ================= -->
+<div class="modal fade" id="modalSesion">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+
+      <form method="post" action="{% url 'crear_sesion' entrenamiento.id_entrenamiento %}">
+        {% csrf_token %}
+
+        <div class="modal-header bg-success text-white">
+          <h5>Nueva Sesión</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+
+        <div class="modal-body">
+
+          <input type="date" name="fecha" class="form-control mb-2" required>
+          <input type="time" name="hora_inicio" class="form-control mb-2" required>
+          <input type="time" name="hora_fin" class="form-control mb-2" required>
+
+          <label class="fw-bold">Categorías</label>
+
+<div id="contenedor-categorias-crear">
+
+    <div class="categoria-item d-flex mb-2">
+
+        <select name="categorias[]" class="form-control">
+
+            <option value="">Seleccione categoría</option>
+
+            {% for c in categorias %}
+                <option value="{{ c.id_categoria }}">
+                    {{ c.nombre_categoria }}
+                </option>
+            {% endfor %}
+
+        </select>
+
+        <button
+            type="button"
+            class="btn btn-danger ms-2 eliminar-categoria">
+            ✖
+        </button>
+
+    </div>
+
+</div>
+
+<button
+    type="button"
+    class="btn btn-success"
+    onclick="agregarCategoriaCrear()">
+    ➕ Agregar categoría
+</button>
+
+          <select name="id_entrenador" class="form-control">
+              {% for e in entrenadores %}
+                  <option value="{{ e.id_usuario }}"
+                      {% if request.session.usuario_id == e.id_usuario %}selected{% endif %}>
+                      {{ e.nombre_completo }}
+                  </option>
+              {% endfor %}
+          </select>
+
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn btn-success">Guardar</button>
+        </div>
+
+      </form>
+
+    </div>
+  </div>
+</div>
+
+<!-- ================= MODAL ASISTENCIA ================= -->
+<div class="modal fade" id="modalAsistencia">
+  <div class="modal-dialog modal-xl modal-dialog-scrollable">
+    <div class="modal-content">
+
+      <div class="modal-header bg-dark text-white">
+        <h5>Asistencia</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body" id="contenidoAsistencia">
+        Cargando...
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- MODAL ELIMINAR -->
+<div class="modal fade" id="modalEliminar" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title">
+          Confirmar eliminación
+        </h5>
+
+        <button type="button"
+                class="btn-close btn-close-white"
+                data-bs-dismiss="modal">
+        </button>
+      </div>
+
+      <div class="modal-body text-center">
+
+        <h4>¿Eliminar sesión?</h4>
+
+        <p id="textoEliminar"></p>
+
+        <small class="text-danger">
+          Esta acción no se puede deshacer.
+        </small>
+
+      </div>
+
+      <div class="modal-footer">
+
+        <button type="button"
+                class="btn btn-secondary"
+                data-bs-dismiss="modal">
+            Cancelar
+        </button>
+
+        <a id="btnEliminarConfirmado"
+           class="btn btn-danger">
+           Sí, eliminar
+        </a>
+
+      </div>
+
+    </div>
+  </div>
+</div>
+<!-- ================= JS ================= -->
+<script>
+
+const TODAS_CATEGORIAS = [
+    {% for c in categorias %}
+    {
+        id: "{{ c.id_categoria }}",
+        nombre: "{{ c.nombre_categoria }}"
+    },
+    {% endfor %}
+];
+
+const MAX_CATEGORIAS = TODAS_CATEGORIAS.length;
+
+
+// ======================================
+// ASISTENCIA
+// ======================================
+
+function abrirAsistencia(idSesion){
+
+    let categoria =
+        document.getElementById(
+            "cat_" + idSesion
+        ).value;
+
+    if(!categoria){
+
+        alert("Seleccione una categoría");
+        return;
+    }
+
+    let url =
+        `/asistencia/sesion/${idSesion}/categoria/${categoria}/`;
+
+    fetch(url)
+    .then(res => res.text())
+    .then(html => {
+
+        document.getElementById(
+            "contenidoAsistencia"
+        ).innerHTML = html;
+
+        let modal = new bootstrap.Modal(
+            document.getElementById(
+                "modalAsistencia"
+            )
+        );
+
+        modal.show();
+
+    });
+}
+
+
+// ======================================
+// RENDIMIENTO
+// ======================================
+
+function irRendimiento(idSesion){
+
+    let select =
+        document.getElementById(
+            "cat_" + idSesion
+        );
+
+    let categoria =
+        select.value;
+
+    if(!categoria){
+
+        alert(
+            "Seleccione una categoría"
+        );
+
+        return;
+    }
+
+    let opcionSeleccionada =
+        select.options[
+            select.selectedIndex
+        ];
+
+    let rendimientoCompleto =
+        opcionSeleccionada.dataset.rendimiento;
+
+    if(rendimientoCompleto === "1"){
+
+        if(
+            !confirm(
+                "Esta categoría ya tiene rendimiento registrado. ¿Desea visualizarlo o editarlo?"
+            )
+        ){
+            return;
+        }
+    }
+
+    window.location.href =
+        `/rendimiento/sesion/${idSesion}/categoria/${categoria}/`;
+}
+
+
+// ======================================
+// ELIMINAR
+// ======================================
+
+function confirmarEliminar(url, fecha){
+
+    document.getElementById(
+        "textoEliminar"
+    ).innerHTML =
+        `La sesión del día <strong>${fecha}</strong> será eliminada.`;
+
+    document.getElementById(
+        "btnEliminarConfirmado"
+    ).href = url;
+
+    let modal = new bootstrap.Modal(
+        document.getElementById(
+            "modalEliminar"
+        )
+    );
+
+    modal.show();
+}
+
+
+// ======================================
+// VALIDAR HORAS
+// ======================================
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+        document
+        .querySelectorAll("form")
+        .forEach(form => {
+
+            form.addEventListener(
+                "submit",
+                function (e) {
+
+                    let inicio =
+                        form.querySelector(
+                            "input[name='hora_inicio']"
+                        )?.value;
+
+                    let fin =
+                        form.querySelector(
+                            "input[name='hora_fin']"
+                        )?.value;
+
+                    if(
+                        inicio &&
+                        fin &&
+                        inicio >= fin
+                    ){
+
+                        alert(
+                            "La hora de inicio no puede ser mayor o igual a la hora final"
+                        );
+
+                        e.preventDefault();
+                    }
+
+                }
+            );
+
+        });
+
+        document
+        .querySelectorAll("form")
+        .forEach(form => {
+            actualizarOpcionesFormulario(form);
+        });
+
+    }
+);
+
+
+// ======================================
+// ACTUALIZAR OPCIONES
+// ======================================
+
+function actualizarOpcionesFormulario(formulario){
+
+    let seleccionadas = [];
+
+    formulario
+    .querySelectorAll(
+        "select[name='categorias[]']"
+    )
+    .forEach(select => {
+
+        if(select.value){
+            seleccionadas.push(
+                select.value
+            );
+        }
+
+    });
+
+    formulario
+    .querySelectorAll(
+        "select[name='categorias[]']"
+    )
+    .forEach(select => {
+
+        let valorActual =
+            select.value;
+
+        let html = `
+            <option value="">
+                Seleccione categoría
+            </option>
+        `;
+
+        TODAS_CATEGORIAS.forEach(cat => {
+
+            if(
+                !seleccionadas.includes(cat.id)
+                || cat.id === valorActual
+            ){
+
+                html += `
+                    <option
+                        value="${cat.id}"
+                        ${cat.id === valorActual ? "selected" : ""}>
+                        ${cat.nombre}
+                    </option>
+                `;
+            }
+
+        });
+
+        select.innerHTML = html;
+        select.value = valorActual;
+
+    });
+
+}
+
+
+// ======================================
+// CREAR SELECT NUEVO
+// ======================================
+
+function crearFilaCategoria() {
+
+    let div =
+        document.createElement("div");
+
+    div.className =
+        "categoria-item d-flex mb-2";
+
+    div.innerHTML = `
+
+        <select
+            name="categorias[]"
+            class="form-control">
+
+            <option value="">
+                Seleccione categoría
+            </option>
+
+        </select>
+
+        <button
+            type="button"
+            class="btn btn-danger ms-2 eliminar-categoria">
+
+            ✖
+
+        </button>
+    `;
+
+    return div;
+}
+
+
+// ======================================
+// AGREGAR CATEGORIA CREAR
+// ======================================
+
+function agregarCategoriaCrear(){
+
+    let contenedor =
+        document.getElementById(
+            "contenedor-categorias-crear"
+        );
+
+    let total =
+        contenedor.querySelectorAll(
+            ".categoria-item"
+        ).length;
+
+    if(total >= MAX_CATEGORIAS){
+
+        alert(
+            `Solo existen ${MAX_CATEGORIAS} categorías`
+        );
+
+        return;
+    }
+
+    contenedor.appendChild(
+        crearFilaCategoria()
+    );
+
+    actualizarOpcionesFormulario(
+        contenedor.closest("form")
+    );
+}
+
+
+// ======================================
+// AGREGAR CATEGORIA EDITAR
+// ======================================
+
+function agregarCategoriaEditar(idSesion){
+
+    let contenedor =
+        document.getElementById(
+            `contenedor-categorias-editar-${idSesion}`
+        );
+
+    let total =
+        contenedor.querySelectorAll(
+            ".categoria-item"
+        ).length;
+
+    if(total >= MAX_CATEGORIAS){
+
+        alert(
+            `Solo existen ${MAX_CATEGORIAS} categorías`
+        );
+
+        return;
+    }
+
+    contenedor.appendChild(
+        crearFilaCategoria()
+    );
+
+    actualizarOpcionesFormulario(
+        contenedor.closest("form")
+    );
+}
+
+
+// ======================================
+// CAMBIO DE CATEGORIA
+// ======================================
+
+document.addEventListener(
+    "change",
+    function(e){
+
+        if(
+            e.target.name !==
+            "categorias[]"
+        ){
+            return;
+        }
+
+        let formulario =
+            e.target.closest("form");
+
+        actualizarOpcionesFormulario(
+            formulario
+        );
+
+    }
+);
+
+
+// ======================================
+// ELIMINAR FILA
+// ======================================
+
+document.addEventListener(
+    "click",
+    function(e){
+
+        if(
+            !e.target.classList.contains(
+                "eliminar-categoria"
+            )
+        ){
+            return;
+        }
+
+        let fila =
+            e.target.closest(
+                ".categoria-item"
+            );
+
+        let contenedor =
+            fila.parentElement;
+
+        let total =
+            contenedor.querySelectorAll(
+                ".categoria-item"
+            ).length;
+
+        if(total > 1){
+
+            fila.remove();
+
+            actualizarOpcionesFormulario(
+                contenedor.closest("form")
+            );
+        }
+
+    }
+);
+
+function validarRendimiento(idSesion){
+
+    let select =
+        document.getElementById(
+            "cat_" + idSesion
+        );
+
+    let categoria =
+        select.value;
+
+    if(!categoria){
+
+        alert(
+            "Seleccione una categoría"
+        );
+
+        return false;
+    }
+
+    let opcion =
+        select.options[
+            select.selectedIndex
+        ];
+
+    let completo =
+        opcion.dataset.rendimiento;
+
+    return completo === "1";
+}
+
+function actualizarBotonRendimiento(idSesion){
+
+    let btn =
+        document.getElementById(
+            "btnRendimiento_" + idSesion
+        );
+
+    let select =
+        document.getElementById(
+            "cat_" + idSesion
+        );
+
+    if(!select.value){
+
+        btn.disabled = true;
+        return;
+    }
+
+    let opcion =
+        select.options[
+            select.selectedIndex
+        ];
+
+    btn.disabled =
+        opcion.dataset.rendimiento !== "1";
+}
+document.addEventListener(
+    "change",
+    function(e){
+
+        if(
+            e.target.id.startsWith("cat_")
+        ){
+
+            let idSesion =
+                e.target.id.replace(
+                    "cat_",
+                    ""
+                );
+
+            actualizarBotonRendimiento(
+                idSesion
+            );
+        }
+
+    }
+);
+document.addEventListener("submit", function(e){
+
+    let form = e.target;
+
+    if(!form.closest("#contenidoAsistencia")){
+        return;
+    }
+
+    let valido = true;
+
+    form.querySelectorAll("tbody tr").forEach(row => {
+
+        let tipo = row.querySelector(".tipo-asistencia").value;
+        let just = row.querySelector(".justificacion");
+
+        if(
+            tipo === "inasiste" ||
+            tipo === "llegada_tarde"
+        ){
+
+            if(!just.value.trim()){
+
+                valido = false;
+
+                just.style.border =
+                    "2px solid red";
+
+            }else{
+
+                just.style.border = "";
+            }
+        }else{
+
+            just.style.border = "";
+        }
+    });
+
+    if(!valido){
+
+        alert(
+            "Debe ingresar una justificación."
+        );
+
+        e.preventDefault();
+    }
+
+});
+</script>
+{% endblock %}
