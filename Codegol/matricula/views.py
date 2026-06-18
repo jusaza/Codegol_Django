@@ -36,11 +36,20 @@ def cargar_matriculas_csv(request):
         archivo = request.FILES.get('archivo')
 
         if not archivo:
-            messages.error(request, "Debes seleccionar un archivo CSV.")
-            return redirect('carga_masiva_matricula')
+            messages.error(
+                request,
+                "Debes seleccionar un archivo CSV."
+            )
+            return redirect(
+                'carga_masiva_matricula'
+            )
 
-        # Leer archivo CSV
-        decoded_file = archivo.read().decode('utf-8-sig').splitlines()
+        decoded_file = (
+            archivo.read()
+            .decode('utf-8-sig')
+            .splitlines()
+        )
+
         reader = csv.DictReader(decoded_file)
 
         columnas_requeridas = [
@@ -54,103 +63,218 @@ def cargar_matriculas_csv(request):
         ]
 
         columnas_faltantes = [
-            col for col in columnas_requeridas
-            if col not in reader.fieldnames
+            c for c in columnas_requeridas
+            if c not in reader.fieldnames
         ]
 
         if columnas_faltantes:
+
             messages.error(
                 request,
-                f"❌ Faltan columnas en el CSV: {', '.join(columnas_faltantes)}"
+                f"❌ Faltan columnas: {', '.join(columnas_faltantes)}"
             )
-            return redirect('carga_masiva_matricula')
+
+            return redirect(
+                'carga_masiva_matricula'
+            )
 
         matriculas_data = []
+
         errores = []
 
-        # 🔹 Cargar datos
-        for row in reader:
+        for fila, row in enumerate(reader, start=2):
 
-            documento = row['num_identificacion']
+            documento = row["num_identificacion"]
 
-            # Usuario
+            # ===========================
+            # JUGADOR
+            # ===========================
+
             try:
-                jugador = Usuario.objects.get(num_identificacion=documento)
+
+                jugador = Usuario.objects.get(
+                    num_identificacion=documento
+                )
+
             except Usuario.DoesNotExist:
-                errores.append(f"Usuario no existe: {documento}")
+
+                errores.append(
+                    f"Fila {fila}: Usuario no existe ({documento})"
+                )
+
                 continue
 
-            # Evitar duplicados de matrícula activa
-            if Matricula.objects.filter(
-                id_jugador=jugador,
-                estado=True
-            ).exists():
-                errores.append(f"Matrícula duplicada: {documento}")
-                continue
+            # ===========================
+            # FECHAS
+            # ===========================
 
-            # Posición
             try:
-                posicion = Posicion.objects.get(nombre=row['posicion'])
-            except Posicion.DoesNotExist:
-                errores.append(f"Posición inválida: {row['posicion']}")
+
+                fecha_inicio = datetime.strptime(
+                    row["fecha_inicio"],
+                    "%Y-%m-%d"
+                ).date()
+
+                fecha_fin = datetime.strptime(
+                    row["fecha_fin"],
+                    "%Y-%m-%d"
+                ).date()
+
+            except ValueError:
+
+                errores.append(
+                    f"Fila {fila}: Formato de fecha inválido ({documento})"
+                )
+
                 continue
 
-            # Crear objeto (NO guardar aún)
-            matricula = Matricula(
-                fecha_inicio=row['fecha_inicio'],
-                fecha_fin=row['fecha_fin'],
-                nivel=row['nivel'],
-                observaciones=row['observaciones'],
+            if fecha_inicio > fecha_fin:
+
+                errores.append(
+                    f"Fila {fila}: La fecha inicio es mayor que la fecha fin ({documento})"
+                )
+
+                continue
+
+            # ===========================
+            # VALIDAR SOLAPAMIENTO
+            # ===========================
+
+            existe = Matricula.objects.filter(
                 id_jugador=jugador,
+                estado=True,
+                fecha_inicio__lte=fecha_fin,
+                fecha_fin__gte=fecha_inicio
+            ).exists()
+
+            if existe:
+
+                errores.append(
+                    f"Fila {fila}: Ya existe una matrícula que se cruza con esas fechas ({documento})"
+                )
+
+                continue
+
+            # ===========================
+            # POSICIÓN
+            # ===========================
+
+            try:
+
+                posicion = Posicion.objects.get(
+                    nombre=row["posicion"]
+                )
+
+            except Posicion.DoesNotExist:
+
+                errores.append(
+                    f"Fila {fila}: Posición inválida ({row['posicion']})"
+                )
+
+                continue
+
+            # ===========================
+            # CREAR OBJETO
+            # ===========================
+
+            matricula = Matricula(
+
+                fecha_inicio=fecha_inicio,
+
+                fecha_fin=fecha_fin,
+
+                nivel=row["nivel"],
+
+                observaciones=row["observaciones"],
+
+                id_jugador=jugador,
+
                 posicion=posicion,
+
                 estado=True
+
             )
 
             matriculas_data.append({
+
                 "matricula": matricula,
-                "categoria": row['categoria']
+
+                "categoria": row["categoria"]
+
             })
 
-        # 🔹 Insertar matrículas en BD
-        objs = [m["matricula"] for m in matriculas_data]
+        # ===========================
+        # GUARDAR MATRÍCULAS
+        # ===========================
+
+        objs = [
+            x["matricula"]
+            for x in matriculas_data
+        ]
+
         Matricula.objects.bulk_create(objs)
 
-        # 🔹 Relación con categoría e historial
+        # ===========================
+        # HISTORIAL DE CATEGORÍA
+        # ===========================
+
         for item in matriculas_data:
 
             matricula = item["matricula"]
+
             categoria_nombre = item["categoria"]
 
             try:
-                categoria = Categoria.objects.get(nombre_categoria=categoria_nombre)
+
+                categoria = Categoria.objects.get(
+                    nombre_categoria=categoria_nombre
+                )
 
                 HistorialCategoria.objects.create(
+
                     id_matricula=matricula,
+
                     id_categoria=categoria,
+
                     fecha_registro=matricula.fecha_inicio,
+
                     estado=True
+
                 )
 
             except Categoria.DoesNotExist:
-                continue
 
-        # 🔹 Mensajes finales
+                errores.append(
+                    f"No existe la categoría: {categoria_nombre}"
+                )
+
+        # ===========================
+        # MENSAJES
+        # ===========================
+
         if matriculas_data:
+
             messages.success(
                 request,
                 f"✅ Matrículas creadas: {len(matriculas_data)}"
             )
 
-        if len(errores) > 0:
+        if errores:
+
             messages.error(
                 request,
-                f"❌ Registros omitidos: {len(errores)}\n"
+                f"❌ Registros omitidos ({len(errores)}):\n"
                 + "\n".join(errores[:10])
             )
 
-        return redirect('carga_masiva_matricula')
+        return redirect(
+            'carga_masiva_matricula'
+        )
 
-    return render(request, 'matricula/cargar.html')
+    return render(
+        request,
+        "matricula/cargar.html"
+    )
 
 def lista_matricula(request):
     query = request.GET.get('q')
@@ -187,39 +311,149 @@ def lista_matricula(request):
 
 # CREAR
 def crear_matricula(request):
-    usuarios = Usuario.objects.filter(roles__rol_usuario='Jugador').distinct()
-    posiciones = Posicion.objects.filter()
+
+    hoy = date.today()
+
+    usuarios = Usuario.objects.filter(
+        roles__rol_usuario="Jugador"
+    ).exclude(
+        matriculas__estado=True,
+        matriculas__fecha_fin__gte=hoy
+    ).distinct()
+
+    posiciones = Posicion.objects.all()
+
+    categorias = Categoria.objects.filter(
+        estado=True
+    )
 
     if request.method == 'POST':
-        fecha_inicio = request.POST.get('fecha_inicio')
-        fecha_fin = request.POST.get('fecha_fin')
-        fecha_matricula = request.POST.get('fecha_matricula')
-        nivel = request.POST.get('nivel')
-        observaciones = request.POST.get('observaciones')
-        id_jugador = request.POST.get('id_jugador')
-        posicion_id = request.POST.get('posicion')
+
+        # ==========================
+        # DATOS DEL FORMULARIO
+        # ==========================
+
+        fecha_inicio = datetime.strptime(
+            request.POST.get('fecha_inicio'),
+            "%Y-%m-%d"
+        ).date()
+
+        fecha_fin = datetime.strptime(
+            request.POST.get('fecha_fin'),
+            "%Y-%m-%d"
+        ).date()
+
+        fecha_matricula = request.POST.get(
+            'fecha_matricula'
+        )
+
+        nivel = request.POST.get(
+            'nivel'
+        )
+
+        observaciones = request.POST.get(
+            'observaciones'
+        )
+
+        id_jugador = request.POST.get(
+            'id_jugador'
+        )
+
+        posicion_id = request.POST.get(
+            'posicion'
+        )
+
+        categoria_id = request.POST.get(
+            'categoria'
+        )
+
+        # ==========================
+        # VALIDACIONES
+        # ==========================
 
         if not id_jugador:
-            return render(request, 'matricula/crear.html', {
-                'usuarios': usuarios,
-                'error': 'Debe seleccionar un jugador'
-            })
 
-        jugador = Usuario.objects.get(id_usuario=id_jugador)
+            return render(
+                request,
+                'matricula/form.html',
+                {
+                    'usuarios': usuarios,
+                    'posiciones': posiciones,
+                    'categorias': categorias,
+                    'error': 'Debe seleccionar un jugador'
+                }
+            )
+
+        if fecha_inicio > fecha_fin:
+
+            return render(
+                request,
+                'matricula/form.html',
+                {
+                    'usuarios': usuarios,
+                    'posiciones': posiciones,
+                    'categorias': categorias,
+                    'error': 'La fecha de inicio no puede ser mayor que la fecha final.'
+                }
+            )
+
+        jugador = Usuario.objects.get(
+            id_usuario=id_jugador
+        )
+
+        # ==========================
+        # VALIDAR SOLAPAMIENTO
+        # ==========================
+
+        existe_solapamiento = Matricula.objects.filter(
+            id_jugador=jugador,
+            estado=True
+        ).filter(
+            fecha_inicio__lte=fecha_fin,
+            fecha_fin__gte=fecha_inicio
+        ).exists()
+
+        if existe_solapamiento:
+
+            return render(
+                request,
+                'matricula/form.html',
+                {
+                    'usuarios': usuarios,
+                    'posiciones': posiciones,
+                    'categorias': categorias,
+                    'error': (
+                        'El jugador ya tiene una matrícula '
+                        'vigente durante ese período. '
+                        'Debe esperar a que finalice la '
+                        'matrícula actual para registrar una nueva.'
+                    )
+                }
+            )
+
+        # ==========================
+        # CREAR MATRÍCULA
+        # ==========================
 
         matricula = Matricula.objects.create(
-        fecha_inicio=fecha_inicio,
-        fecha_fin=fecha_fin,
-        fecha_matricula=fecha_matricula,
-        nivel=nivel,
-        observaciones=observaciones,
-        estado=True,
-        id_jugador=jugador,
-        posicion=Posicion.objects.get(id_posicion=posicion_id) if posicion_id else None
-    )
-        categoria_id = request.POST.get('categoria')
+            fecha_inicio=fecha_inicio,
+            fecha_fin=fecha_fin,
+            fecha_matricula=fecha_matricula,
+            nivel=nivel,
+            observaciones=observaciones,
+            estado=True,
+            id_jugador=jugador,
+            posicion=Posicion.objects.get(
+                id_posicion=posicion_id
+            ) if posicion_id else None
+        )
+
+        # ==========================
+        # CATEGORÍA
+        # ==========================
 
         if categoria_id:
+
             HistorialCategoria.objects.create(
                 id_matricula=matricula,
                 id_categoria_id=categoria_id,
@@ -227,14 +461,19 @@ def crear_matricula(request):
                 estado=True
             )
 
-        return redirect('lista_matricula')
+        return redirect(
+            'lista_matricula'
+        )
 
-    return render(request, 'matricula/form.html', {
-    'usuarios': usuarios,
-    'posiciones': posiciones,
-    'categorias': Categoria.objects.filter(estado=True),
-    'error': 'Debe seleccionar un jugador'
-})
+    return render(
+        request,
+        'matricula/form.html',
+        {
+            'usuarios': usuarios,
+            'posiciones': posiciones,
+            'categorias': categorias
+        }
+    )
 
 
 # EDITAR

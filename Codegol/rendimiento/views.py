@@ -472,24 +472,43 @@ def historial_rendimiento(request):
             )
         )
     )
+    # ==============================
+    # KPIs del dashboard
+    # ==============================
 
-    return render(
-        request,
-        "rendimiento/historial.html",
-        {
-            "tarjetas_jugadores":
-                tarjetas_jugadores,
+    total_jugadores = len(tarjetas_jugadores)
 
-            "top_jugadores":
-                top_jugadores,
+    if tarjetas_jugadores:
+        promedio_club = round(
+            sum(j["promedio"] for j in tarjetas_jugadores)
+            / total_jugadores,
+            2
+        )
+    else:
+        promedio_club = 0
 
-            "ranking":
-                tarjetas_jugadores,
-
-            "jugadores":
-                jugadores,
-
-            "categorias":
-                categorias
-        }
+    jugadores_mejorando = sum(
+        1 for j in tarjetas_jugadores
+        if "Mejorando" in j["tendencia"]
     )
+
+    jugadores_bajando = sum(
+        1 for j in tarjetas_jugadores
+        if "Bajando" in j["tendencia"]
+    )
+    return render(
+    request,
+    "rendimiento/historial.html",
+    {
+        "tarjetas_jugadores": tarjetas_jugadores,
+        "top_jugadores": top_jugadores,
+        "ranking": tarjetas_jugadores,
+        "jugadores": jugadores,
+        "categorias": categorias,
+
+        "total_jugadores": total_jugadores,
+        "promedio_club": promedio_club,
+        "jugadores_mejorando": jugadores_mejorando,
+        "jugadores_bajando": jugadores_bajando,
+    }
+)

@@ -5,13 +5,13 @@ from . import views
 urlpatterns = [
 
     path(
-        'sesion/<int:id_sesion>/categoria/<int:id_categoria>/',
+        'sesion/<int:id_sesion>/grupo/<int:id_categoria>/',
         views.tabla_rendimiento,
         name='tabla_rendimiento'
     ),
 
     path(
-        'sesion/<int:id_sesion>/categoria/<int:id_categoria>/guardar/',
+        'sesion/<int:id_sesion>/grupo/<int:id_categoria>/guardar/',
         views.guardar_rendimiento,
         name='guardar_rendimiento'
     ),

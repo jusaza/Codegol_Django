@@ -187,7 +187,9 @@ def crear_sesion(request, id_entrenamiento):
             historiales = HistorialCategoria.objects.filter(
                 id_categoria=categoria,
                 estado=True,
-                id_matricula__estado=True
+                id_matricula__estado=True,
+                id_matricula__fecha_inicio__lte=sesion.fecha,
+                id_matricula__fecha_fin__gte=sesion.fecha
             ).select_related(
                 "id_matricula"
             )

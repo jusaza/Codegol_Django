@@ -345,7 +345,9 @@ Ver evolución
 </div>
 
 </div>
+{% block extra_js %}
 <!-- 🔥 FILTRO JS -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 
 document
@@ -429,6 +431,6 @@ display:false
 {% endfor %}
 
 </script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js">
-    
+{% endblock %}
+
 {% endblock %}
