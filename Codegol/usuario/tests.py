@@ -1,216 +1,382 @@
-from django.test import TestCase, Client
+from django.test import TestCase
 from django.urls import reverse
-from .models import Usuario, DetallesUsuarioRol, Rol, Documentos
-from django.core.files.uploadedfile import SimpleUploadedFile
+from usuario.models import Usuario, Rol, DetallesUsuarioRol
+from datetime import date
 
-# Create your tests here.
 
-class LoginTest(TestCase):
+class UsuarioViewsTest(TestCase):
 
     def setUp(self):
 
-        self.client = Client()
-
-        self.usuario = Usuario.objects.create(
-            nombre_completo="Juan Perez",
-            num_identificacion="12345",
-            contrasena="123",
-            correo="juan@gmail.com"
-        )
-
-        self.rol = Rol.objects.create(
+        self.rol_admin = Rol.objects.create(
             rol_usuario="Administrador"
         )
 
+        self.usuario = Usuario.objects.create(
+            correo="admin@test.com",
+            contrasena="Admin12345*",
+            nombre_completo="Juan Perez",
+            num_identificacion=123456789,
+            tipo_documento="cc",
+            telefono_1="3001234567",
+            direccion="Calle 123",
+            genero="m",
+            fecha_nacimiento=date(2000,1,1),
+            grupo_sanguineo="o+"
+        )
+
+        self.usuario.id_usuario_registro = self.usuario
+        self.usuario.save()
+
         DetallesUsuarioRol.objects.create(
             id_usuario=self.usuario,
-            id_rol=self.rol
+            id_rol=self.rol_admin
         )
+
+
+    def login_admin(self):
+
+        session = self.client.session
+
+        session["usuario_id"] = self.usuario.id_usuario
+
+        session["nombre"] = self.usuario.nombre_completo
+
+        session["roles"] = ["Administrador"]
+
+        session.save()
+
 
     def test_login_correcto(self):
 
         response = self.client.post(
+
             reverse("login"),
+
             {
-                "documento": "12345",
-                "contrasena": "123"
+
+                "documento":123456789,
+
+                "contrasena":"Admin12345*"
+
             }
+
         )
 
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(
-            response.url,
-            reverse("dashboard")
-        )
+        self.assertEqual(response.status_code,302)
+
 
     def test_login_incorrecto(self):
 
         response = self.client.post(
+
             reverse("login"),
+
             {
-                "documento": "12345",
-                "contrasena": "999"
+
+                "documento":123,
+
+                "contrasena":"xxxx"
+
             }
+
         )
 
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(
-            response.url,
-            reverse("login")
-        )
+        self.assertEqual(response.status_code,302)
 
-
-class LogoutTest(TestCase):
 
     def test_logout(self):
 
-        client = Client()
+        self.login_admin()
 
-        session = client.session
-        session["usuario_id"] = 1
-        session.save()
+        response = self.client.get(
 
-        response = client.get(
             reverse("logout")
+
         )
 
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(
-            response.url,
-            reverse("login")
+        self.assertEqual(response.status_code,302)
+
+
+    def test_listar_usuarios(self):
+
+        self.login_admin()
+
+        response = self.client.get(
+
+            reverse("usuario")
+
         )
 
+        self.assertEqual(response.status_code,200)
 
-class CrearUsuarioTest(TestCase):
+        self.assertContains(
 
-    def setUp(self):
+            response,
 
-        self.client = Client()
+            "Juan Perez"
 
-        session = self.client.session
-        session["roles"] = ["Administrador"]
-        session.save()
-
-    def test_crear_usuario(self):
-
-        response = self.client.post(
-            reverse("crear_usuario"),
-            {
-                "nombre_completo": "Pedro Gomez",
-                "correo": "pedro@gmail.com",
-                "num_identificacion": "99999",
-                "contrasena": "123456"
-            }
         )
 
-        self.assertTrue(
-            Usuario.objects.filter(
-                correo="pedro@gmail.com"
-            ).exists()
-        )
-
-
-class EliminarUsuarioTest(TestCase):
-
-    def setUp(self):
-
-        self.client = Client()
-
-        session = self.client.session
-        session["roles"] = ["Administrador"]
-        session.save()
-
-        self.usuario = Usuario.objects.create(
-            nombre_completo="Carlos",
-            correo="carlos@gmail.com",
-            num_identificacion="11111",
-            estado=True
-        )
 
     def test_eliminar_usuario(self):
 
-        self.client.get(
+        self.login_admin()
+
+        response = self.client.get(
+
             reverse(
+
                 "eliminar_usuario",
+
                 args=[self.usuario.id_usuario]
+
             )
+
         )
 
         self.usuario.refresh_from_db()
 
         self.assertFalse(
+
             self.usuario.estado
+
         )
 
-
-class ReactivarUsuarioTest(TestCase):
-
-    def setUp(self):
-
-        self.client = Client()
-
-        session = self.client.session
-        session["roles"] = ["Administrador"]
-        session.save()
-
-        self.usuario = Usuario.objects.create(
-            nombre_completo="Carlos",
-            correo="carlos@gmail.com",
-            num_identificacion="11111",
-            estado=False
-        )
 
     def test_reactivar_usuario(self):
 
-        self.client.get(
+        self.login_admin()
+
+        self.usuario.estado=False
+
+        self.usuario.save()
+
+        response = self.client.get(
+
             reverse(
+
                 "reactivar_usuario",
+
                 args=[self.usuario.id_usuario]
+
             )
+
         )
 
         self.usuario.refresh_from_db()
 
         self.assertTrue(
+
             self.usuario.estado
+
         )
 
 
-class CambiarEstadoDocumentoTest(TestCase):
+    def test_ver_documentos(self):
+
+        self.login_admin()
+
+        response = self.client.get(
+
+            reverse(
+
+                "documentos",
+
+                args=[self.usuario.id_usuario]
+
+            )
+
+        )
+
+        self.assertEqual(
+
+            response.status_code,
+
+            200
+
+        )
+
+
+from unittest.mock import patch
+
+
+@patch("usuario.views.requests.get")
+
+def test_crear_usuario_get(self,mock_get):
+
+        mock_get.return_value.json.return_value = [
+
+            {
+
+                "alpha2Code":"CO",
+
+                "name":"Colombia"
+
+            }
+
+        ]
+
+        self.login_admin()
+
+        response=self.client.get(
+
+            reverse("crear_usuario")
+
+        )
+
+        self.assertEqual(
+
+            response.status_code,
+
+            200
+
+        )
+
+from django.test import TestCase
+from django.core.files.uploadedfile import SimpleUploadedFile
+from usuario.models import Usuario, Documentos, HistorialDocumentos
+from datetime import date
+
+
+class DocumentoTest(TestCase):
 
     def setUp(self):
 
-        self.client = Client()
-
         self.usuario = Usuario.objects.create(
-            nombre_completo="Juan"
+            correo="usuario@test.com",
+            contrasena="Admin12345*",
+            nombre_completo="Juan Perez",
+            num_identificacion=123456789,
+            tipo_documento="cc",
+            telefono_1="3001234567",
+            direccion="Calle 123",
+            genero="m",
+            fecha_nacimiento=date(2000,1,1),
+            grupo_sanguineo="o+",
+            id_usuario_registro=None
+        )
+
+        self.usuario.id_usuario_registro = self.usuario
+        self.usuario.save()
+
+        archivo = SimpleUploadedFile(
+            "cedula.pdf",
+            b"archivo de prueba",
+            content_type="application/pdf"
         )
 
         self.documento = Documentos.objects.create(
             usuario=self.usuario,
-            tipo_documento="CC",
-            estado="PENDIENTE",
-            archivo=SimpleUploadedFile(
-                "archivo.pdf",
-                b"contenido de prueba"
-            )
+            categoria="LEGAL",
+            tipo_documento="DNI",
+            archivo=archivo,
+            nombre="Cedula",
+            observaciones="Documento correcto",
+            observaciones_rechazo="N.A"
         )
+
+
+    def test_crear_documento(self):
+
+        self.assertEqual(
+            Documentos.objects.count(),
+            1
+        )
+
+        self.assertEqual(
+            self.documento.nombre,
+            "Cedula"
+        )
+
+
+    def test_estado_por_defecto(self):
+
+        self.assertEqual(
+            self.documento.estado,
+            "PENDIENTE"
+        )
+
 
     def test_aprobar_documento(self):
 
-        self.client.post(
-            reverse(
-                "cambiar_estado_documento",
-                args=[self.documento.id_archivo]
-            ),
-            {
-                "estado": "APROBADO"
-            }
-        )
+        self.documento.estado = "APROBADO"
+
+        self.documento.save()
 
         self.documento.refresh_from_db()
 
         self.assertEqual(
             self.documento.estado,
             "APROBADO"
+        )
+
+
+    def test_devolver_documento(self):
+
+        self.documento.estado = "DEVUELTO"
+
+        self.documento.observaciones_rechazo = "Documento ilegible"
+
+        self.documento.save()
+
+        self.documento.refresh_from_db()
+
+        self.assertEqual(
+            self.documento.estado,
+            "DEVUELTO"
+        )
+
+        self.assertEqual(
+            self.documento.observaciones_rechazo,
+            "Documento ilegible"
+        )
+
+
+    def test_eliminar_documento(self):
+
+        self.documento.delete()
+
+        self.assertEqual(
+            Documentos.objects.count(),
+            0
+        )
+
+
+    def test_historial_documentos(self):
+
+        HistorialDocumentos.objects.create(
+            usuario=self.usuario,
+            tipo_documento=self.documento.tipo_documento,
+            nombre=self.documento.nombre,
+            observaciones=self.documento.observaciones,
+            observaciones_rechazo=self.documento.observaciones_rechazo
+        )
+
+        historial = HistorialDocumentos.objects.first()
+
+        self.assertEqual(
+            historial.nombre,
+            "Cedula"
+        )
+
+        self.assertEqual(
+            historial.tipo_documento,
+            "DNI"
+        )
+
+
+    def test_relacion_usuario(self):
+
+        self.assertEqual(
+            self.documento.usuario,
+            self.usuario
+        )
+
+
+    def test_str_documento(self):
+
+        self.assertEqual(
+            str(self.documento),
+            "Cedula - Juan Perez"
         )

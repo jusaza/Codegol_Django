@@ -149,7 +149,8 @@ class Usuario(models.Model):
     id_usuario_registro = models.ForeignKey(
         'self',  #La tabla de usuario tiene relación con la misma tabla de usuario.
         on_delete=models.PROTECT,
-        default=1,
+        null = True,
+        blank = True,
         related_name='usuario_registrado_por'
     )
 
