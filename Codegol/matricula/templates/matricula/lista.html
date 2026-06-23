@@ -1,0 +1,333 @@
+{% extends 'layout/menu.html' %} 
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/stylepag.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<div class="contenido">
+
+  <br>
+
+  <div class="barra-top">
+    <div class="barra-busqueda">
+        <form method="get">
+            <input type="text" name="q"
+                placeholder="Buscar jugador, ID o categoría..."
+                value="{{ query|default:'' }}">
+        </form>
+    </div>
+    {% if "Administrador" in request.session.roles %}
+    <a class="boton-registrar"
+        onclick="abrirModalMatricula('{% url 'crear_matricula' %}')">
+      Registrar matrícula
+    </a>
+
+    <a class="boton-registrar"
+      style="background-color:green;"
+      onclick="abrirModalExcel(
+          '{% url 'modal_filtro_excel' %}'
+      )">
+
+      Descargar Excel
+
+    </a>
+
+    <a class="boton-registrar"
+      style="background-color:rgb(67, 154, 246);"
+      href="{% url 'carga_masiva_matricula' %}">
+      Carga Masiva
+    </a>
+
+    {% endif %}
+
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Jugador</th>
+        <th>Nivel</th>
+        <th>Fecha Inicio</th>
+        <th>Fecha Fin</th>
+        <th>Fecha Matricula</th>
+        <th>Observaciones</th>
+        <th>Posición</th>
+        <th>Categoría</th>
+        <th>Acciones</th>
+        
+      </tr>
+    </thead>
+
+    <tbody>
+      {% for m in matriculas %}
+      <tr>
+        <td>{{ m.id }}</td>
+        <td>{{ m.id_jugador.nombre_completo }}</td>
+        <td>{{ m.nivel }}</td>
+        <td>{{ m.fecha_inicio }}</td>
+        <td>{{ m.fecha_fin }}</td>
+        <td>{{ m.fecha_matricula }}</td>
+        <td>{{ m.observaciones}}</td>
+        <td>{{ m.posicion.nombre }}</td>
+        <td>{{ m.categoria_actual }}</td>
+
+        <td class="acciones">
+          {% if "Administrador" in request.session.roles %}
+          <button class="actualizar">
+            <a onclick="abrirModalMatricula('{% url 'editar_matricula' m.id %}')"
+                title="Haz clic aquí para actualizar una matrícula">
+               🔄
+            </a>
+          </button>
+
+          <button class="eliminar">
+            <a onclick="confirmarEliminar(
+            '{% url 'eliminar_matricula' m.id %}',
+            '{{ m.id_jugador.nombre_completo }}'
+        )"
+            style="text-decoration: none; color: white;" 
+            title="Haz clic aquí para eliminar la matrícula">
+            ❌
+            </a>
+          </button>
+          {% endif %}
+          {% if "Administrador" in request.session.roles or "Entrenador" in request.session.roles %}
+        {% endif %}
+        <button style="background-color: green;">
+        <a style="text-decoration: none; color: white;"
+        href="{% url 'historial_categoria' m.id %}">
+        Ver historial
+        </a>
+        </button>
+        <button style="background-color: #28a745;">
+          <a style="text-decoration: none; color: white;"
+            href="{% url 'certificado' m.id %}"
+            target="_blank">
+            📄 PDF
+          </a>
+        </button>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="9">No hay matrículas registradas</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+</div>
+<!-- MODAL MATRÍCULA -->
+<div class="modal fade"
+     id="modalMatricula">
+
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+
+        <div class="modal-content"
+             id="contenidoModalMatricula">
+
+        </div>
+
+    </div>
+
+</div>
+<!-- MODAL ELIMINAR -->
+<div class="modal fade" id="modalEliminar" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title">
+          Confirmar eliminación
+        </h5>
+
+        <button type="button"
+                class="btn-close btn-close-white"
+                data-bs-dismiss="modal">
+        </button>
+      </div>
+
+      <div class="modal-body text-center">
+
+        <h4>¿Eliminar matrícula?</h4>
+
+        <p id="textoEliminar"></p>
+
+        <small class="text-danger">
+          Esta acción no se puede deshacer.
+        </small>
+
+      </div>
+
+      <div class="modal-footer">
+
+        <button type="button"
+                class="btn btn-secondary"
+                data-bs-dismiss="modal">
+            Cancelar
+        </button>
+
+        <a id="btnEliminarConfirmado"
+           class="btn btn-danger">
+           Sí, eliminar
+        </a>
+
+      </div>
+
+    </div>
+  </div>
+</div>
+<script>
+
+function abrirModalMatricula(url){
+
+    fetch(url)
+
+    .then(response => response.text())
+
+    .then(html => {
+
+        document.getElementById(
+            'contenidoModalMatricula'
+        ).innerHTML = html;
+
+        let modal = new bootstrap.Modal(
+            document.getElementById('modalMatricula')
+        );
+
+        modal.show();
+
+        activarCambioCategoria();
+
+        validarFechas();
+
+    });
+
+}
+
+function abrirModalExcel(url){
+
+    fetch(url)
+
+    .then(response => response.text())
+
+    .then(html => {
+
+        document.getElementById(
+            'contenidoModalMatricula'
+        ).innerHTML = html;
+
+        let modal = new bootstrap.Modal(
+            document.getElementById('modalMatricula')
+        );
+
+        modal.show();
+
+        validarFechas();
+
+    });
+
+}
+
+function activarCambioCategoria(){
+
+    const categoriaSelect =
+        document.getElementById('categoria');
+
+    const campoObservacion =
+        document.getElementById('campo-observacion');
+
+    const observacionInput =
+        document.getElementById('observacion_categoria');
+
+    if (!categoriaSelect || !campoObservacion) return;
+
+    const categoriaOriginal =
+        categoriaSelect.querySelector('option[selected]')?.value;
+
+    categoriaSelect.addEventListener('change', function () {
+
+        if (this.value !== categoriaOriginal) {
+
+            campoObservacion.hidden = false;
+
+            observacionInput.required = true;
+
+        } else {
+
+            campoObservacion.hidden = true;
+
+            observacionInput.required = false;
+
+        }
+
+    });
+
+}
+
+function validarFechas(){
+
+    // matrícula
+    const fechaInicio =
+        document.querySelector('input[name="fecha_inicio"]');
+
+    const fechaFin =
+        document.querySelector('input[name="fecha_fin"]');
+
+    if(fechaInicio && fechaFin){
+
+        function comprobarFechasMatricula(){
+
+            if(
+                fechaInicio.value &&
+                fechaFin.value &&
+                fechaInicio.value > fechaFin.value
+            ){
+
+                fechaFin.setCustomValidity(
+                    'La fecha fin debe ser mayor o igual a la fecha inicio'
+                );
+
+            } else {
+
+                fechaFin.setCustomValidity('');
+
+            }
+
+        }
+
+        fechaInicio.addEventListener(
+            'change',
+            comprobarFechasMatricula
+        );
+
+        fechaFin.addEventListener(
+            'change',
+            comprobarFechasMatricula
+        );
+
+    }
+
+}
+
+function confirmarEliminar(url, jugador){
+
+    document.getElementById('textoEliminar').innerHTML =
+        `La matrícula del jugador <strong>${jugador}</strong> será eliminada.`;
+
+    document.getElementById('btnEliminarConfirmado').href = url;
+
+    let modal = new bootstrap.Modal(
+        document.getElementById('modalEliminar')
+    );
+
+    modal.show();
+
+}
+
+</script>
+{% endblock %}

@@ -1,0 +1,133 @@
+{% extends 'layout/form.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/style_forms.css' %}">
+<link rel="stylesheet" href="{% static 'css/stylepag.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<style>
+  .proceso {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.paso {
+    padding: 10px 15px;
+    border-radius: 8px;
+    background: #ddd;
+    font-size: 14px;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.paso.activo {
+    background: #007bff;
+    color: white;
+}
+
+.paso.completado {
+    background: #28a745;
+    color: white;
+}
+</style>
+
+<div class="proceso">
+    <div class="paso activo">🧑 Paso 1: Usuario</div>
+
+    {% if formulario.instance.pk %}
+        <a href="{% url 'documentos' formulario.instance.id_usuario %}" class="paso">
+            📄 Paso 2: Documentos
+        </a>
+    {% else %}
+        <div class="paso" style="opacity: 0.5; cursor: not-allowed;">
+            📄 Paso 2: Documentos
+        </div>
+    {% endif %}
+    
+</div>
+
+<div class="login-box" role="main">
+
+<form enctype="multipart/form-data" method="post">
+  {% csrf_token %}
+
+  {% for campo in formulario %}
+  <div class="Formgrupo">
+    <label>{{ campo.label }}:</label>
+
+    {% if campo.name == 'roles' %}
+      {% for opcion in campo.field.queryset %}
+        <label>
+          <input 
+            type="checkbox" 
+            name="{{ campo.name }}" 
+            value="{{ opcion.pk }}"
+            {% if opcion.pk in campo.value %}checked{% endif %}>
+          {{ opcion }}
+        </label><br>
+      {% endfor %}
+
+    {% elif campo.field.choices %}
+      <select name="{{ campo.name }}">
+        {% for valor, texto in campo.field.choices %}
+          <option value="{{ valor }}"
+            {% if campo.value == valor %}selected{% endif %}>
+            {{ texto }}
+          </option>
+        {% endfor %}
+      </select>
+
+    {% else %}
+
+      {% if campo.field.widget.input_type == 'file' and campo.value %}
+        <img src="{{ campo.value.url }}" width="100"><br>
+      {% endif %}
+
+      <input 
+        type="{{ campo.field.widget.input_type }}"
+        name="{{ campo.name }}"
+        value="{% if campo.field.widget.input_type == 'date' %}{{ campo.value|date:'Y-m-d' }}{% else %}{{ campo.value|default:'' }}{% endif %}"
+        placeholder="{{ campo.label }}">
+    {% endif %}
+
+    {% if campo.errors %}
+      <div class="error">
+        {% for error in campo.errors %}
+          <p>{{ error }}</p>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </div>
+  {% endfor %}
+
+  <div class="Formgrupo">
+    <label>País de nacimiento:</label>
+    <select name="lugar_nacimiento" required>
+      <option value="">Seleccione un país</option>
+      
+      {% for p in paises %}
+        <option value="{{ p.codigo }}"
+          {% if formulario.instance.lugar_nacimiento == p.codigo %}selected{% endif %}>
+          {{ p.nombre }}
+        </option>
+      {% endfor %}
+    
+    </select>
+  </div>
+
+  <button type="submit">
+    {% if formulario.instance.pk %}
+      Actualizar Usuario
+    {% else %}
+      Siguente paso.
+    {% endif %}
+  </button>
+
+  <button type="button" onclick="history.back()">Volver</button>
+</form>
+</div>
+{% endblock %}

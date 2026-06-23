@@ -1,0 +1,362 @@
+{% extends 'layout/menu.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/stylepag.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<div class="contenido">
+
+  <br>
+
+  <div class="barra-top">
+
+    <div class="barra-busqueda">
+      <form method="get">
+        <input type="text"
+               name="q"
+               placeholder="Buscar pago..."
+               value="{{ query|default:'' }}">
+      </form>
+    </div>
+
+    {% if "Administrador" in request.session.roles %}
+
+    <a href="{% url 'reporte_pagos_pdf' %}"
+        target="_blank"
+       class="boton-registrar">
+
+      Descargar Reporte PDF
+
+    </a>
+
+    <a class="boton-registrar"
+       onclick="abrirModalPago('{% url 'crear_pago' %}')">
+
+      Registrar pago
+
+    </a>
+
+    {% endif %}
+
+  </div>
+
+  <table>
+
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Concepto</th>
+        <th>Fecha</th>
+        <th>Método</th>
+        <th>Valor Total</th>
+
+        {% if "Administrador" in request.session.roles %}
+        <th>Acciones</th>
+        {% endif %}
+      </tr>
+    </thead>
+
+    <tbody>
+
+      {% for pago in pagos %}
+      <tr>
+
+        <td>{{ pago.id }}</td>
+        <td>{{ pago.concepto_pago }}</td>
+        <td>{{ pago.fecha_pago }}</td>
+        <td>{{ pago.metodo_pago }}</td>
+        <td>{{ pago.valor_total }}</td>
+
+        {% if "Administrador" in request.session.roles %}
+        <td class="acciones">
+
+          <button class="actualizar">
+
+            <a onclick="abrirModalPago('{% url 'editar_pago' pago.id %}')"
+               style="text-decoration:none;
+                      color:white;
+                      cursor:pointer;">
+
+              Actualizar
+
+            </a>
+
+          </button>
+
+          {% if pago.cancelado %}
+
+<button style="background-color: green;">
+
+  <a onclick="confirmarPago(
+        '{% url 'cancelar_pago' pago.id %}',
+        'aprobar'
+     )"
+     style="text-decoration:none;
+            color:white;
+            cursor:pointer;">
+
+    Aprobar
+
+  </a>
+
+</button>
+
+{% else %}
+
+<button style="background-color: red;">
+
+  <a onclick="confirmarPago(
+        '{% url 'cancelar_pago' pago.id %}',
+        'cancelar'
+     )"
+     style="text-decoration:none;
+            color:white;
+            cursor:pointer;">
+
+    Cancelar
+
+  </a>
+
+</button>
+
+{% endif %}
+
+          
+
+        </td>
+        {% endif %}
+
+      </tr>
+
+      {% empty %}
+
+      <tr>
+        <td colspan="6">
+          No hay pagos registrados
+        </td>
+      </tr>
+
+      {% endfor %}
+
+    </tbody>
+
+  </table>
+
+</div>
+
+<!-- MODAL -->
+<div class="modal fade"
+     id="modalPago">
+
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+
+        <div class="modal-content"
+             id="contenidoModalPago">
+
+        </div>
+
+    </div>
+
+</div>
+<!-- MODAL CONFIRMAR -->
+<div class="modal fade"
+     id="modalEliminar"
+     tabindex="-1">
+
+  <div class="modal-dialog modal-dialog-centered">
+
+    <div class="modal-content">
+
+      <div class="modal-header bg-danger text-white">
+
+        <h5 class="modal-title"
+            id="tituloModalEliminar">
+
+          Confirmar acción
+
+        </h5>
+
+        <button type="button"
+                class="btn-close btn-close-white"
+                data-bs-dismiss="modal">
+        </button>
+
+      </div>
+
+      <div class="modal-body text-center">
+
+        <h4 id="mensajeModalEliminar">
+          ¿Estás seguro?
+        </h4>
+
+        <p id="textoEliminar"></p>
+
+      </div>
+
+      <div class="modal-footer">
+
+        <button type="button"
+                class="btn btn-secondary"
+                data-bs-dismiss="modal">
+
+          Volver
+
+        </button>
+
+        <a id="btnEliminarConfirmado"
+           class="btn btn-danger">
+
+           Confirmar
+
+        </a>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+<script>
+
+function abrirModalPago(url){
+
+    fetch(url)
+
+    .then(response => response.text())
+
+    .then(html => {
+
+        document.getElementById(
+            'contenidoModalPago'
+        ).innerHTML = html;
+
+        let modal = new bootstrap.Modal(
+            document.getElementById('modalPago')
+        );
+
+        modal.show();
+
+        activarBusquedaUsuario();
+
+    });
+
+}
+
+function activarBusquedaUsuario(){
+
+    const buscar =
+        document.getElementById('buscarUsuario');
+
+    const select =
+        document.querySelector(
+            'select[name="id_matricula"]'
+        );
+
+    if(!buscar || !select) return;
+
+    buscar.addEventListener('keyup', function(){
+
+        let filtro =
+            this.value.toLowerCase();
+
+        let opciones =
+            select.querySelectorAll('option');
+
+        opciones.forEach(op => {
+
+            if(
+                op.text.toLowerCase()
+                .includes(filtro)
+            ){
+
+                op.style.display = '';
+
+            }else{
+
+                op.style.display = 'none';
+
+            }
+
+        });
+
+    });
+
+}
+
+</script>
+<script>
+
+function confirmarPago(url, accion){
+
+    const titulo =
+        document.getElementById(
+            'tituloModalEliminar'
+        );
+
+    const mensaje =
+        document.getElementById(
+            'mensajeModalEliminar'
+        );
+
+    const texto =
+        document.getElementById(
+            'textoEliminar'
+        );
+
+    const boton =
+        document.getElementById(
+            'btnEliminarConfirmado'
+        );
+
+    if(accion === 'cancelar'){
+
+        titulo.innerHTML =
+            'Cancelar pago';
+
+        mensaje.innerHTML =
+            '¿Deseas cancelar este pago?';
+
+        texto.innerHTML =
+            'El pago cambiará a estado cancelado.';
+
+        boton.innerHTML =
+            'Sí, cancelar';
+
+        boton.className =
+            'btn btn-danger';
+
+    }else{
+
+        titulo.innerHTML =
+            'Aprobar pago';
+
+        mensaje.innerHTML =
+            '¿Deseas aprobar este pago?';
+
+        texto.innerHTML =
+            'El pago volverá a estado aprobado.';
+
+        boton.innerHTML =
+            'Sí, aprobar';
+
+        boton.className =
+            'btn btn-success';
+
+    }
+
+    boton.href = url;
+
+    let modal = new bootstrap.Modal(
+        document.getElementById('modalEliminar')
+    );
+
+    modal.show();
+
+}
+
+</script>
+{% endblock %}

@@ -1,0 +1,68 @@
+<form method="post"
+      action="{% if categoria %}
+                {% url 'editar_categoria' categoria.id_categoria %}
+              {% else %}
+                {% url 'crear_categoria' %}
+              {% endif %}">
+
+    {% csrf_token %}
+
+    <!-- HEADER -->
+    <div class="modal-header text-white"
+         style="background-color:#001f3f;">
+
+        <h5>
+            {% if categoria %}
+                Editar categoría
+            {% else %}
+                Registrar categoría
+            {% endif %}
+        </h5>
+
+        <button type="button"
+                class="btn-close btn-close-white"
+                data-bs-dismiss="modal">
+        </button>
+
+    </div>
+
+    <!-- BODY -->
+    <div class="modal-body">
+
+        <div style="display:flex;
+                    flex-direction:column;">
+
+            <label class="fw-bold">
+                Nombre categoría
+            </label>
+
+            <input type="text"
+                   name="nombre_categoria"
+                   class="form-control"
+                   value="{{ categoria.nombre_categoria|default:'' }}"
+                   placeholder="Ingrese el nombre"
+                   required>
+
+        </div>
+
+    </div>
+
+    <!-- FOOTER -->
+    <div class="modal-footer">
+
+        <button type="submit"
+                class="btn btn-success"
+                style="background-color:#001f3f;
+                       border-color:#001f3f;">
+
+            {% if categoria %}
+                Actualizar
+            {% else %}
+                Guardar
+            {% endif %}
+
+        </button>
+
+    </div>
+
+</form>

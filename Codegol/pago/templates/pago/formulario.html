@@ -1,0 +1,207 @@
+<form method="POST"
+      action="{% if pago %}
+                {% url 'editar_pago' pago.id %}
+              {% else %}
+                {% url 'crear_pago' %}
+              {% endif %}">
+
+    {% csrf_token %}
+
+    <!-- HEADER -->
+    <div class="modal-header text-white"
+         style="background-color:#001f3f;">
+
+        <h5>
+
+            {% if pago %}
+                Editar Pago
+            {% else %}
+                Registrar Pago
+            {% endif %}
+
+        </h5>
+
+        <button type="button"
+                class="btn-close btn-close-white"
+                data-bs-dismiss="modal">
+        </button>
+
+    </div>
+
+    <!-- BODY -->
+    <div class="modal-body"
+         style="display:grid;
+                grid-template-columns:1fr 1fr;
+                gap:20px;">
+
+        <!-- CONCEPTO -->
+        <div style="display:flex;
+                    flex-direction:column;">
+
+            <label class="fw-bold">
+                Concepto de Pago
+            </label>
+
+            <input type="text"
+                   name="concepto_pago"
+                   class="form-control"
+                   value="{{ pago.concepto_pago|default:'' }}"
+                   placeholder="Ingrese el concepto"
+                   required>
+
+        </div>
+
+        <!-- FECHA -->
+        <div style="display:flex;
+                    flex-direction:column;">
+
+            <label class="fw-bold">
+                Fecha de Pago
+            </label>
+
+            <input type="date"
+                   name="fecha_pago"
+                   class="form-control"
+                   value="{{ pago.fecha_pago|date:'Y-m-d' }}"
+                   required>
+
+        </div>
+
+        <!-- MÉTODO -->
+        <div style="display:flex;
+                    flex-direction:column;">
+
+            <label class="fw-bold">
+                Método de Pago
+            </label>
+
+            <select name="metodo_pago"
+                    class="form-control"
+                    required>
+
+                <option value="">
+                    Seleccione un método
+                </option>
+
+                {% for value, label in metodos %}
+
+                <option value="{{ value }}"
+                    {% if pago.metodo_pago == value %}
+                        selected
+                    {% endif %}
+                >
+                    {{ label }}
+                </option>
+
+                {% endfor %}
+
+            </select>
+
+        </div>
+
+        <!-- VALOR -->
+        <div style="display:flex;
+                    flex-direction:column;">
+
+            <label class="fw-bold">
+                Valor Total
+            </label>
+
+            <input type="number"
+                   step="0.01"
+                   name="valor_total"
+                   class="form-control"
+                   value="{{ pago.valor_total|floatformat:0 }}"
+                   required>
+
+        </div>
+
+        <!-- OBSERVACIONES -->
+        <div style="display:flex;
+                    flex-direction:column;">
+
+            <label class="fw-bold">
+                Observaciones
+            </label>
+
+            <input type="text"
+                   name="observaciones"
+                   class="form-control"
+                   value="{{ pago.observaciones|default:'' }}"
+                   placeholder="Opcional">
+
+        </div>
+
+        <!-- BUSCADOR -->
+        <div style="display:flex;
+                    flex-direction:column;">
+
+            <label class="fw-bold">
+                Buscar Usuario
+            </label>
+
+            <input type="text"
+                   id="buscarUsuario"
+                   class="form-control"
+                   placeholder="Buscar usuario...">
+
+        </div>
+
+        <!-- USUARIO -->
+        <div style="display:flex;
+                    flex-direction:column;
+                    grid-column:1 / -1;">
+
+            <label class="fw-bold">
+                Seleccionar Usuario
+            </label>
+
+            <select name="id_matricula"
+                    class="form-control"
+                    required>
+
+                <option value="">
+                    Seleccione un usuario
+                </option>
+
+                {% for m in matriculas %}
+
+                <option value="{{ m.id }}"
+                    {% if pago.id_matricula.id == m.id %}
+                        selected
+                    {% endif %}
+                >
+
+                    {{ m.id_jugador.nombre_completo }}
+                    -
+                    {{ m.id_jugador.num_identificacion }}
+
+                </option>
+
+                {% endfor %}
+
+            </select>
+
+        </div>
+
+    </div>
+
+    <!-- FOOTER -->
+    <div class="modal-footer">
+
+        <button type="submit"
+                class="btn btn-success"
+                style="background-color:#001f3f;
+                       border-color:#001f3f;">
+
+            {% if pago %}
+                Actualizar Pago
+            {% else %}
+                Guardar Pago
+            {% endif %}
+
+        </button>
+
+    </div>
+
+</form>
