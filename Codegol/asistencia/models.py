@@ -21,14 +21,14 @@ class Asistencia(models.Model):
     id_matricula = models.ForeignKey(
         Matricula,
         on_delete=models.CASCADE,
-        db_column='id_matricula'
+        db_column='id_matricula',
+        null = True
     )
 
     tipo_asistencia = models.CharField(
         max_length=20,
         choices=TIPO_CHOICES,
         blank=True,
-        null=True
     )
 
     justificacion = models.CharField(max_length=100, blank=True, null=True)

@@ -10,7 +10,7 @@ class UsuarioForm(forms.ModelForm):
     class Meta:
         model = Usuario
         widgets = {'fecha_nacimiento': forms.DateInput(attrs={'type': 'date'})}
-        exclude = ['estado', 'id_usuario_registro', 'lugar_nacimiento'] # campo de lugar_nacimiento se usa desde la API.
+        exclude = ['contrasena', 'estado', 'id_usuario_registro', 'lugar_nacimiento'] # campo de lugar_nacimiento se usa desde la API.
     def clean(self):
         cleaned_data = super().clean()
         fecha = cleaned_data.get("fecha_nacimiento")

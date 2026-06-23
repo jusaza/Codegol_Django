@@ -39,7 +39,7 @@ class Rendimiento(models.Model):
 
     id_categoria = models.ForeignKey(
         Categoria,
-        on_delete=models.PROTECT
+        on_delete=models.PROTECT,
     )
 
     valor = models.DecimalField(
