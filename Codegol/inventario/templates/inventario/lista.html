@@ -25,8 +25,31 @@
         + Registrar artículo
     </a>
     {% endif %}
-  </div>
+    {% if modo_inactivos %}
 
+<a class="boton-registrar"
+   style="background-color:#198754;"
+   href="{% url 'lista_inventario' %}">
+   Artículos Activos
+</a>
+
+{% else %}
+
+<a class="boton-registrar"
+   style="background-color:#6c757d;"
+   href="{% url 'lista_inventario_inactivos' %}">
+   Artículos Inactivos
+</a>
+
+{% endif %}
+  </div>
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}success{% endif %}">
+            {{ message }}
+        </div>
+    {% endfor %}
+{% endif %}
   <table>
     <thead>
       <tr>
@@ -46,25 +69,80 @@
 
         {% if "Administrador" in request.session.roles %}
         <td class="acciones">
-          <button class="actualizar"
-                  onclick="abrirModal('{% url 'editar_inventario' inventario.id_inventario %}')">
-              Actualizar
-          </button>
-          <button class="eliminar">
-            <a style="text-decoration: none; color: white;"
-               onclick="confirmarEliminacion('{% url 'eliminar_inventario' inventario.id_inventario %}', '{{ inventario.nombre_articulo }}')">
-               Eliminar
-            </a>
-          </button>
-        </td>
-        <td class = "acciones">
-            <button class="actualizar" style="background-color: green;">
-                <a style="text-decoration: none; color: white;"
-                    href="{% url 'lista_movimientos' inventario.id_inventario %}">
-                Ver movimientos
-                </a>
-            </button>
-        </td>
+
+{% if modo_inactivos %}
+
+    <button
+        style="background-color:#198754;">
+
+        <a
+            href="{% url 'activar_inventario' inventario.id_inventario %}"
+            style="
+                text-decoration:none;
+                color:white;
+            ">
+
+            ✔ Reactivar
+
+        </a>
+
+    </button>
+
+{% else %}
+
+    <button class="actualizar"
+            onclick="abrirModal(
+                '{% url 'editar_inventario' inventario.id_inventario %}'
+            )">
+
+        Actualizar
+
+    </button>
+
+    <button class="eliminar">
+
+        <a
+            style="
+                text-decoration:none;
+                color:white;
+            "
+            onclick="confirmarEliminacion(
+                '{% url 'eliminar_inventario' inventario.id_inventario %}',
+                '{{ inventario.nombre_articulo }}'
+            )">
+
+            Eliminar
+
+        </a>
+
+    </button>
+
+{% endif %}
+
+{% if not modo_inactivos %}
+<td class="acciones">
+
+
+    <button class="actualizar"
+            style="background-color:green;">
+
+        <a
+            style="
+                text-decoration:none;
+                color:white;
+            "
+            href="{% url 'lista_movimientos' inventario.id_inventario %}">
+
+            Ver movimientos
+
+        </a>
+
+    </button>
+
+
+
+</td>
+{% endif %}
       </tr>
       {% endif %}
       {% empty %}

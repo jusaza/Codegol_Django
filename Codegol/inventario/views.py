@@ -1,6 +1,8 @@
 from django.shortcuts import render
 from .models import Inventario
 from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib import messages
+from movimiento_inventario.models import MovimientoInventario
 # Create your views here.
 def lista_inventario(request):
     query = request.GET.get('q')
@@ -15,7 +17,8 @@ def lista_inventario(request):
 
     return render(request, 'inventario/lista.html', {
         'inventarios': inventarios,
-        'query': query
+        'query': query,
+        'modo_inactivos': False
     })
 
 
@@ -47,8 +50,72 @@ def editar_inventario(request, id):
 
 
 def eliminar_inventario(request, id):
-    inventario = get_object_or_404(Inventario, pk=id)
+
+    inventario = get_object_or_404(
+        Inventario,
+        pk=id
+    )
+
+    salidas_pendientes = MovimientoInventario.objects.filter(
+        inventario=inventario,
+        tipo_movimiento='salida',
+        devoluciones__isnull=True
+    ).exists()
+
+    if salidas_pendientes:
+
+        messages.error(
+            request,
+            'No se puede desactivar el artículo porque tiene salidas pendientes por devolver.'
+        )
+
+        return redirect('lista_inventario')
+
     inventario.estado = False
     inventario.save()
 
+    messages.success(
+        request,
+        'Artículo desactivado correctamente.'
+    )
+
     return redirect('lista_inventario')
+
+def lista_inventario_inactivos(request):
+
+    query = request.GET.get('q')
+
+    inventarios = Inventario.objects.filter(
+        estado=False
+    )
+
+    if query:
+
+        inventarios = inventarios.filter(
+            nombre_articulo__icontains=query
+        )
+
+    return render(
+        request,
+        'inventario/lista.html',
+        {
+            'inventarios': inventarios,
+            'query': query,
+            'modo_inactivos': True
+        }
+    )
+
+def activar_inventario(request, id):
+
+    inventario = get_object_or_404(
+        Inventario,
+        pk=id
+    )
+
+    inventario.estado = True
+
+    inventario.save()
+
+    return redirect(
+        'lista_inventario_inactivos'
+    )

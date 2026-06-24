@@ -12,4 +12,15 @@ urlpatterns = [
     path('exportar-excel/', views.exportar_matriculas_excel, name='exportar_excel'),
     path('modal-filtro-excel/',views.modal_filtro_excel,name='modal_filtro_excel'),
     path('carga-masiva/',views.cargar_matriculas_csv,name='carga_masiva_matricula'),
+    path(
+    'inactivos/',
+    views.lista_matricula_inactivos,
+    name='lista_matricula_inactivos'
+),
+
+path(
+    'activar/<int:id>/',
+    views.activar_matricula,
+    name='activar_matricula'
+),
 ]

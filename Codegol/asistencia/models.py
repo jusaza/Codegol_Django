@@ -6,7 +6,7 @@ from categoria.models import Categoria
 class Asistencia(models.Model):
     TIPO_CHOICES = [
         ('asiste', 'Asiste'),
-        ('inasiste', 'sInasiste'),
+        ('inasiste', 'Inasiste'),
         ('llegada_tarde', 'Llegada tarde'),
     ]
 

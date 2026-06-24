@@ -43,6 +43,23 @@
 
     {% endif %}
 
+{% if modo_inactivos %}
+
+<a class="boton-registrar"
+   style="background-color:#198754;"
+   href="{% url 'lista_matricula' %}">
+   Matrículas Activas
+</a>
+
+{% else %}
+
+<a class="boton-registrar"
+   style="background-color:#6c757d;"
+   href="{% url 'lista_matricula_inactivos' %}">
+   Matrículas Inactivas
+</a>
+
+{% endif %}
   </div>
 
   <table>
@@ -76,41 +93,103 @@
         <td>{{ m.categoria_actual }}</td>
 
         <td class="acciones">
-          {% if "Administrador" in request.session.roles %}
-          <button class="actualizar">
-            <a onclick="abrirModalMatricula('{% url 'editar_matricula' m.id %}')"
-                title="Haz clic aquí para actualizar una matrícula">
-               🔄
-            </a>
-          </button>
 
-          <button class="eliminar">
-            <a onclick="confirmarEliminar(
-            '{% url 'eliminar_matricula' m.id %}',
-            '{{ m.id_jugador.nombre_completo }}'
-        )"
-            style="text-decoration: none; color: white;" 
-            title="Haz clic aquí para eliminar la matrícula">
-            ❌
-            </a>
-          </button>
-          {% endif %}
-          {% if "Administrador" in request.session.roles or "Entrenador" in request.session.roles %}
-        {% endif %}
-        <button style="background-color: green;">
-        <a style="text-decoration: none; color: white;"
-        href="{% url 'historial_categoria' m.id %}">
-        Ver historial
+{% if modo_inactivos %}
+
+    {% if "Administrador" in request.session.roles %}
+
+    <button
+        style="background-color:#198754;">
+
+        <a
+            href="{% url 'activar_matricula' m.id %}"
+            style="
+                color:white;
+                text-decoration:none;
+            "
+            title="Reactivar matrícula">
+
+            ✔
+
         </a>
-        </button>
-        <button style="background-color: #28a745;">
-          <a style="text-decoration: none; color: white;"
+
+    </button>
+
+    {% endif %}
+
+{% else %}
+
+    {% if "Administrador" in request.session.roles %}
+
+    <button class="actualizar">
+
+        <a
+            onclick="abrirModalMatricula(
+                '{% url 'editar_matricula' m.id %}'
+            )"
+            title="Actualizar matrícula">
+
+            🔄
+
+        </a>
+
+    </button>
+
+    <button class="eliminar">
+
+        <a
+            onclick="confirmarEliminar(
+                '{% url 'eliminar_matricula' m.id %}',
+                '{{ m.id_jugador.nombre_completo }}'
+            )"
+            style="
+                text-decoration:none;
+                color:white;
+            "
+            title="Eliminar matrícula">
+
+            ❌
+
+        </a>
+
+    </button>
+
+    {% endif %}
+
+    <button style="background-color:green;">
+
+        <a
+            style="
+                text-decoration:none;
+                color:white;
+            "
+            href="{% url 'historial_categoria' m.id %}">
+
+            Ver historial
+
+        </a>
+
+    </button>
+
+    <button style="background-color:#28a745;">
+
+        <a
+            style="
+                text-decoration:none;
+                color:white;
+            "
             href="{% url 'certificado' m.id %}"
             target="_blank">
+
             📄 PDF
-          </a>
-        </button>
-        </td>
+
+        </a>
+
+    </button>
+
+{% endif %}
+
+</td>
       </tr>
       {% empty %}
       <tr>
