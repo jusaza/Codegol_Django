@@ -44,7 +44,7 @@ def dashboard(request):
         "deportivo": Documentos.objects.filter(categoria="DEPORTIVO").count(),
         "personal": Documentos.objects.filter(categoria="PERSONAL").count(),
     }
-    matriculas_total = Matricula.objects.count()
+    matriculas_total = Matricula.objects.filter(estado=True).count()
     matriculas_activas = Matricula.objects.filter(estado=True).count()
     matriculas_inactivas = matriculas_total - matriculas_activas
     porcentaje_matriculas = (

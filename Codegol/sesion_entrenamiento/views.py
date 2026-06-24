@@ -8,7 +8,7 @@ from asistencia.models import Asistencia
 from sesion_categoria.models import SesionCategoria
 from entrenamiento_actividad.models import EntrenamientoActividad
 from sesion_actividad.models import SesionActividad
-
+from django.db.models import Q
 
 
 # ================= LISTAR =================
@@ -45,16 +45,27 @@ def lista_sesiones(request, id_entrenamiento):
                 'id_categoria'
             )
         )
-
+    
         for categoria in sesion.categorias_registradas:
 
-            pendientes = Asistencia.objects.filter(
+            asistencias = Asistencia.objects.filter(
                 id_sesion=sesion,
-                id_categoria=categoria.id_categoria,
-                tipo_asistencia__isnull=True
+                id_categoria=categoria.id_categoria
+            )
+
+            pendientes = asistencias.filter(
+                Q(tipo_asistencia__isnull=True) |
+                Q(tipo_asistencia='')
             ).exists()
 
+            print(
+                categoria.id_categoria.nombre_categoria,
+                asistencias.count(),
+                pendientes
+            )
+
             categoria.asistencia_completa = not pendientes
+
 
     return render(
         request,
@@ -188,6 +199,7 @@ def crear_sesion(request, id_entrenamiento):
                 id_categoria=categoria,
                 estado=True,
                 id_matricula__estado=True,
+                id_matricula__id_jugador__estado=True,
                 id_matricula__fecha_inicio__lte=sesion.fecha,
                 id_matricula__fecha_fin__gte=sesion.fecha
             ).select_related(

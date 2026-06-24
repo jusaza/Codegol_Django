@@ -292,6 +292,9 @@
                   </div>
 
                   <div class="duracion-btns">
+    <span class="badge bg-secondary me-2">
+        Minutos
+    </span>
 
     <button type="button" class="btn btn-outline-primary btn-sm"
             onclick="setDuracion('{{ a.id_actividad }}', 10,this)">10</button>
@@ -304,7 +307,6 @@
 
     <button type="button" class="btn btn-outline-primary btn-sm"
             onclick="setDuracion('{{ a.id_actividad }}', 30,this)">30</button>
-
 </div>
 
 <input type="hidden" name="duracion_{{ a.id_actividad }}" id="duracion_{{ a.id_actividad }}">

@@ -74,7 +74,11 @@
 {% endblock %}
 
 {% block content %}
-
+{% for sc in s.categorias_registradas %}
+    {{ sc.id_categoria.nombre_categoria }}
+    -> {{ sc.tiene_asistencia }}
+    <br>
+{% endfor %}
 <div class="container mt-4">
 
     <!-- HEADER -->
@@ -148,9 +152,10 @@
 
                         {% for sc in s.categorias_registradas %}
                             <option
-                                value="{{ sc.id_categoria.id_categoria }}"
-                                data-rendimiento="{% if sc.asistencia_completa %}1{% else %}0{% endif %}">
+    value="{{ sc.id_categoria.id_categoria }}"
+    data-rendimiento="{% if sc.asistencia_completa %}1{% else %}0{% endif %}">
                                 {{ sc.id_categoria.nombre_categoria }}
+<br>
                             </option>
                         {% endfor %}
 
@@ -168,11 +173,11 @@
 
     <div class="col-6">
                 <button
-            id="btnRendimiento_{{ s.id_sesion }}"
-            class="btn btn-warning w-100"
-            onclick="irRendimiento({{ s.id_sesion }})">
-            📊 Rendimiento
-        </button>
+                    id="btnRendimiento_{{ s.id_sesion }}"
+                    class="btn btn-warning w-100"
+                    onclick="irRendimiento({{ s.id_sesion }})">
+                    📊 Rendimiento
+                </button>
     </div>
 
     <div class="col-6">
@@ -412,6 +417,7 @@
     </div>
   </div>
 </div>
+
 <!-- ================= JS ================= -->
 <script>
 
@@ -490,29 +496,23 @@ function irRendimiento(idSesion){
         return;
     }
 
-    let opcionSeleccionada =
+    let opcion =
         select.options[
             select.selectedIndex
         ];
 
-    let rendimientoCompleto =
-        opcionSeleccionada.dataset.rendimiento;
+    if(opcion.dataset.rendimiento !== "1"){
 
-    if(rendimientoCompleto === "1"){
+        alert(
+            "Primero debe registrar la asistencia."
+        );
 
-        if(
-            !confirm(
-                "Esta categoría ya tiene rendimiento registrado. ¿Desea visualizarlo o editarlo?"
-            )
-        ){
-            return;
-        }
+        return;
     }
 
     window.location.href =
         `/rendimiento/sesion/${idSesion}/grupo/${categoria}/`;
 }
-
 
 // ======================================
 // ELIMINAR
@@ -830,83 +830,9 @@ document.addEventListener(
     }
 );
 
-function validarRendimiento(idSesion){
 
-    let select =
-        document.getElementById(
-            "cat_" + idSesion
-        );
 
-    let categoria =
-        select.value;
 
-    if(!categoria){
-
-        alert(
-            "Seleccione una categoría"
-        );
-
-        return false;
-    }
-
-    let opcion =
-        select.options[
-            select.selectedIndex
-        ];
-
-    let completo =
-        opcion.dataset.rendimiento;
-
-    return completo === "1";
-}
-
-function actualizarBotonRendimiento(idSesion){
-
-    let btn =
-        document.getElementById(
-            "btnRendimiento_" + idSesion
-        );
-
-    let select =
-        document.getElementById(
-            "cat_" + idSesion
-        );
-
-    if(!select.value){
-
-        btn.disabled = true;
-        return;
-    }
-
-    let opcion =
-        select.options[
-            select.selectedIndex
-        ];
-
-    btn.disabled =
-        opcion.dataset.rendimiento !== "1";
-}
-document.addEventListener(
-    "change",
-    function(e){
-
-        if(
-            e.target.id.startsWith("cat_")
-        ){
-
-            let idSesion =
-                e.target.id.replace(
-                    "cat_",
-                    ""
-                );
-
-            actualizarBotonRendimiento(
-                idSesion
-            );
-        }
-
-    }
-);
 document.addEventListener("submit", function(e){
 
     let form = e.target;
@@ -952,6 +878,193 @@ document.addEventListener("submit", function(e){
 
         e.preventDefault();
     }
+
+});
+function actualizarEstadoRendimiento(idSesion){
+
+    let btn =
+        document.getElementById(
+            "btnRendimiento_" + idSesion
+        );
+
+    let select =
+        document.getElementById(
+            "cat_" + idSesion
+        );
+
+    if(!select.value){
+
+        btn.disabled = true;
+        btn.classList.add(
+            "btn-rendimiento-bloqueado"
+        );
+
+        return;
+    }
+
+    let opcion =
+        select.options[
+            select.selectedIndex
+        ];
+
+    let habilitado =
+        opcion.dataset.rendimiento === "1";
+
+    btn.disabled = !habilitado;
+
+    if(habilitado){
+
+        btn.classList.remove(
+            "btn-rendimiento-bloqueado"
+        );
+
+    }else{
+
+        btn.classList.add(
+            "btn-rendimiento-bloqueado"
+        );
+    }
+}
+document.addEventListener(
+    "change",
+    function(e){
+
+        if(
+            e.target.id &&
+            e.target.id.startsWith("cat_")
+        ){
+
+            let idSesion =
+                e.target.id.replace(
+                    "cat_",
+                    ""
+                );
+
+            actualizarEstadoRendimiento(
+                idSesion
+            );
+        }
+
+    }
+);
+document.querySelectorAll(
+    "select[id^='cat_']"
+).forEach(select => {
+
+    let idSesion =
+        select.id.replace(
+            "cat_",
+            ""
+        );
+
+    actualizarEstadoRendimiento(
+        idSesion
+    );
+});
+document.addEventListener("DOMContentLoaded", function () {
+
+    const form = document.querySelector(
+        "#contenidoAsistencia form"
+    );
+
+    function actualizarCampos(row){
+
+        const tipo = row.querySelector(
+            ".tipo-asistencia"
+        ).value;
+
+        const just = row.querySelector(
+            ".justificacion"
+        );
+
+        just.required = false;
+
+        if(
+            tipo === "inasiste" ||
+            tipo === "llegada_tarde"
+        ){
+
+            just.required = true;
+
+        }
+
+    }
+
+    document.addEventListener(
+        "change",
+        function(e){
+
+            if(
+                e.target.classList.contains(
+                    "tipo-asistencia"
+                )
+            ){
+
+                actualizarCampos(
+                    e.target.closest("tr")
+                );
+
+            }
+
+        }
+    );
+
+    document.querySelectorAll(
+        "tbody tr"
+    ).forEach(row => {
+
+        actualizarCampos(row);
+
+    });
+
+    form.addEventListener(
+        "submit",
+        function(e){
+
+            let valido = true;
+
+            document
+            .querySelectorAll("tbody tr")
+            .forEach(row => {
+
+                const tipo = row.querySelector(
+                    ".tipo-asistencia"
+                ).value;
+
+                const just = row.querySelector(
+                    ".justificacion"
+                );
+
+                just.style.border = "";
+
+                if(
+                    tipo === "inasiste" ||
+                    tipo === "llegada_tarde"
+                ){
+
+                    if(!just.value.trim()){
+
+                        valido = false;
+
+                        just.style.border =
+                            "2px solid red";
+                    }
+
+                }
+
+            });
+
+            if(!valido){
+
+                alert(
+                    "Debe ingresar una justificación."
+                );
+
+                e.preventDefault();
+            }
+
+        }
+    );
 
 });
 </script>

@@ -306,7 +306,8 @@ def lista_matricula(request):
         )
     return render(request, 'matricula/lista.html', {
         'matriculas': matriculas,
-        'query': query
+        'query': query,
+        'modo_inactivos': False
     })
 
 # CREAR
@@ -1022,3 +1023,58 @@ def exportar_matriculas_excel(request):
     wb.save(response)
 
     return response
+
+def lista_matricula_inactivos(request):
+
+    query = request.GET.get('q')
+
+    matriculas = Matricula.objects.filter(
+        estado=False
+    )
+
+    if query:
+
+        matriculas = matriculas.filter(
+            Q(id_jugador__nombre_completo__icontains=query) |
+            Q(id__icontains=query)
+        )
+
+    for m in matriculas:
+
+        ultima = HistorialCategoria.objects.filter(
+            id_matricula=m,
+            estado=True
+        ).order_by(
+            '-fecha_registro',
+            '-id_historial'
+        ).first()
+
+        m.categoria_actual = (
+            ultima.id_categoria.nombre_categoria
+            if ultima else "Sin categoría"
+        )
+
+    return render(
+        request,
+        'matricula/lista.html',
+        {
+            'matriculas': matriculas,
+            'query': query,
+            'modo_inactivos': True
+        }
+    )
+
+def activar_matricula(request, id):
+
+    matricula = get_object_or_404(
+        Matricula,
+        id=id
+    )
+
+    matricula.estado = True
+
+    matricula.save()
+
+    return redirect(
+        'lista_matricula_inactivos'
+    )
