@@ -1,0 +1,409 @@
+{% extends "layout/menu.html" %}
+{% load static %}
+
+{% block title %}
+Dashboard - Codegol
+{% endblock %}
+
+{% block content %}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+
+*{
+    box-sizing: border-box;
+}
+
+body{
+    background: #f4f6fb;
+    font-family: Arial, sans-serif;
+}
+
+.dashboard{
+    width: 100%;
+    max-width: 100%;
+    padding: 25px;
+}
+
+.header{
+    margin-bottom: 25px;
+}
+
+.header h2{
+    font-size: 28px;
+    margin: 0;
+}
+
+.header p{
+    color: #666;
+    margin-top: 5px;
+}
+
+/* KPIs */
+
+.kpis{
+    display: grid;
+    grid-template-columns: repeat(auto-fit,minmax(180px,1fr));
+    gap: 15px;
+    width: 100%;
+}
+
+.kpi{
+    background: white;
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0,0,0,.08);
+    text-align: center;
+    transition: .3s;
+}
+
+.kpi:hover{
+    transform: translateY(-5px);
+}
+
+.kpi h3{
+    margin: 0;
+    font-size: 24px;
+    color: #111;
+}
+
+.kpi span{
+    display: block;
+    margin-top: 8px;
+    font-size: 13px;
+    color: #777;
+}
+
+.money{
+    background: linear-gradient(135deg,#10b981,#047857);
+    color: white;
+}
+
+.money h3,
+.money span{
+    color: white;
+}
+
+/* Gráficos */
+
+.grid{
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 20px;
+    width: 100%;
+    margin-top: 25px;
+}
+
+.box{
+    width: 100%;
+    background: white;
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0,0,0,.08);
+}
+
+.box h4{
+    margin-top: 0;
+    margin-bottom: 15px;
+}
+
+.info{
+    margin-top: 10px;
+    font-size: 13px;
+    color: #666;
+}
+
+canvas{
+    width: 100% !important;
+    height: 350px !important;
+}
+
+@media(max-width: 992px){
+
+    .grid{
+        grid-template-columns: 1fr;
+    }
+
+}
+
+@media(max-width: 576px){
+
+    .dashboard{
+        padding: 15px;
+    }
+
+}
+
+</style>
+
+<div class="dashboard">
+
+    <div class="header">
+        <h2>⚽ Dashboard - Codegol</h2>
+        <p>Panel de control del sistema Codegol</p>
+    </div>
+
+    <div class="kpis">
+
+        <a href="{% url 'lista_pagos' %}" style="text-decoration:none;color:inherit;">
+            <div class="kpi money">
+                <h3>$ {{ total_recaudo|floatformat:0 }}</h3>
+                <span>Total Recaudado COP</span>
+            </div>
+        </a>
+
+        <a href="{% url 'usuario' %}" style="text-decoration:none;color:inherit;">
+            <div class="kpi">
+                <h3>{{ usuarios_total }}</h3>
+                <span>Usuarios</span>
+            </div>
+        </a>
+
+        <a href="{% url 'usuario' %}" style="text-decoration:none;color:inherit;">
+            <div class="kpi">
+                <h3>{{ usuarios_activos }}</h3>
+                <span>Usuarios Activos</span>
+            </div>
+        </a>
+
+        <a href="{% url 'lista_pagos' %}" style="text-decoration:none;color:inherit;">
+            <div class="kpi">
+                <h3>{{ pagos_total }}</h3>
+                <span>Total Pagos</span>
+            </div>
+        </a>
+
+        <a href="{% url 'lista_pagos' %}" style="text-decoration:none;color:inherit;">
+            <div class="kpi">
+                <h3>{{ pagos_pendientes }}</h3>
+                <span>Pagos Pendientes</span>
+            </div>
+        </a>
+
+        <a href="{% url 'lista_matricula' %}" style="text-decoration:none;color:inherit;">
+            <div class="kpi">
+                <h3>{{ matriculas_total }}</h3>
+                <span>Matrículas</span>
+            </div>
+        </a>
+
+    </div>
+
+    <div class="grid">
+
+        <div class="box">
+            <h4>📊 Resumen General</h4>
+
+            <canvas id="generalChart"></canvas>
+
+            <div class="info">
+                Usuarios, documentos, pagos, matrículas, inventario y entrenamientos.
+            </div>
+        </div>
+
+        <div class="box">
+            <h4>💰 Estado Financiero</h4>
+
+            <canvas id="financeChart"></canvas>
+
+            <div class="info">
+                Pagados vs Pendientes vs Cancelados
+            </div>
+        </div>
+
+        <div class="box">
+            <h4>📄 Documentos por Categoría</h4>
+
+            <canvas id="docsChart"></canvas>
+        </div>
+
+        <div class="box">
+            <h4>⚽ Niveles Deportivos</h4>
+
+            <canvas id="levelsChart"></canvas>
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
+new Chart(document.getElementById("generalChart"), {
+
+    type: "bar",
+
+    data: {
+
+        labels: [
+            "Usuarios",
+            "Documentos",
+            "Pagos",
+            "Matrículas",
+            "Inventario",
+            "Entrenamientos"
+        ],
+
+        datasets: [{
+
+            data: [
+
+                {{ usuarios_total }},
+                {{ documentos_total }},
+                {{ pagos_total }},
+                {{ matriculas_total }},
+                {{ inventario_total }},
+                {{ entrenamientos_total }}
+
+            ],
+
+            backgroundColor: "#3b82f6"
+
+        }]
+    },
+
+    options:{
+        responsive:true,
+        maintainAspectRatio:false
+    }
+
+});
+
+
+new Chart(document.getElementById("financeChart"), {
+
+    type: "doughnut",
+
+    data: {
+
+        labels: [
+            "Confirmados",
+            "Pendientes",
+            "Cancelados"
+        ],
+
+        datasets: [{
+
+            data: [
+
+                {{ pagos_total }} - {{ pagos_pendientes }},
+                {{ pagos_pendientes }},
+                {{ pagos_cancelados }}
+
+            ],
+
+            backgroundColor: [
+
+                "#10b981",
+                "#f59e0b",
+                "#ef4444"
+
+            ]
+
+        }]
+
+    },
+
+    options:{
+        responsive:true,
+        maintainAspectRatio:false
+    }
+
+});
+
+
+new Chart(document.getElementById("docsChart"), {
+
+    type: "pie",
+
+    data: {
+
+        labels: [
+
+            "Legal",
+            "Medico",
+            "Academico",
+            "Deportivo",
+            "Personal"
+
+        ],
+
+        datasets:[{
+
+            data:[
+
+                {{ documentos.legal }},
+                {{ documentos.medico }},
+                {{ documentos.academico }},
+                {{ documentos.deportivo }},
+                {{ documentos.personal }}
+
+            ],
+
+            backgroundColor:[
+
+                "#1d4ed8",
+                "#ef4444",
+                "#10b981",
+                "#8b5cf6",
+                "#f59e0b"
+
+            ]
+
+        }]
+
+    },
+
+    options:{
+        responsive:true,
+        maintainAspectRatio:false
+    }
+
+});
+
+
+new Chart(document.getElementById("levelsChart"), {
+
+    type:"bar",
+
+    data:{
+
+        labels:[
+            "Alto",
+            "Medio",
+            "Bajo"
+        ],
+
+        datasets:[{
+
+            data:[
+
+                {{ niveles.Alto }},
+                {{ niveles.Medio }},
+                {{ niveles.Bajo }}
+
+            ],
+
+            backgroundColor:[
+
+                "#22c55e",
+                "#f59e0b",
+                "#ef4444"
+
+            ]
+
+        }]
+
+    },
+
+    options:{
+        responsive:true,
+        maintainAspectRatio:false
+    }
+
+});
+
+</script>
+
+{% endblock %}

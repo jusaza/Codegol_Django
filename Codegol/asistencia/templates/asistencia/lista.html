@@ -1,0 +1,58 @@
+<h4 class="text-center mb-3">Asistencia de la sesión</h4>
+
+<form method="POST"
+      action="{% url 'guardar_asistencia' id_sesion id_categoria %}">
+    {% csrf_token %}
+
+    <table class="table table-bordered table-sm">
+
+        <thead class="table-dark">
+        <tr>
+            <th>#</th>
+            <th>Jugador</th>
+            <th>Asistencia</th>
+            <th>Justificación</th>
+            <th>Observación</th>
+        </tr>
+        </thead>
+
+        <tbody>
+
+        {% for a in asistencias %}
+        <tr>
+
+            <td>{{ forloop.counter }}</td>
+
+            <td>{{ a.id_matricula.id_jugador.nombre_completo }}</td>
+
+            <td>
+                <select name="tipo_{{ a.id_asistencia }}" class="form-control tipo-asistencia" required>
+                    <option value="asiste" {% if a.tipo_asistencia == "asiste" %}selected{% endif %}>Asiste</option>
+                    <option value="inasiste" {% if a.tipo_asistencia == "inasiste" %}selected{% endif %}>Inasiste</option>
+                    <option value="llegada_tarde" {% if a.tipo_asistencia == "llegada_tarde" %}selected{% endif %}>Tarde</option>
+                </select>
+            </td>
+
+            <td>
+                <input type="text"
+                    name="just_{{ a.id_asistencia }}"
+                    value="{{ a.justificacion|default:'' }}"
+                    class="form-control justificacion">
+            </td>
+
+            <td>
+                <input type="text"
+                    name="obs_{{ a.id_asistencia }}"
+                    value="{{ a.observaciones|default:'' }}"
+                    class="form-control observacion">
+            </td>
+
+        </tr>
+        {% endfor %}
+
+        </tbody>
+    </table>
+
+    <button class="btn btn-success">Guardar cambios</button>
+
+</form>
