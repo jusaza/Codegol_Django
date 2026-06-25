@@ -1,3 +1,4 @@
+from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import SesionEntrenamiento
 from entrenamientos.models import Entrenamiento
@@ -12,7 +13,6 @@ from django.db.models import Q
 from django.contrib import messages
 from datetime import date
 
-# ================= LISTAR =================
 def lista_sesiones(request, id_entrenamiento):
 
     entrenamiento = get_object_or_404(
@@ -29,7 +29,6 @@ def lista_sesiones(request, id_entrenamiento):
         '-fecha'
     )
 
-    # 🔥 entrenadores correctos
     entrenadores = Usuario.objects.filter(
         usuario__id_rol__rol_usuario__iexact="Entrenador"
     ).distinct()
@@ -81,8 +80,6 @@ def lista_sesiones(request, id_entrenamiento):
         }
     )
 
-
-# ================= CREAR =================
 def crear_sesion(request, id_entrenamiento):
 
     entrenamiento = get_object_or_404(
@@ -125,7 +122,6 @@ def crear_sesion(request, id_entrenamiento):
 
         categorias = request.POST.getlist("categorias[]")
 
-        # ================= ENTRENADOR =================
 
         if "Administrador" in roles:
 
@@ -142,7 +138,6 @@ def crear_sesion(request, id_entrenamiento):
 
             entrenador = entrenador_seleccionado
 
-        # ================= CREAR SESIÓN =================
 
         sesion = SesionEntrenamiento.objects.create(
             fecha=fecha,
@@ -153,9 +148,6 @@ def crear_sesion(request, id_entrenamiento):
             id_entrenamiento=entrenamiento
         )
 
-        # =====================================
-        # CONGELAR ACTIVIDADES DEL ENTRENAMIENTO
-        # =====================================
 
         actividades_entrenamiento = (
             EntrenamientoActividad.objects
@@ -400,3 +392,132 @@ def eliminar_sesion(request, id):
         id_entrenamiento=sesion.id_entrenamiento.id_entrenamiento
     )
 
+def calendario(request):
+
+    entrenamientos = Entrenamiento.objects.filter(
+        estado=True
+    )
+
+    categorias = Categoria.objects.filter(
+        estado=True
+    )
+
+    entrenadores = Usuario.objects.filter(
+        roles__rol_usuario__iexact="Entrenador",
+        estado=True
+    ).distinct()
+        
+    return render(
+        request,
+        'sesion_entrenamiento/calendario.html',
+        {
+            'entrenamientos': entrenamientos,
+            'categorias': categorias,
+            'entrenadores': entrenadores
+        }
+    )
+
+
+def calendario_eventos(request):
+
+    entrenamiento = request.GET.get(
+        'entrenamiento'
+    )
+
+    categoria = request.GET.get(
+        'categoria'
+    )
+
+    entrenador = request.GET.get(
+        'entrenador'
+    )
+
+    sesiones = (
+        SesionEntrenamiento.objects
+        .filter(
+            estado=True
+        )
+        .select_related(
+            'id_entrenamiento',
+            'id_entrenador'
+        )
+    )
+
+    if entrenamiento:
+
+        sesiones = sesiones.filter(
+            id_entrenamiento_id=entrenamiento
+        )
+
+    if entrenador:
+
+        sesiones = sesiones.filter(
+            id_entrenador_id=entrenador
+        )
+
+    if categoria:
+
+        sesiones = sesiones.filter(
+            sesioncategoria__id_categoria_id=categoria,
+            sesioncategoria__estado=True
+        ).distinct()
+
+    eventos = []
+
+    colores = [
+        "#1e73be",
+        "#28a745",
+        "#ffc107",
+        "#dc3545",
+        "#6f42c1",
+        "#17a2b8"
+    ]
+
+    for i, sesion in enumerate(sesiones):
+
+        eventos.append({
+
+            "id": sesion.id_sesion,
+
+            "title": (
+                sesion.id_entrenamiento.descripcion
+                or "Sin descripción"
+            ),
+
+            "start": (
+                f"{sesion.fecha}T{sesion.hora_inicio}"
+            ),
+
+            "end": (
+                f"{sesion.fecha}T{sesion.hora_fin}"
+            ),
+
+            "backgroundColor":
+                colores[i % len(colores)],
+
+            "extendedProps": {
+
+                "entrenador":
+                    sesion.id_entrenador.nombre_completo,
+
+                "lugar":
+                    sesion.id_entrenamiento.lugar or "",
+
+                "observaciones":
+                    sesion.id_entrenamiento.observaciones or "",
+
+                "fecha":
+                    str(sesion.fecha),
+
+                "hora_inicio":
+                    str(sesion.hora_inicio),
+
+                "hora_fin":
+                    str(sesion.hora_fin)
+            }
+        })
+
+    return JsonResponse(
+        eventos,
+        safe=False
+    )

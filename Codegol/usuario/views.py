@@ -30,8 +30,15 @@ def login(request):
 
                 usuario = Usuario.objects.get(
                     num_identificacion=documento,
-                    contrasena=contrasena
+                    contrasena=contrasena,
                 )
+
+                if not usuario.estado:
+                    messages.error(
+                        request,
+                        "Tu cuenta se encuentra Inactiva. Comunicate con el Administrador."
+                    )
+                    return redirect("login")
 
                 roles = DetallesUsuarioRol.objects.filter(
                     id_usuario=usuario
@@ -48,9 +55,10 @@ def login(request):
 
                 request.session["nombre"] = usuario.nombre_completo
 
-                request.session["roles"] = lista_roles
+                request.session["foto"] = usuario.foto_perfil.url if usuario.foto_perfil else ""
 
-                # ===== ADMIN =====
+                request.session["roles"] = ", ".join(lista_roles)
+
 
                 if "Administrador" in lista_roles:
 
@@ -96,7 +104,6 @@ def login(request):
                     documentos_subidos
                 )
 
-                # ===== REDIRECCION =====
 
                 if faltantes:
 

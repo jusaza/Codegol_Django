@@ -7,4 +7,6 @@ urlpatterns = [
     path('editar/<int:id>/', views.editar_sesion, name='editar_sesion'),
     path('eliminar/<int:id>/', views.eliminar_sesion, name='eliminar_sesion'),
     path('salidas/', include('movimiento_inventario.urls')),
+    path('calendario/',views.calendario,name='calendario'),
+    path('calendario/eventos/',views.calendario_eventos,name='calendario_eventos'),
 ]

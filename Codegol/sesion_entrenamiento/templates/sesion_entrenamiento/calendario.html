@@ -1,0 +1,224 @@
+{% extends 'layout/menu.html' %}
+{% load static %}
+
+{% block content %}
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css">
+
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<style>
+
+.contenedor-calendario{
+    padding:20px;
+}
+
+.filtros{
+    display:flex;
+    gap:15px;
+    flex-wrap:wrap;
+    margin-bottom:20px;
+}
+
+.filtros select{
+    padding:10px;
+    border:1px solid #ddd;
+    border-radius:8px;
+    min-width:220px;
+}
+
+#calendar{
+    background:white;
+    border-radius:15px;
+    padding:20px;
+    box-shadow:0 2px 10px rgba(0,0,0,.1);
+}
+
+.fc-toolbar-title{
+    font-size:24px !important;
+    font-weight:bold;
+}
+
+</style>
+
+<div class="contenedor-calendario">
+
+    <h2>Calendario - Entrenamientos</h2>
+
+    <div class="filtros">
+
+        <select id="entrenamiento">
+            <option value="">Todos los entrenamientos</option>
+
+            {% for e in entrenamientos %}
+                <option value="{{ e.id_entrenamiento }}">
+                    {{ e.descripcion }}
+                </option>
+            {% endfor %}
+        </select>
+
+        <select id="categoria">
+            <option value="">Todas las categorías</option>
+
+            {% for c in categorias %}
+                <option value="{{ c.id_categoria }}">
+                    {{ c.nombre_categoria }}
+                </option>
+            {% endfor %}
+        </select>
+
+        <select id="entrenador">
+            <option value="">Todos los entrenadores</option>
+
+            {% for u in entrenadores %}
+                <option value="{{ u.id_usuario }}">
+                    {{ u.nombre_completo }}
+                </option>
+            {% endfor %}
+        </select>
+
+    </div>
+
+    <div id="calendar"></div>
+
+</div>
+
+<script>
+
+document.addEventListener('DOMContentLoaded', function() {
+
+    let calendarEl =
+        document.getElementById('calendar');
+
+    let calendar =
+        new FullCalendar.Calendar(
+            calendarEl,
+            {
+
+                locale: 'es',
+
+                initialView: 'timeGridWeek',
+
+                height: 'auto',
+
+                nowIndicator: true,
+
+                allDaySlot: false,
+
+                slotMinTime: '06:00:00',
+
+                slotMaxTime: '22:00:00',
+
+                headerToolbar: {
+
+                    left: 'prev,next today',
+
+                    center: 'title',
+
+                    right:
+                        'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
+                },
+
+                buttonText: {
+                    today: 'Hoy',
+                    month: 'Mes',
+                    week: 'Semana',
+                    day: 'Día',
+                    list: 'Agenda'
+                },
+
+                events: function(
+                    fetchInfo,
+                    successCallback,
+                    failureCallback
+                ){
+
+                    let entrenamiento =
+                        document.getElementById(
+                            'entrenamiento'
+                        ).value;
+
+                    let categoria =
+                        document.getElementById(
+                            'categoria'
+                        ).value;
+
+                    let entrenador =
+                        document.getElementById(
+                            'entrenador'
+                        ).value;
+
+                    fetch(
+                        `/sesiones/calendario/eventos/?entrenamiento=${entrenamiento}&categoria=${categoria}&entrenador=${entrenador}`
+                    )
+                    .then(
+                        response => response.json()
+                    )
+                    .then(
+                        data => successCallback(data)
+                    )
+                    .catch(
+                        error => failureCallback(error)
+                    );
+                },
+
+                eventClick: function(info){
+
+                    const datos =
+                        info.event.extendedProps;
+
+                    Swal.fire({
+
+                        title:
+                            info.event.title,
+
+                        html:
+                            `
+                            <b>Entrenador:</b>
+                            ${datos.entrenador}<br><br>
+
+                            <b>Lugar:</b>
+                            ${datos.lugar}<br><br>
+
+                            <b>Fecha:</b>
+                            ${datos.fecha}<br><br>
+
+                            <b>Hora Inicio:</b>
+                            ${datos.hora_inicio}<br><br>
+
+                            <b>Hora Fin:</b>
+                            ${datos.hora_fin}<br><br>
+
+                            <b>Observaciones:</b>
+                            ${datos.observaciones || 'Ninguna'}
+                            `
+                    });
+
+                }
+
+            }
+        );
+
+    calendar.render();
+
+    document
+        .querySelectorAll('select')
+        .forEach(select => {
+
+            select.addEventListener(
+                'change',
+                function(){
+
+                    calendar.refetchEvents();
+
+                }
+            );
+
+        });
+
+});
+
+</script>
+
+{% endblock %}

@@ -1,5 +1,6 @@
 from django.shortcuts import render
 
+from categoria.models import Categoria
 from usuario.decorators import bloqueo_documentos_completos
 from . import views 
 from django.shortcuts import render
@@ -12,6 +13,8 @@ from django.shortcuts import render
 from django.db.models import Sum, Avg, Max, Min
 from django.db.models import Sum, Avg, Max, Min
 from django.shortcuts import render
+from entrenamientos.models import Entrenamiento
+
 
 def inicio(request):
     return render(request, 'inicio.html')
@@ -61,6 +64,20 @@ def dashboard(request):
     entrenamientos_total = Entrenamiento.objects.count()
     entrenamientos_activos = Entrenamiento.objects.filter(estado=True).count()
     entrenamientos_inactivos = entrenamientos_total - entrenamientos_activos
+
+    entrenamientos = Entrenamiento.objects.filter(
+    estado=True
+    )
+
+    categorias = Categoria.objects.filter(
+        estado=True
+    )
+
+    entrenadores = Usuario.objects.filter(
+        usuario__id_rol__rol_usuario="Entrenador",
+        estado=True
+    ).distinct()
+
     context = {
         "usuarios_total": usuarios_total,
         "usuarios_activos": usuarios_activos,
@@ -97,6 +114,10 @@ def dashboard(request):
         "entrenamientos_total": entrenamientos_total,
         "entrenamientos_activos": entrenamientos_activos,
         "entrenamientos_inactivos": entrenamientos_inactivos,
+
+        "entrenamientos": entrenamientos,
+        "categorias": categorias,
+        "entrenadores": entrenadores,
     }
 
     return render(request, "pagina_original.html", context)
