@@ -74,11 +74,15 @@
 {% endblock %}
 
 {% block content %}
-{% for sc in s.categorias_registradas %}
-    {{ sc.id_categoria.nombre_categoria }}
-    -> {{ sc.tiene_asistencia }}
-    <br>
-{% endfor %}
+{% if messages %}
+<div class="container mt-3">
+    {% for message in messages %}
+        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %}">
+            {{ message }}
+        </div>
+    {% endfor %}
+</div>
+{% endif %}
 <div class="container mt-4">
 
     <!-- HEADER -->
@@ -211,8 +215,12 @@
 
                 <div class="modal-body">
 
-                  <input type="date" name="fecha" class="form-control mb-2"
-                    value="{{ s.fecha|date:'Y-m-d' }}" required>
+                  <input
+                    type="date"
+                    class="form-control mb-2 fecha-editar"
+                    name="fecha"
+                    value="{{ s.fecha|date:'Y-m-d' }}"
+                    required>
 
                   <input type="time" name="hora_inicio" class="form-control mb-2" value="{{ s.hora_inicio }}" required>
 
@@ -293,7 +301,12 @@
 
         <div class="modal-body">
 
-          <input type="date" name="fecha" class="form-control mb-2" required>
+          <input
+            type="date"
+            id="fechaCrear"
+            name="fecha"
+            class="form-control mb-2"
+            required>
           <input type="time" name="hora_inicio" class="form-control mb-2" required>
           <input type="time" name="hora_fin" class="form-control mb-2" required>
 
@@ -1065,6 +1078,28 @@ document.addEventListener("DOMContentLoaded", function () {
 
         }
     );
+
+});
+document.addEventListener("DOMContentLoaded", function(){
+
+    let hoy = new Date().toISOString().split("T")[0];
+
+    // Modal crear
+    let fechaCrear =
+        document.getElementById("fechaCrear");
+
+    if(fechaCrear){
+        fechaCrear.min = hoy;
+    }
+
+    // Modales editar
+    document
+        .querySelectorAll(".fecha-editar")
+        .forEach(input => {
+
+            input.min = hoy;
+
+        });
 
 });
 </script>

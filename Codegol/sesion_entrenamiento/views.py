@@ -9,7 +9,8 @@ from sesion_categoria.models import SesionCategoria
 from entrenamiento_actividad.models import EntrenamientoActividad
 from sesion_actividad.models import SesionActividad
 from django.db.models import Q
-
+from django.contrib import messages
+from datetime import date
 
 # ================= LISTAR =================
 def lista_sesiones(request, id_entrenamiento):
@@ -108,6 +109,17 @@ def crear_sesion(request, id_entrenamiento):
     if request.method == "POST":
 
         fecha = request.POST.get("fecha")
+        if fecha < str(date.today()):
+
+            messages.error(
+                request,
+                "No se pueden crear sesiones con fechas anteriores a hoy."
+            )
+
+            return redirect(
+                "lista_sesiones",
+                id_entrenamiento=id_entrenamiento
+            )
         hora_inicio = request.POST.get("hora_inicio")
         hora_fin = request.POST.get("hora_fin")
 
@@ -354,7 +366,7 @@ def editar_sesion(request, id):
 
     return render(
         request,
-        "sesion_entrenamiento/form.html",
+        "sesion_entrenamiento/lista.html",
         {
             "sesion": sesion,
             "entrenamiento": entrenamiento,
@@ -387,3 +399,4 @@ def eliminar_sesion(request, id):
         'lista_sesiones',
         id_entrenamiento=sesion.id_entrenamiento.id_entrenamiento
     )
+

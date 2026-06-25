@@ -71,7 +71,5 @@ def guardar_asistencia(
                 a.save()
 
     return redirect(
-        request.META.get(
-            'HTTP_REFERER'
-        )
-    )
+    request.META.get('HTTP_REFERER', '/')
+)
