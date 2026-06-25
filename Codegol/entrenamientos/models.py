@@ -13,5 +13,3 @@ class Entrenamiento(models.Model):
 
     def __str__(self):
         return f"Entrenamiento {self.id_entrenamiento} - {self.lugar}"
-
-

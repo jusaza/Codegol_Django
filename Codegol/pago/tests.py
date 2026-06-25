@@ -1,0 +1,355 @@
+from datetime import date
+
+from django.test import TestCase
+from django.urls import reverse
+
+from matricula.models import Matricula
+from pago.models import Pago
+from posicion.models import Posicion
+from usuario.models import DetallesUsuarioRol, Rol, Usuario
+
+
+class PagoViewsTest(TestCase):
+
+    # ==================================================
+    # DATOS INICIALES
+    # ==================================================
+
+    def setUp(self):
+
+        self.rol_admin = Rol.objects.create(
+            rol_usuario="Administrador",
+            estado=True
+        )
+
+        self.rol_jugador = Rol.objects.create(
+            rol_usuario="Jugador",
+            estado=True
+        )
+
+        self.posicion = Posicion.objects.create(
+            nombre="Delantero"
+        )
+
+        self.admin = Usuario.objects.create(
+            correo="admin@test.com",
+            contrasena="Password123!",
+            nombre_completo="Admin Prueba",
+            num_identificacion=111111111,
+            tipo_documento="cc",
+            telefono_1="3001111111",
+            direccion="Calle 1",
+            genero="m",
+            fecha_nacimiento=date(1990, 1, 1),
+            grupo_sanguineo="o+",
+            estado=True
+        )
+
+        DetallesUsuarioRol.objects.create(
+            id_usuario=self.admin,
+            id_rol=self.rol_admin
+        )
+
+        self.jugador = Usuario.objects.create(
+            correo="jugador@test.com",
+            contrasena="Password123!",
+            nombre_completo="Juan Perez",
+            num_identificacion=222222222,
+            tipo_documento="cc",
+            telefono_1="3002222222",
+            direccion="Calle 2",
+            genero="m",
+            fecha_nacimiento=date(2010, 1, 1),
+            grupo_sanguineo="a+",
+            estado=True
+        )
+
+        DetallesUsuarioRol.objects.create(
+            id_usuario=self.jugador,
+            id_rol=self.rol_jugador
+        )
+
+        self.otro_jugador = Usuario.objects.create(
+            correo="otro@test.com",
+            contrasena="Password123!",
+            nombre_completo="Pedro Gomez",
+            num_identificacion=333333333,
+            tipo_documento="cc",
+            telefono_1="3003333333",
+            direccion="Calle 3",
+            genero="m",
+            fecha_nacimiento=date(2011, 1, 1),
+            grupo_sanguineo="b+",
+            estado=True
+        )
+
+        DetallesUsuarioRol.objects.create(
+            id_usuario=self.otro_jugador,
+            id_rol=self.rol_jugador
+        )
+
+        self.matricula_jugador = Matricula.objects.create(
+            fecha_inicio=date(2025, 1, 1),
+            fecha_fin=date(2026, 12, 31),
+            nivel="Alto",
+            id_jugador=self.jugador,
+            posicion=self.posicion,
+            estado=True
+        )
+
+        self.matricula_otro = Matricula.objects.create(
+            fecha_inicio=date(2025, 1, 1),
+            fecha_fin=date(2026, 12, 31),
+            nivel="Medio",
+            id_jugador=self.otro_jugador,
+            posicion=self.posicion,
+            estado=True
+        )
+
+        self.pago_jugador = Pago.objects.create(
+            concepto_pago="Mensualidad enero",
+            fecha_pago=date(2026, 1, 15),
+            metodo_pago="Efectivo",
+            observaciones="Pago al dia",
+            valor_total=150000.0,
+            cancelado=False,
+            id_matricula=self.matricula_jugador
+        )
+
+        self.pago_otro = Pago.objects.create(
+            concepto_pago="Mensualidad febrero",
+            fecha_pago=date(2026, 2, 15),
+            metodo_pago="Transferencia",
+            observaciones="",
+            valor_total=200000.0,
+            cancelado=False,
+            id_matricula=self.matricula_otro
+        )
+
+    def login_admin(self):
+
+        session = self.client.session
+        session["usuario_id"] = self.admin.id_usuario
+        session["roles"] = ["Administrador"]
+        session.save()
+
+    def login_jugador(self):
+
+        session = self.client.session
+        session["usuario_id"] = self.jugador.id_usuario
+        session["roles"] = ["Jugador"]
+        session.save()
+
+    # ==================================================
+    # LISTA DE PAGOS
+    # ==================================================
+
+    def test_lista_pagos_responde_200(self):
+
+        self.login_admin()
+
+        response = self.client.get(
+            reverse("lista_pagos")
+        )
+
+        self.assertEqual(response.status_code, 200)
+
+    def test_lista_pagos_usa_template_correcto(self):
+
+        self.login_admin()
+
+        response = self.client.get(
+            reverse("lista_pagos")
+        )
+
+        self.assertTemplateUsed(response, "pago/lista.html")
+
+    def test_lista_pagos_admin_ve_todos(self):
+
+        self.login_admin()
+
+        response = self.client.get(
+            reverse("lista_pagos")
+        )
+
+        self.assertEqual(len(response.context["pagos"]), 2)
+
+    def test_lista_pagos_jugador_solo_ve_los_suyos(self):
+
+        self.login_jugador()
+
+        response = self.client.get(
+            reverse("lista_pagos")
+        )
+
+        pagos = response.context["pagos"]
+
+        self.assertEqual(pagos.count(), 1)
+        self.assertEqual(pagos.first().id, self.pago_jugador.id)
+
+    def test_lista_pagos_filtra_por_concepto(self):
+
+        self.login_admin()
+
+        response = self.client.get(
+            reverse("lista_pagos"),
+            {"q": "enero"}
+        )
+
+        self.assertEqual(len(response.context["pagos"]), 1)
+        self.assertContains(response, "Mensualidad enero")
+
+    # ==================================================
+    # CREAR PAGO
+    # ==================================================
+
+    def test_crear_pago_get_muestra_formulario(self):
+
+        self.login_admin()
+
+        response = self.client.get(
+            reverse("crear_pago")
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "pago/formulario.html")
+
+    def test_crear_pago_post_crea_registro(self):
+
+        self.login_admin()
+
+        self.client.post(
+            reverse("crear_pago"),
+            {
+                "concepto_pago": "Inscripcion",
+                "fecha_pago": "2026-03-01",
+                "metodo_pago": "Tarjeta",
+                "observaciones": "Pago inicial",
+                "valor_total": "50000",
+                "id_matricula": self.matricula_jugador.id
+            }
+        )
+
+        self.assertTrue(
+            Pago.objects.filter(
+                concepto_pago="Inscripcion",
+                valor_total=50000.0
+            ).exists()
+        )
+
+    def test_crear_pago_post_redirecciona_a_lista(self):
+
+        self.login_admin()
+
+        response = self.client.post(
+            reverse("crear_pago"),
+            {
+                "concepto_pago": "Uniforme",
+                "fecha_pago": "2026-03-10",
+                "metodo_pago": "Efectivo",
+                "observaciones": "",
+                "valor_total": "80000",
+                "id_matricula": self.matricula_jugador.id
+            }
+        )
+
+        self.assertRedirects(response, reverse("lista_pagos"))
+
+    # ==================================================
+    # EDITAR PAGO
+    # ==================================================
+
+    def test_editar_pago_get_muestra_formulario(self):
+
+        self.login_admin()
+
+        response = self.client.get(
+            reverse("editar_pago", args=[self.pago_jugador.id])
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "pago/formulario.html")
+        self.assertEqual(response.context["pago"], self.pago_jugador)
+
+    def test_editar_pago_post_actualiza_registro(self):
+
+        self.login_admin()
+
+        response = self.client.post(
+            reverse("editar_pago", args=[self.pago_jugador.id]),
+            {
+                "concepto_pago": "Mensualidad actualizada",
+                "fecha_pago": "2026-01-20",
+                "metodo_pago": "Transferencia",
+                "observaciones": "Correccion",
+                "valor_total": "160000",
+                "id_matricula": self.matricula_jugador.id
+            }
+        )
+
+        self.pago_jugador.refresh_from_db()
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(self.pago_jugador.concepto_pago, "Mensualidad actualizada")
+        self.assertEqual(self.pago_jugador.metodo_pago, "Transferencia")
+        self.assertEqual(self.pago_jugador.valor_total, 160000.0)
+
+    # ==================================================
+    # CANCELAR PAGO
+    # ==================================================
+
+    def test_cancelar_pago_cambia_estado(self):
+
+        self.login_admin()
+
+        self.assertFalse(self.pago_jugador.cancelado)
+
+        response = self.client.get(
+            reverse("cancelar_pago", args=[self.pago_jugador.id])
+        )
+
+        self.pago_jugador.refresh_from_db()
+
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(self.pago_jugador.cancelado)
+
+    def test_cancelar_pago_alterna_estado(self):
+
+        self.login_admin()
+
+        self.pago_jugador.cancelado = True
+        self.pago_jugador.save()
+
+        self.client.get(
+            reverse("cancelar_pago", args=[self.pago_jugador.id])
+        )
+
+        self.pago_jugador.refresh_from_db()
+
+        self.assertFalse(self.pago_jugador.cancelado)
+
+    # ==================================================
+    # REPORTE PDF
+    # ==================================================
+
+    def test_reporte_pagos_pdf_responde_pdf(self):
+
+        self.login_admin()
+
+        response = self.client.get(
+            reverse("reporte_pagos_pdf")
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "application/pdf")
+
+    def test_reporte_pagos_pdf_genera_documento_valido(self):
+        self.login_admin()
+        response = self.client.get(
+            reverse("reporte_pagos_pdf")
+        )
+        contenido = response.content
+        self.assertTrue(contenido.startswith(b"%PDF"))
+        self.assertIn(b"%%EOF", contenido)
+        self.assertGreater(len(contenido), 500)
+        
