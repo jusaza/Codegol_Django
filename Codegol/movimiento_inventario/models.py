@@ -12,7 +12,12 @@ class MovimientoInventario(models.Model):
     id_movimiento = models.AutoField(primary_key=True)
     inventario = models.ForeignKey(Inventario, on_delete=models.CASCADE)
     usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE)
-
+    sesion = models.ForeignKey(
+        'sesion_entrenamiento.SesionEntrenamiento',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True
+    )
     tipo_movimiento = models.CharField(max_length=20, choices=TIPO_CHOICES)
     cantidad = models.IntegerField()
     fecha = models.DateTimeField(auto_now_add=True)

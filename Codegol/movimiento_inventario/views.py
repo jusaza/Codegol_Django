@@ -6,6 +6,7 @@ from usuario.models import Usuario
 from django.http import JsonResponse
 import unicodedata
 from django.http import HttpResponse
+from sesion_entrenamiento.models import SesionEntrenamiento
 
 def limpiar_texto(texto):
     return ''.join(
@@ -134,10 +135,18 @@ def actualizar_observaciones(request):
 #Salidas
 
 def salidas_sesion(request, id_sesion):
+
+    sesion = get_object_or_404(
+        SesionEntrenamiento,
+        pk=id_sesion,
+        estado=True
+    )
+
     inventarios = Inventario.objects.filter(estado=True)
     query = request.GET.get('q')
 
     movimientos = MovimientoInventario.objects.filter(
+        sesion=sesion,
         tipo_movimiento='salida',
     ).select_related('usuario', 'inventario')\
      .prefetch_related('devoluciones')\
@@ -206,6 +215,7 @@ def salidas_sesion(request, id_sesion):
         MovimientoInventario.objects.create(
             inventario=inventario,
             usuario=usuario,
+            sesion=sesion,
             tipo_movimiento='salida',
             cantidad=cantidad,
             observaciones=observaciones
@@ -214,6 +224,7 @@ def salidas_sesion(request, id_sesion):
         return redirect('salidas_sesion', id_sesion=id_sesion)
 
     return render(request, 'movimiento_inventario/salidas.html', {
+        'sesion': sesion,
         'movimientos': movimientos,
         'inventarios': inventarios,
         'query': query,
@@ -254,13 +265,17 @@ def crear_devolucion(request, id_movimiento):
         MovimientoInventario.objects.create(
             inventario=salida.inventario,
             usuario=usuario,
+            sesion=salida.sesion,
             tipo_movimiento='devolucion',
             cantidad=cantidad,
             movimiento_padre=salida,
             observaciones=observaciones
         )
 
-        return redirect('salidas_sesion', id_sesion=1)  # ajusta si usas sesión dinámica
+        return redirect(
+            'salidas_sesion',
+            id_sesion=salida.sesion.id_sesion
+        )
 
     return render(request, 'movimiento_inventario/devolver.html', {
         'salida': salida,
