@@ -90,7 +90,7 @@
             '{% url 'eliminar_usuario' usuario.id_usuario %}',
             '{{ usuario.nombre_completo }}'
         )" style="color:white; text-decoration:none;">
-              Eliminar
+              Cambiar Estado
             </a>
           </button>
 
@@ -109,14 +109,13 @@
     </tbody>
   </table>
 </div>
-<!-- Modal Confirmar Eliminación -->
 <div class="modal fade" id="modalEliminar" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
 
       <div class="modal-header bg-danger text-white">
         <h5 class="modal-title">
-          Confirmar eliminación
+          Confirmar cambio de estado
         </h5>
 
         <button type="button"
@@ -126,12 +125,12 @@
       </div>
 
       <div class="modal-body text-center">
-        <h4>¿Deseas eliminar este usuario?</h4>
+        <h4>¿Deseas cambiar de estado este usuario?</h4>
 
         <p id="textoEliminar" style="margin-top:10px;"></p>
 
         <small style="color:red;">
-          Esta acción puede desactivar o eliminar el registro.
+          Esta acción puede desactivar el registro.
         </small>
       </div>
 
@@ -144,7 +143,7 @@
 
         <a id="btnConfirmarEliminar"
            class="btn btn-danger">
-           Sí, eliminar
+           Sí, cambiar estado
         </a>
       </div>
 

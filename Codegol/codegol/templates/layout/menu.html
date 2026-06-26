@@ -255,6 +255,112 @@
 
     {% endif %}
 
+    {% if documentos_rechazados %}
+
+    <div class="alert alert-warning mt-3" role="alert">
+
+        <strong>
+            📄 Documentos devueltos
+        </strong>
+
+        <hr>
+
+        <p class="mb-2">
+            El administrador devolvió los siguientes documentos. Debes corregirlos y subirlos nuevamente.
+        </p>
+
+        <ul class="mt-2 mb-0">
+
+            {% for doc in documentos_rechazados %}
+
+                <li>
+                    <strong>{{ doc.nombre }}</strong>
+                    — {{ doc.observacion }}
+                </li>
+
+            {% endfor %}
+
+        </ul>
+
+    </div>
+
+    {% endif %}
+
+    {% if documentos_rechazados %}
+
+<div class="modal fade"
+     id="modalRechazados"
+     tabindex="-1">
+
+    <div class="modal-dialog">
+
+        <div class="modal-content">
+
+            <div class="modal-header bg-warning">
+
+                <h5 class="modal-title">
+                    📄 Documentos devueltos
+                </h5>
+
+                <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="modal">
+                </button>
+
+            </div>
+
+            <div class="modal-body">
+
+                <p>
+                    Los siguientes documentos fueron devueltos por el administrador.
+                </p>
+
+                <hr>
+
+                {% for doc in documentos_rechazados %}
+
+                    <div class="mb-3">
+
+                        <strong>
+                            {{ doc.nombre }}
+                        </strong>
+
+                        <br>
+
+                        <span class="text-danger">
+
+                            Motivo:
+
+                        </span>
+
+                        {{ doc.observacion }}
+
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+            <div class="modal-footer">
+
+                <a href="{% url 'documentos' request.session.usuario_id %}"
+                   class="btn btn-warning">
+
+                    Subir nuevamente
+
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endif %}
+
     <ul>
 
       <!-- SOLO SI DOCUMENTOS COMPLETOS -->
@@ -538,11 +644,29 @@
 
       document.addEventListener("DOMContentLoaded", function () {
 
+          {% if documentos_rechazados %}
+
+          let modalRechazadosEl = document.getElementById('modalRechazados');
+          let modalRechazados = new bootstrap.Modal(modalRechazadosEl);
+          let modalBloqueoEl = document.getElementById('modalBloqueo');
+
+          if (modalBloqueoEl) {
+              modalRechazadosEl.addEventListener('hidden.bs.modal', function () {
+                  new bootstrap.Modal(modalBloqueoEl).show();
+              });
+          }
+
+          modalRechazados.show();
+
+          {% else %}
+
           let modal = new bootstrap.Modal(
               document.getElementById('modalBloqueo')
           );
 
           modal.show();
+
+          {% endif %}
 
       });
 

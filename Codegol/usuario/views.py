@@ -1,4 +1,5 @@
 import csv
+import random
 import requests
 import json
 
@@ -58,7 +59,6 @@ def login(request):
                 request.session["foto"] = usuario.foto_perfil.url if usuario.foto_perfil else ""
 
                 request.session["roles"] = ", ".join(lista_roles)
-
 
                 if "Administrador" in lista_roles:
 
@@ -130,6 +130,126 @@ def login(request):
 def logout(request):
     request.session.flush()
     return redirect("login")
+
+def recuperar_contrasena(request):
+
+    if request.method == "POST":
+
+        paso = request.POST.get("paso")
+
+        if paso == "buscar":
+
+            dato = request.POST.get("dato")
+
+            try:
+
+                usuario = Usuario.objects.get(
+                    Q(num_identificacion=dato)
+                )
+
+                codigo = random.randint(100000, 999999)
+
+                request.session["codigo_recuperacion"] = str(codigo)
+                request.session["usuario_recuperacion"] = usuario.id_usuario
+
+                send_mail(
+                    "Recuperación de contraseña",
+                    f"""
+Hola {usuario.nombre_completo}.
+
+Tu código de recuperación es:
+
+{codigo}
+
+Si no solicitaste este cambio puedes ignorar este mensaje.
+                    """,
+                    "administrativo@codegol.com",
+                    [usuario.correo],
+                    fail_silently=False,
+                )
+
+                messages.success(
+                    request,
+                    "Se envió un código a tu correo."
+                )
+
+                return render(
+                    request,
+                    "usuarios/recuperar_contrasena.html",
+                    {
+                        "paso": 2
+                    }
+                )
+
+            except Usuario.DoesNotExist:
+
+                messages.error(
+                    request,
+                    "No existe un usuario con esa información."
+                )
+
+                return redirect("recuperar_contrasena")
+
+        elif paso == "cambiar":
+
+            codigo = request.POST.get("codigo")
+            nueva = request.POST.get("contrasena")
+            confirmar = request.POST.get("confirmar")
+
+            if codigo != request.session.get("codigo_recuperacion"):
+
+                messages.error(
+                    request,
+                    "Código incorrecto."
+                )
+
+                return render(
+                    request,
+                    "usuarios/recuperar_contrasena.html",
+                    {
+                        "paso": 2
+                    }
+                )
+
+            if nueva != confirmar:
+
+                messages.error(
+                    request,
+                    "Las contraseñas no coinciden."
+                )
+
+                return render(
+                    request,
+                    "usuarios/recuperar_contrasena.html",
+                    {
+                        "paso": 2
+                    }
+                )
+
+            usuario = Usuario.objects.get(
+                id_usuario=request.session["usuario_recuperacion"]
+            )
+
+            usuario.contrasena = nueva
+            usuario.save()
+
+            del request.session["codigo_recuperacion"]
+            del request.session["usuario_recuperacion"]
+
+            messages.success(
+                request,
+                "La contraseña fue actualizada correctamente."
+            )
+
+            return redirect("login")
+
+    return render(
+        request,
+        "usuarios/recuperar_contrasena.html",
+        {
+            "paso": 1
+        }
+    )
 
 def cargar_usuarios_csv(request):
     if request.method == "POST":
@@ -370,6 +490,7 @@ def documentos(request, id, categoria=None):
         'historial': historial
     })
 
+@rol_requerido(["Administrador"])
 def cambiar_estado_documento(request, id):
     doc = get_object_or_404(Documentos, id_archivo=id)
 
@@ -397,11 +518,15 @@ def cambiar_estado_documento(request, id):
             if doc.archivo:
                 doc.archivo.delete(save=False)
 
+            usuario_id = doc.usuario.id_usuario
             doc.delete()
 
-            messages.success(request, "Documento eliminado y guardado en historial")
+            messages.success(request, "Documento devuelto y registrado en historial")
 
-            return redirect("documentos", id=doc.usuario.id_usuario)
+            referer = request.META.get("HTTP_REFERER")
+            if referer:
+                return redirect(referer)
+            return redirect("documentos", id=usuario_id)
 
         # 🟢 OTROS ESTADOS
         elif estado in ["APROBADO", "PENDIENTE"]:
@@ -410,7 +535,10 @@ def cambiar_estado_documento(request, id):
 
             messages.success(request, "Estado actualizado correctamente")
 
-    return redirect(request.META.get('HTTP_REFERER'))
+    referer = request.META.get("HTTP_REFERER")
+    if referer:
+        return redirect(referer)
+    return redirect("dashboard")
 
 def historial_documentos(request, id):
     usuario = get_object_or_404(Usuario, id_usuario=id)

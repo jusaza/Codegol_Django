@@ -26,7 +26,7 @@ Iniciar sesión
         name="contrasena" type="password" placeholder="Ingrese su contraseña" required>
     </div>
     <button type="submit">Iniciar sesión</button>
-  </form>
+  </form><br>
 
   {% if messages %}
   {% for message in messages %}
@@ -34,8 +34,10 @@ Iniciar sesión
   {% endfor %}
   {% endif %}
 
-  <div class="extra-links">
-    <!--<a href="#">¿Olvidaste tu contraseña?</a>-->
-  </div>
+  <div class="text-center mt-3">
+    <a href="{% url 'recuperar_contrasena' %}">
+        ¿Olvidaste tu contraseña?
+    </a>
+</div>
 </div>
 {% endblock %}

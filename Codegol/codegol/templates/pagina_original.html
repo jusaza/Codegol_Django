@@ -88,8 +88,6 @@ body{
     color: white;
 }
 
-/* Gráficos */
-
 .grid{
     display: grid;
     grid-template-columns: 2fr 1fr;
@@ -123,19 +121,15 @@ canvas{
 }
 
 @media(max-width: 992px){
-
     .grid{
         grid-template-columns: 1fr;
     }
-
 }
 
 @media(max-width: 576px){
-
     .dashboard{
         padding: 15px;
     }
-
 }
 
 .contenedor-calendario{
@@ -173,12 +167,17 @@ canvas{
 <div class="dashboard">
 
     <div class="header">
-        <h2>⚽ Dashboard - Codegol</h2>
-        <p>Panel de control del sistema</p>
+        <h2>⚽ {{ titulo_dashboard|default:"Dashboard - Codegol" }}</h2>
+        <p>
+            {{ subtitulo_dashboard|default:"Panel de control del sistema" }}
+            {% if nombre_usuario %}
+                — {{ nombre_usuario }}
+            {% endif %}
+        </p>
     </div>
 
+    {% if mostrar_kpis_admin %}
     <div class="kpis">
-
         <a href="{% url 'lista_pagos' %}" style="text-decoration:none;color:inherit;">
             <div class="kpi money">
                 <h3>$ {{ total_recaudo|floatformat:0 }}</h3>
@@ -195,8 +194,8 @@ canvas{
 
         <a href="{% url 'usuario' %}" style="text-decoration:none;color:inherit;">
             <div class="kpi">
-                <h3>{{ usuarios_activos }}</h3>
-                <span>Usuarios Activos</span>
+                <h3>{{ usuarios_inactivos }}</h3>
+                <span>Usuarios Inactivos</span>
             </div>
         </a>
 
@@ -221,398 +220,367 @@ canvas{
             </div>
         </a>
 
+        <a href="#revision-documentos" style="text-decoration:none;color:inherit;">
+            <div class="kpi">
+                <h3>{{ documentos_pendientes_total }}</h3>
+                <span>Documentos por revisar</span>
+            </div>
+        </a>
     </div>
+    {% endif %}
 
+    {% if mostrar_kpis_entrenador %}
+    <div class="kpis">
+        <a href="{% url 'panel_entrenamiento' %}" style="text-decoration:none;color:inherit;">
+            <div class="kpi">
+                <h3>{{ sesiones_total }}</h3>
+                <span>Mis sesiones</span>
+            </div>
+        </a>
+
+        <a href="{% url 'lista_matricula' %}" style="text-decoration:none;color:inherit;">
+            <div class="kpi">
+                <h3>{{ matriculas_activas }}</h3>
+                <span>Matrículas activas</span>
+            </div>
+        </a>
+
+        <a href="{% url 'panel_entrenamiento' %}" style="text-decoration:none;color:inherit;">
+            <div class="kpi">
+                <h3>{{ entrenamientos_activos }}</h3>
+                <span>Entrenamientos activos</span>
+            </div>
+        </a>
+
+        <a href="{% url 'lista_inventario' %}" style="text-decoration:none;color:inherit;">
+            <div class="kpi">
+                <h3>{{ inventario_activo }}</h3>
+                <span>Inventario activo</span>
+            </div>
+        </a>
+    </div>
+    {% endif %}
+
+    {% if mostrar_kpis_jugador %}
+    <div class="kpis">
+        <a href="{% url 'lista_matricula' %}" style="text-decoration:none;color:inherit;">
+            <div class="kpi">
+                <h3>{% if matricula_activa %}Activa{% else %}Sin matrícula{% endif %}</h3>
+                <span>Matrícula — {{ categoria_jugador }}</span>
+            </div>
+        </a>
+
+        <div class="kpi">
+            <h3>{{ nivel_jugador }}</h3>
+            <span>Nivel deportivo</span>
+        </div>
+
+        <a href="{% url 'lista_pagos' %}" style="text-decoration:none;color:inherit;">
+            <div class="kpi">
+                <h3>{{ pagos_pendientes }}</h3>
+                <span>Pagos registrados</span>
+            </div>
+        </a>
+
+        <a href="{% url 'documentos' request.session.usuario_id %}" style="text-decoration:none;color:inherit;">
+            <div class="kpi">
+                <h3>{{ documentos_aprobados }}</h3>
+                <span>Documentos aprobados</span>
+            </div>
+        </a>
+
+        <a href="{% url 'historial_rendimiento' %}" style="text-decoration:none;color:inherit;">
+            <div class="kpi">
+                <h3>{{ asistencias_total }}</h3>
+                <span>Asistencias</span>
+            </div>
+        </a>
+
+        <a href="{% url 'historial_rendimiento' %}" style="text-decoration:none;color:inherit;">
+            <div class="kpi">
+                <h3>{{ inasistencias_total }}</h3>
+                <span>Inasistencias</span>
+            </div>
+        </a>
+    </div>
+    {% endif %}
+
+    {% if mostrar_revision_documentos %}
+    <div class="box" id="revision-documentos" style="margin-top: 25px;">
+        <h4>📄 Revisión de documentos de usuarios</h4>
+        <div class="info">
+            Aprueba o rechaza los documentos pendientes sin salir del dashboard.
+        </div>
+
+        {% if messages %}
+        <div style="margin-top: 15px;">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}" role="alert" style="margin-bottom: 8px;">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% include "usuarios/documentos_revision_dashboard.html" %}
+    </div>
+    {% endif %}
+
+    {% if es_admin or es_entrenador or es_jugador %}
     <div class="contenedor-calendario">
 
-    <h2><center>Calendario - Entrenamientos</center></h2>
+        <h2><center>Calendario - Entrenamientos</center></h2>
 
-    <div class="filtros">
+        <div class="filtros">
 
-        <select id="entrenamiento">
-            <option value="">Todos los entrenamientos</option>
+            {% if mostrar_filtro_entrenamiento != False %}
+            <select id="entrenamiento">
+                <option value="">Todos los entrenamientos</option>
 
-            {% for e in entrenamientos %}
-                <option value="{{ e.id_entrenamiento }}">
-                    {{ e.descripcion }}
-                </option>
-            {% endfor %}
-        </select>
+                {% for e in entrenamientos %}
+                    <option value="{{ e.id_entrenamiento }}">
+                        {{ e.descripcion }}
+                    </option>
+                {% endfor %}
+            </select>
+            {% endif %}
 
-        <select id="categoria">
-            <option value="">Todas las categorías</option>
+            <select id="categoria">
+                <option value="">Todas las categorías</option>
 
-            {% for c in categorias %}
-                <option value="{{ c.id_categoria }}">
-                    {{ c.nombre_categoria }}
-                </option>
-            {% endfor %}
-        </select>
+                {% for c in categorias %}
+                    <option value="{{ c.id_categoria }}"
+                        {% if categoria_jugador_id == c.id_categoria %}selected{% endif %}>
+                        {{ c.nombre_categoria }}
+                    </option>
+                {% endfor %}
+            </select>
 
-        <select id="entrenador">
-            <option value="">Todos los entrenadores</option>
+            {% if mostrar_filtro_entrenador %}
+            <select id="entrenador">
+                <option value="">Todos los entrenadores</option>
 
-            {% for u in entrenadores %}
-                <option value="{{ u.id_usuario }}">
-                    {{ u.nombre_completo }}
-                </option>
-            {% endfor %}
-        </select>
+                {% for u in entrenadores %}
+                    <option value="{{ u.id_usuario }}">
+                        {{ u.nombre_completo }}
+                    </option>
+                {% endfor %}
+            </select>
+            {% endif %}
 
-        <button type="button" onclick="location.href='{% url 'panel_entrenamiento' %}'">➕ Entrenamiento</button>
+            {% if mostrar_boton_entrenamiento %}
+            <button type="button" onclick="location.href='{% url 'panel_entrenamiento' %}'">➕ Entrenamiento</button>
+            {% endif %}
+
+        </div>
+
+        <div id="calendar"></div>
 
     </div>
+    {% endif %}
 
-    <div id="calendar"></div>
-
-</div>
-
+    {% if mostrar_grafico_general or mostrar_grafico_finanzas or mostrar_grafico_documentos or mostrar_grafico_niveles %}
     <div class="grid">
 
+        {% if mostrar_grafico_general %}
         <div class="box">
-            <h4>📊 Resumen General</h4>
-
+            <h4>📊 Resumen {% if es_jugador %}personal{% else %}general{% endif %}</h4>
             <canvas id="generalChart"></canvas>
-
             <div class="info">
-                Usuarios, documentos, pagos, matrículas, inventario y entrenamientos.
+                {% if es_jugador %}
+                    Asistencias, documentos y pagos de tu perfil.
+                {% elif es_entrenador %}
+                    Sesiones, matrículas, entrenamientos e inventario.
+                {% else %}
+                    Usuarios, documentos, pagos, matrículas, inventario y entrenamientos.
+                {% endif %}
             </div>
         </div>
+        {% endif %}
 
+        {% if mostrar_grafico_finanzas %}
         <div class="box">
-            <h4>💰 Estado Financiero</h4>
-
+            <h4>💰 {% if es_jugador %}Mis pagos{% else %}Estado Financiero{% endif %}</h4>
             <canvas id="financeChart"></canvas>
-
             <div class="info">
-                Pagados vs Pendientes vs Cancelados
+                {% if es_jugador %}
+                    Pagos registrados y cancelados de tu matrícula.
+                {% else %}
+                    Pagados vs Pendientes vs Cancelados
+                {% endif %}
             </div>
         </div>
+        {% endif %}
 
+        {% if mostrar_grafico_documentos %}
         <div class="box">
             <h4>📄 Documentos por Categoría</h4>
-
             <canvas id="docsChart"></canvas>
         </div>
+        {% endif %}
 
+        {% if mostrar_grafico_niveles %}
         <div class="box">
             <h4>⚽ Niveles Deportivos</h4>
-
             <canvas id="levelsChart"></canvas>
         </div>
+        {% endif %}
 
     </div>
+    {% endif %}
 
 </div>
 
 <script>
 
+{% if mostrar_grafico_general %}
 new Chart(document.getElementById("generalChart"), {
-
     type: "bar",
-
     data: {
-
-        labels: [
-            "Usuarios",
-            "Documentos",
-            "Pagos",
-            "Matrículas",
-            "Inventario",
-            "Entrenamientos"
-        ],
-
+        labels: {{ general_chart_labels|default:"[]"|safe }},
         datasets: [{
-
-            data: [
-
-                {{ usuarios_total }},
-                {{ documentos_total }},
-                {{ pagos_total }},
-                {{ matriculas_total }},
-                {{ inventario_total }},
-                {{ entrenamientos_total }}
-
-            ],
-
+            data: {{ general_chart_data|default:"[]"|safe }},
             backgroundColor: "#3b82f6"
-
         }]
     },
-
     options:{
         responsive:true,
         maintainAspectRatio:false
     }
-
 });
+{% endif %}
 
-
+{% if mostrar_grafico_finanzas %}
 new Chart(document.getElementById("financeChart"), {
-
     type: "doughnut",
-
     data: {
-
-        labels: [
-            "Confirmados",
-            "Pendientes",
-            "Cancelados"
-        ],
-
+        labels: {% if es_jugador %}["Registrados", "Cancelados"]{% else %}["Confirmados", "Pendientes", "Cancelados"]{% endif %},
         datasets: [{
-
-            data: [
-
-                {{ pagos_total }} - {{ pagos_pendientes }},
-                {{ pagos_pendientes }},
-                {{ pagos_cancelados }}
-
-            ],
-
-            backgroundColor: [
-
-                "#10b981",
-                "#f59e0b",
-                "#ef4444"
-
-            ]
-
+            data: {{ finance_chart_data|default:"[]"|safe }},
+            backgroundColor: {% if es_jugador %}["#10b981", "#ef4444"]{% else %}["#10b981", "#f59e0b", "#ef4444"]{% endif %}
         }]
-
     },
-
     options:{
         responsive:true,
         maintainAspectRatio:false
     }
-
 });
+{% endif %}
 
-
+{% if mostrar_grafico_documentos %}
 new Chart(document.getElementById("docsChart"), {
-
     type: "pie",
-
     data: {
-
-        labels: [
-
-            "Legal",
-            "Medico",
-            "Academico",
-            "Deportivo",
-            "Personal"
-
-        ],
-
+        labels: ["Legal", "Medico", "Academico", "Deportivo", "Personal"],
         datasets:[{
-
             data:[
-
                 {{ documentos.legal }},
                 {{ documentos.medico }},
                 {{ documentos.academico }},
                 {{ documentos.deportivo }},
                 {{ documentos.personal }}
-
             ],
-
-            backgroundColor:[
-
-                "#1d4ed8",
-                "#ef4444",
-                "#10b981",
-                "#8b5cf6",
-                "#f59e0b"
-
-            ]
-
+            backgroundColor:["#1d4ed8", "#ef4444", "#10b981", "#8b5cf6", "#f59e0b"]
         }]
-
     },
-
     options:{
         responsive:true,
         maintainAspectRatio:false
     }
-
 });
+{% endif %}
 
-
+{% if mostrar_grafico_niveles %}
 new Chart(document.getElementById("levelsChart"), {
-
     type:"bar",
-
     data:{
-
-        labels:[
-            "Alto",
-            "Medio",
-            "Bajo"
-        ],
-
+        labels:["Alto", "Medio", "Bajo"],
         datasets:[{
-
             data:[
-
                 {{ niveles.Alto }},
                 {{ niveles.Medio }},
                 {{ niveles.Bajo }}
-
             ],
-
-            backgroundColor:[
-
-                "#22c55e",
-                "#f59e0b",
-                "#ef4444"
-
-            ]
-
+            backgroundColor:["#22c55e", "#f59e0b", "#ef4444"]
         }]
-
     },
-
     options:{
         responsive:true,
         maintainAspectRatio:false
     }
-
 });
+{% endif %}
 
+{% if es_admin or es_entrenador or es_jugador %}
 document.addEventListener('DOMContentLoaded', function() {
 
-    let calendarEl =
-        document.getElementById('calendar');
+    const entrenadorFijo = "{{ entrenador_id|default:'' }}";
+    const categoriaFija = "{{ categoria_jugador_id|default:'' }}";
 
-    let calendar =
-        new FullCalendar.Calendar(
-            calendarEl,
-            {
+    let calendarEl = document.getElementById('calendar');
 
-                locale: 'es',
+    let calendar = new FullCalendar.Calendar(calendarEl, {
+        locale: 'es',
+        initialView: 'timeGridWeek',
+        height: 'auto',
+        nowIndicator: true,
+        allDaySlot: false,
+        slotMinTime: '06:00:00',
+        slotMaxTime: '22:00:00',
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
+        },
+        buttonText: {
+            today: 'Hoy',
+            month: 'Mes',
+            week: 'Semana',
+            day: 'Día',
+            list: 'Agenda'
+        },
+        events: function(fetchInfo, successCallback, failureCallback) {
+            let entrenamientoEl = document.getElementById('entrenamiento');
+            let categoriaEl = document.getElementById('categoria');
+            let entrenadorEl = document.getElementById('entrenador');
 
-                initialView: 'timeGridWeek',
+            let entrenamiento = entrenamientoEl ? entrenamientoEl.value : '';
+            let categoria = categoriaEl ? categoriaEl.value : categoriaFija;
+            let entrenador = entrenadorEl ? entrenadorEl.value : entrenadorFijo;
 
-                height: 'auto',
+            fetch(
+                `/sesiones/calendario/eventos/?entrenamiento=${entrenamiento}&categoria=${categoria}&entrenador=${entrenador}`
+            )
+            .then(response => response.json())
+            .then(data => successCallback(data))
+            .catch(error => failureCallback(error));
+        },
+        eventClick: function(info) {
+            const datos = info.event.extendedProps;
 
-                nowIndicator: true,
-
-                allDaySlot: false,
-
-                slotMinTime: '06:00:00',
-
-                slotMaxTime: '22:00:00',
-
-                headerToolbar: {
-
-                    left: 'prev,next today',
-
-                    center: 'title',
-
-                    right:
-                        'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
-                },
-
-                buttonText: {
-                    today: 'Hoy',
-                    month: 'Mes',
-                    week: 'Semana',
-                    day: 'Día',
-                    list: 'Agenda'
-                },
-
-                events: function(
-                    fetchInfo,
-                    successCallback,
-                    failureCallback
-                ){
-
-                    let entrenamiento =
-                        document.getElementById(
-                            'entrenamiento'
-                        ).value;
-
-                    let categoria =
-                        document.getElementById(
-                            'categoria'
-                        ).value;
-
-                    let entrenador =
-                        document.getElementById(
-                            'entrenador'
-                        ).value;
-
-                    fetch(
-                        `/sesiones/calendario/eventos/?entrenamiento=${entrenamiento}&categoria=${categoria}&entrenador=${entrenador}`
-                    )
-                    .then(
-                        response => response.json()
-                    )
-                    .then(
-                        data => successCallback(data)
-                    )
-                    .catch(
-                        error => failureCallback(error)
-                    );
-                },
-
-                eventClick: function(info){
-
-                    const datos =
-                        info.event.extendedProps;
-
-                    Swal.fire({
-
-                        title:
-                            info.event.title,
-
-                        html:
-                            `
-                            <b>Entrenador:</b>
-                            ${datos.entrenador}<br><br>
-
-                            <b>Lugar:</b>
-                            ${datos.lugar}<br><br>
-
-                            <b>Fecha:</b>
-                            ${datos.fecha}<br><br>
-
-                            <b>Hora Inicio:</b>
-                            ${datos.hora_inicio}<br><br>
-
-                            <b>Hora Fin:</b>
-                            ${datos.hora_fin}<br><br>
-
-                            <b>Observaciones:</b>
-                            ${datos.observaciones || 'Ninguna'}
-                            `
-                    });
-
-                }
-
-            }
-        );
+            Swal.fire({
+                title: info.event.title,
+                html: `
+                    <b>Entrenador:</b> ${datos.entrenador}<br><br>
+                    <b>Lugar:</b> ${datos.lugar}<br><br>
+                    <b>Fecha:</b> ${datos.fecha}<br><br>
+                    <b>Hora Inicio:</b> ${datos.hora_inicio}<br><br>
+                    <b>Hora Fin:</b> ${datos.hora_fin}<br><br>
+                    <b>Observaciones:</b> ${datos.observaciones || 'Ninguna'}
+                `
+            });
+        }
+    });
 
     calendar.render();
 
-    document
-        .querySelectorAll('select')
-        .forEach(select => {
-
-            select.addEventListener(
-                'change',
-                function(){
-
-                    calendar.refetchEvents();
-
-                }
-            );
-
+    document.querySelectorAll('.filtros select').forEach(select => {
+        select.addEventListener('change', function() {
+            calendar.refetchEvents();
         });
-
+    });
 });
+{% endif %}
 
 </script>
 

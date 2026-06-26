@@ -1,0 +1,609 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:"Segoe UI",Tahoma,Geneva,Verdana,sans-serif;
+}
+
+body{
+
+    min-height:100vh;
+
+    background:linear-gradient(
+        135deg,
+        #07162d 0%,
+        #0b4ea2 50%,
+        #2f7df6 100%
+    );
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+
+    padding:25px;
+
+    overflow-x:hidden;
+
+}
+
+.background{
+
+    width:100%;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+
+}
+
+/* ===========================
+   TARJETA
+=========================== */
+
+.card{
+
+    width:100%;
+    max-width:440px;
+
+    background:rgba(255,255,255,.12);
+
+    backdrop-filter:blur(20px);
+    -webkit-backdrop-filter:blur(20px);
+
+    border:1px solid rgba(255,255,255,.25);
+
+    border-radius:28px;
+
+    padding:45px;
+
+    box-shadow:
+        0 20px 50px rgba(0,0,0,.25);
+
+    animation:fade .6s ease;
+
+}
+
+/* ===========================
+   LOGO
+=========================== */
+
+.logo{
+
+    width:95px;
+    height:95px;
+
+    margin:auto;
+    margin-bottom:25px;
+
+    border-radius:50%;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+
+    background:rgba(255,255,255,.15);
+
+    color:#fff;
+
+    font-size:46px;
+
+    box-shadow:
+        inset 0 0 15px rgba(255,255,255,.15),
+        0 10px 20px rgba(0,0,0,.15);
+
+}
+
+/* ===========================
+   TITULOS
+=========================== */
+
+h1{
+
+    color:white;
+
+    text-align:center;
+
+    font-size:31px;
+
+    font-weight:700;
+
+    margin-bottom:10px;
+
+}
+
+.subtitulo{
+
+    color:#d7e9ff;
+
+    text-align:center;
+
+    font-size:15px;
+
+    line-height:24px;
+
+    margin-bottom:35px;
+
+}
+
+/* ===========================
+   LABELS
+=========================== */
+
+label{
+
+    display:block;
+
+    color:white;
+
+    font-size:15px;
+
+    font-weight:600;
+
+    margin-top:18px;
+    margin-bottom:8px;
+
+}
+
+/* ===========================
+   INPUTS
+=========================== */
+
+input{
+
+    width:100%;
+
+    padding:14px 16px;
+
+    border:none;
+
+    border-radius:14px;
+
+    outline:none;
+
+    font-size:15px;
+
+    background:rgba(255,255,255,.92);
+
+    transition:.35s;
+
+}
+
+input::placeholder{
+
+    color:#777;
+
+}
+
+input:focus{
+
+    transform:scale(1.02);
+
+    box-shadow:
+        0 0 18px rgba(255,255,255,.45);
+
+}
+
+/* ===========================
+   BOTON
+=========================== */
+
+button{
+
+    width:100%;
+
+    margin-top:35px;
+
+    padding:15px;
+
+    border:none;
+
+    border-radius:14px;
+
+    cursor:pointer;
+
+    background:linear-gradient(
+        135deg,
+        #2563eb,
+        #1d4ed8
+    );
+
+    color:white;
+
+    font-size:17px;
+
+    font-weight:bold;
+
+    letter-spacing:.5px;
+
+    transition:.35s;
+
+}
+
+button:hover{
+
+    transform:translateY(-3px);
+
+    box-shadow:
+        0 15px 30px rgba(37,99,235,.45);
+
+}
+
+button:active{
+
+    transform:scale(.98);
+
+}
+
+/* ===========================
+   LINK
+=========================== */
+
+.volver{
+
+    display:block;
+
+    text-align:center;
+
+    margin-top:25px;
+
+    color:#d7e9ff;
+
+    text-decoration:none;
+
+    transition:.3s;
+
+}
+
+.volver:hover{
+
+    color:white;
+
+}
+
+/* ===========================
+   MENSAJES
+=========================== */
+
+.mensaje{
+
+    padding:14px;
+
+    border-radius:14px;
+
+    margin-bottom:18px;
+
+    text-align:center;
+
+    font-size:14px;
+
+    animation:fade .4s;
+
+}
+
+.success{
+
+    background:#16a34a;
+
+    color:white;
+
+}
+
+.error{
+
+    background:#dc2626;
+
+    color:white;
+
+}
+
+/* ===========================
+   ANIMACION
+=========================== */
+
+@keyframes fade{
+
+    from{
+
+        opacity:0;
+        transform:translateY(25px);
+
+    }
+
+    to{
+
+        opacity:1;
+        transform:translateY(0);
+
+    }
+
+}
+
+/* ===========================
+   TABLETS
+=========================== */
+
+@media(max-width:768px){
+
+    body{
+
+        padding:20px;
+
+    }
+
+    .card{
+
+        max-width:500px;
+
+        padding:35px;
+
+    }
+
+}
+
+/* ===========================
+   CELULARES
+=========================== */
+
+@media(max-width:480px){
+
+    body{
+
+        align-items:flex-start;
+
+        padding:20px;
+
+    }
+
+    .card{
+
+        margin-top:20px;
+
+        border-radius:22px;
+
+        padding:28px 22px;
+
+    }
+
+    .logo{
+
+        width:75px;
+        height:75px;
+
+        font-size:36px;
+
+        margin-bottom:18px;
+
+    }
+
+    h1{
+
+        font-size:24px;
+
+    }
+
+    .subtitulo{
+
+        font-size:14px;
+
+        margin-bottom:25px;
+
+        line-height:22px;
+
+    }
+
+    label{
+
+        font-size:14px;
+
+    }
+
+    input{
+
+        padding:13px;
+
+        font-size:14px;
+
+    }
+
+    button{
+
+        padding:14px;
+
+        font-size:15px;
+
+        margin-top:28px;
+
+    }
+
+    .volver{
+
+        font-size:14px;
+
+    }
+
+}
+
+/* ===========================
+   CELULARES PEQUEÑOS
+=========================== */
+
+@media(max-width:340px){
+
+    .card{
+
+        padding:20px 16px;
+
+    }
+
+    .logo{
+
+        width:65px;
+        height:65px;
+
+        font-size:30px;
+
+    }
+
+    h1{
+
+        font-size:21px;
+
+    }
+
+    .subtitulo{
+
+        font-size:13px;
+
+    }
+
+    input{
+
+        padding:11px;
+
+    }
+
+    button{
+
+        font-size:14px;
+
+        padding:12px;
+
+    }
+
+}
+</style>
+
+    <meta charset="UTF-8">
+
+    <title>Recuperar contraseña</title>
+
+    <link rel="stylesheet" href="{% static 'css/recuperar_contrasena.css' %}">
+
+</head>
+
+<body>
+
+<div class="background">
+
+    <div class="card">
+
+        <div class="logo">
+            🔒
+        </div>
+
+        <h1>Recuperar contraseña</h1>
+
+        <p class="subtitulo">
+            Recupera el acceso a tu cuenta de forma segura.
+        </p>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="mensaje {{ message.tags }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        {% if paso == 1 %}
+
+        <form method="POST">
+
+            {% csrf_token %}
+
+            <input
+                type="hidden"
+                name="paso"
+                value="buscar"
+            >
+
+            <label>
+                Correo electrónico o documento
+            </label>
+
+            <input
+                type="number"
+                name="dato"
+                min="100000000"
+                placeholder="Ingresa tu documento de identidad"
+                required
+            >
+
+            <button type="submit">
+
+                Enviar código
+
+            </button>
+
+        </form>
+
+        {% else %}
+
+        <form method="POST">
+
+            {% csrf_token %}
+
+            <input
+                type="hidden"
+                name="paso"
+                value="cambiar"
+            >
+
+            <label>Código recibido</label>
+
+            <input
+                type="text"
+                name="codigo"
+                maxlength="6"
+                autocomplete="off"
+                required
+            >
+
+            <label>Nueva contraseña</label>
+
+            <input
+                type="password"
+                name="contrasena"
+                placeholder="********"
+                autocomplete="off"
+                required
+            >
+
+            <label>Confirmar contraseña</label>
+
+            <input
+                type="password"
+                name="confirmar"
+                placeholder="********"
+                autocomplete="off"
+                required
+            >
+
+            <button type="submit">
+
+                Cambiar contraseña
+
+            </button>
+
+        </form>
+
+        {% endif %}
+
+        <a href="{% url 'login' %}" class="volver">
+            ← Volver al inicio de sesión
+        </a>
+
+    </div>
+
+</div>
+
+</body>
+
+</html>

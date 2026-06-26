@@ -343,6 +343,34 @@ th {
     transform: scale(1.02);
 }
 
+.rechazados-box {
+    max-width: 600px;
+    margin: 0 auto 20px auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.rechazado-item {
+    background: #fff3cd;
+    border-left: 5px solid #ffc107;
+    padding: 12px 15px;
+    border-radius: 8px;
+    font-weight: 500;
+    color: #856404;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+}
+
+.rechazado-item strong {
+    display: block;
+    margin-bottom: 4px;
+}
+
+.rechazado-motivo {
+    color: #dc3545;
+    font-weight: 600;
+}
+
 .completo-box {
     max-width: 500px;
     margin: 0 auto 20px auto;
@@ -697,6 +725,23 @@ th {
     {% for message in messages %}
         <div class="toast {{ message.tags }}">
             {{ message }}
+        </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+{% if documentos_rechazados %}
+<h3 class="titulo-seccion">Documentos devueltos</h3>
+
+<div class="rechazados-box">
+    <div class="rechazado-item" style="background:#fff8e1;border-color:#ff9800;">
+        El administrador devolvió los siguientes documentos. Revisa el motivo y súbelos nuevamente.
+    </div>
+
+    {% for doc in documentos_rechazados %}
+        <div class="rechazado-item">
+            <strong>📄 {{ doc.nombre }} ({{ doc.tipo }})</strong>
+            <span class="rechazado-motivo">Motivo:</span> {{ doc.observacion }}
         </div>
     {% endfor %}
 </div>

@@ -1,4 +1,4 @@
-from .models import Usuario, Documentos
+from .models import Usuario, Documentos, HistorialDocumentos
 from .forms import DOCUMENTOS_POR_ROL, es_menor
 
 
@@ -8,6 +8,7 @@ def documentos_faltantes(request):
     roles_sesion = request.session.get("roles", [])
 
     faltantes_nombres = []
+    documentos_rechazados = []
     docs_completos = False
 
     # ===== SIN LOGIN =====
@@ -16,7 +17,8 @@ def documentos_faltantes(request):
 
         return {
             "faltantes": [],
-            "docs_completos": False
+            "docs_completos": False,
+            "documentos_rechazados": [],
         }
 
     # ===== ADMIN SIEMPRE COMPLETO =====
@@ -25,7 +27,8 @@ def documentos_faltantes(request):
 
         return {
             "faltantes": [],
-            "docs_completos": True
+            "docs_completos": True,
+            "documentos_rechazados": [],
         }
 
     try:
@@ -97,6 +100,26 @@ def documentos_faltantes(request):
 
         ]
 
+        # ===== DEVOLUCIONES PENDIENTES DE RESUBIR =====
+
+        if faltantes:
+            historial_rechazados = HistorialDocumentos.objects.filter(
+                usuario=usuario,
+                tipo_documento__in=faltantes,
+            ).order_by('-fecha_eliminacion')
+
+            documentos_rechazados = [
+                {
+                    'nombre': registro.nombre,
+                    'tipo': diccionario_docs.get(
+                        registro.tipo_documento,
+                        registro.tipo_documento,
+                    ),
+                    'observacion': registro.observaciones_rechazo,
+                }
+                for registro in historial_rechazados
+            ]
+
         # ===== COMPLETOS =====
 
         docs_completos = (
@@ -111,6 +134,8 @@ def documentos_faltantes(request):
 
         "faltantes": faltantes_nombres,
 
-        "docs_completos": docs_completos
+        "docs_completos": docs_completos,
+
+        "documentos_rechazados": documentos_rechazados,
 
     }

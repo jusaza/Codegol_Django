@@ -1,0 +1,247 @@
+<style>
+.docs-revision-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+.docs-revision-table th,
+.docs-revision-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #eee;
+    text-align: left;
+    font-size: 14px;
+}
+
+.docs-revision-table th {
+    background: #f8fafc;
+    font-weight: 700;
+    color: #334155;
+}
+
+.docs-revision-table tr:hover {
+    background: #f8fafc;
+}
+
+.docs-revision-acciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+}
+
+.btn-doc-aprobar {
+    background: #10b981;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.btn-doc-rechazar {
+    background: #ef4444;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.btn-doc-ver {
+    background: #3b82f6;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.btn-doc-perfil {
+    color: #2563eb;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.btn-doc-perfil:hover {
+    text-decoration: underline;
+}
+
+.estado-pendiente {
+    color: #d97706;
+    font-weight: 700;
+}
+
+.modal-rechazo-doc {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    z-index: 10000;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-rechazo-doc.activo {
+    display: flex;
+}
+
+.modal-rechazo-contenido {
+    background: white;
+    width: min(420px, 92vw);
+    padding: 22px;
+    border-radius: 14px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.modal-rechazo-contenido textarea {
+    width: 100%;
+    min-height: 90px;
+    margin-top: 10px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    resize: vertical;
+}
+
+.modal-rechazo-botones {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 14px;
+}
+
+.btn-cancelar-rechazo {
+    background: #94a3b8;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.sin-documentos-pendientes {
+    padding: 18px;
+    background: #ecfdf5;
+    border-radius: 10px;
+    color: #047857;
+    font-weight: 600;
+    text-align: center;
+}
+</style>
+
+{% if documentos_pendientes %}
+<div style="overflow-x: auto;">
+    <table class="docs-revision-table">
+        <thead>
+            <tr>
+                <th>Usuario</th>
+                <th>Tipo</th>
+                <th>Nombre</th>
+                <th>Categoría</th>
+                <th>Fecha</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for doc in documentos_pendientes %}
+            <tr>
+                <td>
+                    <a href="{% url 'documentos' doc.usuario.id_usuario %}"
+                       class="btn-doc-perfil">
+                        {{ doc.usuario.nombre_completo }}
+                    </a>
+                </td>
+                <td>{{ doc.get_tipo_documento_display }}</td>
+                <td>{{ doc.nombre }}</td>
+                <td>{{ doc.get_categoria_display }}</td>
+                <td>{{ doc.fecha_subida|date:"d/m/Y H:i" }}</td>
+                <td><span class="estado-pendiente">🟡 Pendiente</span></td>
+                <td>
+                    <div class="docs-revision-acciones">
+                        {% if doc.archivo %}
+                        <a href="{{ doc.archivo.url }}" target="_blank" class="btn-doc-ver">
+                            👁️ Ver
+                        </a>
+                        {% endif %}
+
+                        <form method="post"
+                              action="{% url 'cambiar_estado_documento' doc.id_archivo %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="estado" value="APROBADO">
+                            <button type="submit" class="btn-doc-aprobar">
+                                ✅ Aprobar
+                            </button>
+                        </form>
+
+                        <button type="button"
+                                class="btn-doc-rechazar"
+                                onclick="abrirModalRechazo({{ doc.id_archivo }})">
+                            ❌ Rechazar
+                        </button>
+                    </div>
+
+                    <div id="modal-rechazo-{{ doc.id_archivo }}" class="modal-rechazo-doc">
+                        <div class="modal-rechazo-contenido">
+                            <h4 style="margin: 0 0 8px 0;">📌 Devolver documento</h4>
+                            <p style="margin: 0; color: #64748b; font-size: 14px;">
+                                Indica el motivo para que {{ doc.usuario.nombre_completo }} pueda corregirlo.
+                            </p>
+                            <form method="post"
+                                  action="{% url 'cambiar_estado_documento' doc.id_archivo %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="estado" value="DEVUELTO">
+                                <textarea name="observacion_rechazo"
+                                          required
+                                          minlength="3"
+                                          placeholder="Escriba el motivo del rechazo..."></textarea>
+                                <div class="modal-rechazo-botones">
+                                    <button type="button"
+                                            class="btn-cancelar-rechazo"
+                                            onclick="cerrarModalRechazo({{ doc.id_archivo }})">
+                                        Cancelar
+                                    </button>
+                                    <button type="submit" class="btn-doc-rechazar">
+                                        Confirmar rechazo
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="sin-documentos-pendientes">
+    ✔ No hay documentos pendientes de revisión
+</div>
+{% endif %}
+
+<script>
+function abrirModalRechazo(id) {
+    document.getElementById('modal-rechazo-' + id).classList.add('activo');
+}
+
+function cerrarModalRechazo(id) {
+    document.getElementById('modal-rechazo-' + id).classList.remove('activo');
+}
+
+document.querySelectorAll('.modal-rechazo-doc').forEach(function (modal) {
+    modal.addEventListener('click', function (event) {
+        if (event.target === modal) {
+            modal.classList.remove('activo');
+        }
+    });
+});
+</script>
