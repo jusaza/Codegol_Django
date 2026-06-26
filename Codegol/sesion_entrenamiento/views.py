@@ -20,6 +20,12 @@ def lista_sesiones(request, id_entrenamiento):
         id_entrenamiento=id_entrenamiento
     )
 
+    usuario_id = request.session.get("usuario_id")
+    roles = request.session.get("roles", [])
+    es_admin = "Administrador" in roles
+    es_entrenador = "Entrenador" in roles and not es_admin
+    es_jugador = "Jugador" in roles and not es_admin and not es_entrenador
+
     sesiones = SesionEntrenamiento.objects.filter(
         id_entrenamiento=entrenamiento,
         estado=True
@@ -29,21 +35,40 @@ def lista_sesiones(request, id_entrenamiento):
         '-fecha'
     )
 
+    categoria_jugador_id = None
+
+    if es_entrenador and usuario_id:
+        sesiones = sesiones.filter(
+            id_entrenador_id=usuario_id
+        )
+    elif es_jugador and usuario_id:
+        categoria_jugador_id = _categoria_jugador_id(usuario_id)
+        if categoria_jugador_id:
+            sesiones = sesiones.filter(
+                sesioncategoria__id_categoria_id=categoria_jugador_id,
+                sesioncategoria__estado=True,
+            ).distinct()
+        else:
+            sesiones = sesiones.none()
+
     entrenadores = Usuario.objects.filter(
         usuario__id_rol__rol_usuario__iexact="Entrenador"
     ).distinct()
 
     for sesion in sesiones:
 
-        sesion.categorias_registradas = (
-            SesionCategoria.objects
-            .filter(
-                id_sesion=sesion,
-                estado=True
+        categorias_sesion = SesionCategoria.objects.filter(
+            id_sesion=sesion,
+            estado=True
+        )
+
+        if categoria_jugador_id:
+            categorias_sesion = categorias_sesion.filter(
+                id_categoria_id=categoria_jugador_id
             )
-            .select_related(
-                'id_categoria'
-            )
+
+        sesion.categorias_registradas = categorias_sesion.select_related(
+            'id_categoria'
         )
     
         for categoria in sesion.categorias_registradas:

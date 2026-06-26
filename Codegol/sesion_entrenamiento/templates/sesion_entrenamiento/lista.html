@@ -102,8 +102,28 @@
         </div>
     </div>
 
+    {% if "Entrenador" in request.session.roles and "Administrador" not in request.session.roles %}
+    <div class="alert alert-info mb-3">
+        Solo se muestran las sesiones en las que usted está asignado como encargado.
+    </div>
+    {% endif %}
+
+    {% if "Jugador" in request.session.roles and "Administrador" not in request.session.roles and "Entrenador" not in request.session.roles %}
+    <div class="alert alert-info mb-3">
+        Solo se muestran las sesiones asignadas a su categoría.
+    </div>
+    {% endif %}
+
     <!-- CARDS -->
     <div class="row">
+
+        {% if not sesiones %}
+        <div class="col-12">
+            <div class="alert alert-secondary text-center">
+                No hay sesiones disponibles para mostrar.
+            </div>
+        </div>
+        {% endif %}
 
         {% for s in sesiones %}
         <div class="col-md-4 mb-4">
