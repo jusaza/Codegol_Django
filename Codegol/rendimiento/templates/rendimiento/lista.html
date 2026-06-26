@@ -61,6 +61,7 @@
     </h2>
 
     <!-- BUSCADOR -->
+    {% if "Administrador" in request.session.roles or "Entrenador" in request.session.roles %}
     <div class="mb-4 filtro-jugador">
 
         <input
@@ -69,8 +70,9 @@
             class="form-control"
             placeholder="Buscar jugador..."
         >
-
+    
     </div>
+    {% endif %}
 
     <form method="POST"
       action="{% url 'guardar_rendimiento' id_sesion id_categoria %}">
@@ -135,48 +137,64 @@
 
                                     {% if celda %}
 
-                                    <div class="rubrica-btns">
+                                    {% if not es_responsable %}
 
-                                        <button
-    type="button"
-    data-valor="1"
-    class="btn btn-outline-danger btn-sm"
-    onclick="setValor('{{ celda.id_rendimiento }}',1,this)">
-    1
-</button>
+    {% if celda.valor %}
+        <span class="badge bg-primary">
+            {{ celda.valor }}
+        </span>
+    {% else %}
+        <span class="text-muted">
+            Sin calificar
+        </span>
+    {% endif %}
 
-<button
-    type="button"
-    data-valor="2"
-    class="btn btn-outline-warning btn-sm"
-    onclick="setValor('{{ celda.id_rendimiento }}',2,this)">
-    2
-</button>
+{% else %}
 
-<button
-    type="button"
-    data-valor="3"
-    class="btn btn-outline-info btn-sm"
-    onclick="setValor('{{ celda.id_rendimiento }}',3,this)">
-    3
-</button>
+<div class="rubrica-btns">
 
-<button
-    type="button"
-    data-valor="4"
-    class="btn btn-outline-success btn-sm"
-    onclick="setValor('{{ celda.id_rendimiento }}',4,this)">
-    4
-</button>
+    <button
+        type="button"
+        data-valor="1"
+        class="btn btn-outline-danger btn-sm"
+        onclick="setValor('{{ celda.id_rendimiento }}',1,this)">
+        1
+    </button>
 
-                                    </div>
+    <button
+        type="button"
+        data-valor="2"
+        class="btn btn-outline-warning btn-sm"
+        onclick="setValor('{{ celda.id_rendimiento }}',2,this)">
+        2
+    </button>
 
-                                    <input
-                                        type="hidden"
-                                        class="valor-input"
-                                        id="valor_{{ celda.id_rendimiento }}"
-                                        name="valor_{{ celda.id_rendimiento }}"
-                                        value="{{ celda.valor|default:'' }}">
+    <button
+        type="button"
+        data-valor="3"
+        class="btn btn-outline-info btn-sm"
+        onclick="setValor('{{ celda.id_rendimiento }}',3,this)">
+        3
+    </button>
+
+    <button
+        type="button"
+        data-valor="4"
+        class="btn btn-outline-success btn-sm"
+        onclick="setValor('{{ celda.id_rendimiento }}',4,this)">
+        4
+    </button>
+
+</div>
+
+<input
+    type="hidden"
+    class="valor-input"
+    id="valor_{{ celda.id_rendimiento }}"
+    name="valor_{{ celda.id_rendimiento }}"
+    value="{{ celda.valor|default:'' }}">
+
+{% endif %}
 
                                     {% endif %}
 
@@ -208,7 +226,7 @@
 
         {% endfor %}
 
-        {% if "Administrador" in request.session.roles or "Entrenador" in request.session.roles %}
+        {% if es_responsable %}
         <div class="text-end mb-4">
 
             <button class="btn btn-success btn-lg">

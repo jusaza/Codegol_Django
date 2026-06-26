@@ -175,33 +175,37 @@
             📋 Asistencia
         </button>
     </div>
-    {% if "Administrador" in request.session.roles or "Entrenador" in request.session.roles %}
-    <div class="col-6">
-                <button
-                    id="btnRendimiento_{{ s.id_sesion }}"
-                    class="btn btn-warning w-100"
-                    onclick="irRendimiento({{ s.id_sesion }})">
-                    📊 Rendimiento
-                </button>
-    </div>
-    <div class="col-6">
-        <a class="btn text-white w-100"
-           style="background:green;border-color:green"
-           href="{% url 'salidas_sesion' s.id_sesion %}">
-            📦 Movimientos
-        </a>
-    </div>
-    {% endif %}
-    {% if "Jugador" in request.session.roles %}
-    <div class="col-12">
-                <button
-                    id="btnRendimiento_{{ s.id_sesion }}"
-                    class="btn btn-warning w-100"
-                    onclick="irRendimiento({{ s.id_sesion }})">
-                    📊 Rendimiento
-                </button>
-    </div>
-    {% endif %}
+    {% if s.es_responsable %}
+
+<div class="col-6">
+    <button
+        id="btnRendimiento_{{ s.id_sesion }}"
+        class="btn btn-warning w-100"
+        onclick="irRendimiento({{ s.id_sesion }})">
+        📊 Rendimiento
+    </button>
+</div>
+
+<div class="col-6">
+    <a class="btn text-white w-100"
+       style="background:green;border-color:green"
+       href="{% url 'salidas_sesion' s.id_sesion %}">
+        📦 Movimientos
+    </a>
+</div>
+
+{% else %}
+
+<div class="col-12">
+    <button
+        id="btnRendimiento_{{ s.id_sesion }}"
+        class="btn btn-warning w-100"
+        onclick="irRendimiento({{ s.id_sesion }})">
+        📊 Mi rendimiento
+    </button>
+</div>
+
+{% endif %}
 </div>
 
                 </div>

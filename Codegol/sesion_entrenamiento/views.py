@@ -20,13 +20,34 @@ def lista_sesiones(request, id_entrenamiento):
         id_entrenamiento=id_entrenamiento
     )
 
+    usuario_id = request.session.get("usuario_id")
+    roles = request.session.get("roles", [])
+
     sesiones = SesionEntrenamiento.objects.filter(
         id_entrenamiento=entrenamiento,
         estado=True
-    ).select_related(
-        'id_entrenador'
-    ).order_by(
-        '-fecha'
+    )
+
+    if "Administrador" not in roles:
+
+        filtro = Q()
+
+        if "Entrenador" in roles:
+            filtro |= Q(
+                id_entrenador_id=usuario_id
+            )
+
+        if "Jugador" in roles:
+            filtro |= Q(
+                asistencia__id_matricula__id_jugador_id=usuario_id
+            )
+
+        sesiones = sesiones.filter(filtro).distinct()
+
+    sesiones = (
+        sesiones
+        .select_related("id_entrenador")
+        .order_by("-fecha")
     )
 
     entrenadores = Usuario.objects.filter(
@@ -35,17 +56,22 @@ def lista_sesiones(request, id_entrenamiento):
 
     for sesion in sesiones:
 
-        sesion.categorias_registradas = (
-            SesionCategoria.objects
-            .filter(
-                id_sesion=sesion,
-                estado=True
-            )
-            .select_related(
-                'id_categoria'
+        # Determina si el usuario es responsable de la sesión
+        sesion.es_responsable = (
+            "Administrador" in roles
+            or (
+                "Entrenador" in roles
+                and sesion.id_entrenador_id == usuario_id
             )
         )
-    
+
+        sesion.categorias_registradas = (
+            SesionCategoria.objects.filter(
+                id_sesion=sesion,
+                estado=True
+            ).select_related("id_categoria")
+        )
+
         for categoria in sesion.categorias_registradas:
 
             asistencias = Asistencia.objects.filter(
@@ -54,18 +80,11 @@ def lista_sesiones(request, id_entrenamiento):
             )
 
             pendientes = asistencias.filter(
-                Q(tipo_asistencia__isnull=True) |
-                Q(tipo_asistencia='')
+                Q(tipo_asistencia__isnull=True)
+                | Q(tipo_asistencia="")
             ).exists()
 
-            print(
-                categoria.id_categoria.nombre_categoria,
-                asistencias.count(),
-                pendientes
-            )
-
             categoria.asistencia_completa = not pendientes
-
 
     return render(
         request,

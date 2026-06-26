@@ -48,6 +48,12 @@ def tabla_rendimiento(
         SesionEntrenamiento,
         id_sesion=id_sesion
     )
+    roles = request.session.get("roles", [])
+    usuario_id = request.session.get("usuario_id")
+    es_responsable = (
+        "Administrador" in roles or
+        sesion.id_entrenador_id == usuario_id
+    )
 
     # ==========================================
     # ACTIVIDADES CONGELADAS DE LA SESIÓN
@@ -77,6 +83,11 @@ def tabla_rendimiento(
             "id_matricula__posicion"
         )
     )
+
+    if "Jugador" in roles:
+        asistencias = asistencias.filter(
+            id_matricula__id_jugador_id=usuario_id
+        )
 
     posiciones = OrderedDict()
 
@@ -197,10 +208,10 @@ def tabla_rendimiento(
         {
             "posiciones": posiciones,
             "id_sesion": id_sesion,
-            "id_categoria": id_categoria
+            "id_categoria": id_categoria,
+            "es_responsable": es_responsable,
         }
     )
-
 
 
 
@@ -209,6 +220,23 @@ def guardar_rendimiento(
     id_sesion,
     id_categoria
 ):
+    roles = request.session.get("roles", [])
+
+    sesion = get_object_or_404(
+        SesionEntrenamiento,
+        id_sesion=id_sesion
+    )
+
+    es_responsable = (
+        "Administrador" in roles or
+        sesion.id_entrenador_id == request.session.get("usuario_id")
+    )
+
+    if not es_responsable:
+        return redirect(
+            "lista_sesiones",
+            id_entrenamiento=sesion.id_entrenamiento.id_entrenamiento
+        )
 
     if request.method == "POST":
 
@@ -224,24 +252,15 @@ def guardar_rendimiento(
             )
 
             if valor:
-
                 valor = valor.replace(",", ".")
-
                 r.valor = Decimal(valor)
-
             else:
-
                 r.valor = None
 
             r.save()
 
-    sesion = get_object_or_404(
-    SesionEntrenamiento,
-    id_sesion=id_sesion
-)
-
     return redirect(
-        'lista_sesiones',
+        "lista_sesiones",
         id_entrenamiento=sesion.id_entrenamiento.id_entrenamiento
     )
 
