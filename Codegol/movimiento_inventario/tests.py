@@ -4,6 +4,8 @@ from django.urls import reverse
 from usuario.models import Usuario
 from inventario.models import Inventario
 from movimiento_inventario.models import MovimientoInventario
+from entrenamientos.models import Entrenamiento
+from sesion_entrenamiento.models import SesionEntrenamiento
 from datetime import date
 
 class MovimientoInventarioViewsTest(TestCase):
@@ -53,7 +55,24 @@ class MovimientoInventarioViewsTest(TestCase):
             descripcion="Balón profesional",
             estado=True
         )
+        # ------------------------------------------
+        # Entrenamiento y sesión de prueba
+        # ------------------------------------------
+        self.entrenamiento = Entrenamiento.objects.create(
+            descripcion="Entrenamiento de prueba",
+            estado=True,
+            lugar="Cancha Principal",
+            observaciones="Prueba"
+        )
 
+        self.sesion = SesionEntrenamiento.objects.create(
+            id_entrenamiento=self.entrenamiento,
+            id_entrenador=self.usuario,
+            fecha=date.today(),
+            hora_inicio="08:00",
+            hora_fin="10:00",
+            estado=True
+        )
         # ------------------------------------------
         # Movimiento entrada
         # ------------------------------------------
@@ -73,6 +92,7 @@ class MovimientoInventarioViewsTest(TestCase):
         self.salida = MovimientoInventario.objects.create(
             inventario=self.inventario,
             usuario=self.usuario,
+            sesion=self.sesion,
             tipo_movimiento="salida",
             cantidad=3,
             observaciones="Entrenamiento"
@@ -85,11 +105,13 @@ class MovimientoInventarioViewsTest(TestCase):
         self.devolucion = MovimientoInventario.objects.create(
             inventario=self.inventario,
             usuario=self.usuario,
+            sesion=self.sesion,
             tipo_movimiento="devolucion",
             cantidad=1,
             movimiento_padre=self.salida,
             observaciones="Se devolvió parcialmente"
         )
+
 
     # ==================================================
     # LISTA DE MOVIMIENTOS
@@ -268,7 +290,7 @@ class MovimientoInventarioViewsTest(TestCase):
         response = self.client.get(
             reverse(
                 "salidas_sesion",
-                args=[1]
+                args=[self.sesion.id_sesion]
             )
         )
 
@@ -287,7 +309,7 @@ class MovimientoInventarioViewsTest(TestCase):
         response = self.client.post(
             reverse(
                 "salidas_sesion",
-                args=[1]
+                args=[self.sesion.id_sesion]
             ),
             {
                 "inventario_id": self.inventario.id_inventario,
@@ -309,7 +331,7 @@ class MovimientoInventarioViewsTest(TestCase):
             response,
             reverse(
                 "salidas_sesion",
-                args=[1]
+                args=[self.sesion.id_sesion]
             )
         )
 
@@ -319,7 +341,7 @@ class MovimientoInventarioViewsTest(TestCase):
         response = self.client.post(
             reverse(
                 "salidas_sesion",
-                args=[1]
+                args=[self.sesion.id_sesion]
             ),
             {
                 "inventario_id": self.inventario.id_inventario,
@@ -383,7 +405,7 @@ class MovimientoInventarioViewsTest(TestCase):
             response,
             reverse(
                 "salidas_sesion",
-                args=[1]
+                args=[self.sesion.id_sesion]
             )
         )
 

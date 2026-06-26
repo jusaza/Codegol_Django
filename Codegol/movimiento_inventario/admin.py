@@ -8,6 +8,7 @@ class MovimientoInventarioAdmin(admin.ModelAdmin):
         'id_movimiento',
         'inventario',
         'usuario',
+        'sesion',
         'tipo_movimiento',
         'cantidad',
         'fecha',
@@ -18,12 +19,14 @@ class MovimientoInventarioAdmin(admin.ModelAdmin):
         'tipo_movimiento',
         'fecha',
         'inventario',
+        'sesion',
     )
 
     search_fields = (
         'inventario__nombre_articulo',
         'usuario__nombre_completo',
         'usuario__num_identificacion',
+        'sesion__id_sesion',
         'observaciones',
     )
 
@@ -36,6 +39,7 @@ class MovimientoInventarioAdmin(admin.ModelAdmin):
     autocomplete_fields = (
         'inventario',
         'usuario',
+        'sesion',
         'movimiento_padre',
     )
 
