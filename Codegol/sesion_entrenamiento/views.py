@@ -23,26 +23,46 @@ def lista_sesiones(request, id_entrenamiento):
     usuario_id = request.session.get("usuario_id")
     roles = request.session.get("roles", [])
 
+    # Prioridad de roles
+    es_admin = "Administrador" in roles
+    es_entrenador = (
+        "Entrenador" in roles and
+        not es_admin
+    )
+    es_jugador = (
+        "Jugador" in roles and
+        not es_admin and
+        not es_entrenador
+    )
+
     sesiones = SesionEntrenamiento.objects.filter(
         id_entrenamiento=entrenamiento,
         estado=True
     )
 
-    if "Administrador" not in roles:
+    # Filtrado según prioridad
+    categoria_jugador_id = None
 
-        filtro = Q()
+    if es_admin:
+        pass
 
-        if "Entrenador" in roles:
-            filtro |= Q(
-                id_entrenador_id=usuario_id
-            )
+    elif es_entrenador:
+        sesiones = sesiones.filter(
+            id_entrenador_id=usuario_id
+        )
 
-        if "Jugador" in roles:
-            filtro |= Q(
-                asistencia__id_matricula__id_jugador_id=usuario_id
-            )
+    elif es_jugador:
+        categoria_jugador_id = _categoria_jugador_id(
+            usuario_id
+        )
 
-        sesiones = sesiones.filter(filtro).distinct()
+        if categoria_jugador_id:
+            sesiones = sesiones.filter(
+                sesioncategoria__id_categoria_id=categoria_jugador_id,
+                sesioncategoria__estado=True,
+            ).distinct()
+        else:
+            sesiones = sesiones.none()
 
     sesiones = (
         sesiones
@@ -56,21 +76,33 @@ def lista_sesiones(request, id_entrenamiento):
 
     for sesion in sesiones:
 
-        # Determina si el usuario es responsable de la sesión
+        # Responsable de la sesión
         sesion.es_responsable = (
-            "Administrador" in roles
-            or (
-                "Entrenador" in roles
-                and sesion.id_entrenador_id == usuario_id
+            es_admin or
+            (
+                "Entrenador" in roles and
+                sesion.id_entrenador_id == usuario_id
             )
         )
 
-        sesion.categorias_registradas = (
+        categorias_sesion = (
             SesionCategoria.objects.filter(
                 id_sesion=sesion,
                 estado=True
-            ).select_related("id_categoria")
+            )
         )
+
+        # El jugador solo ve su categoría
+        if categoria_jugador_id:
+            categorias_sesion = categorias_sesion.filter(
+                id_categoria_id=categoria_jugador_id
+            )
+
+        categorias_sesion = categorias_sesion.select_related(
+            "id_categoria"
+        )
+
+        sesion.categorias_registradas = categorias_sesion
 
         for categoria in sesion.categorias_registradas:
 
@@ -80,8 +112,8 @@ def lista_sesiones(request, id_entrenamiento):
             )
 
             pendientes = asistencias.filter(
-                Q(tipo_asistencia__isnull=True)
-                | Q(tipo_asistencia="")
+                Q(tipo_asistencia__isnull=True) |
+                Q(tipo_asistencia="")
             ).exists()
 
             categoria.asistencia_completa = not pendientes
@@ -95,7 +127,7 @@ def lista_sesiones(request, id_entrenamiento):
             "entrenadores": entrenadores,
             "categorias": Categoria.objects.filter(
                 estado=True
-            )
+            ),
         }
     )
 
