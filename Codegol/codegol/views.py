@@ -217,6 +217,7 @@ def _contexto_jugador(usuario_id):
         "mostrar_kpis_jugador": True,
         "mostrar_filtro_entrenador": False,
         "mostrar_filtro_entrenamiento": False,
+        "mostrar_filtro_categoria": False,
         "mostrar_boton_entrenamiento": False,
         "mostrar_grafico_general": True,
         "mostrar_grafico_finanzas": True,
@@ -266,6 +267,12 @@ def dashboard(request):
         context.update(_contexto_entrenador(usuario_id))
     elif roles["es_jugador"]:
         context.update(_contexto_jugador(usuario_id))
+        categoria_id = context.get("categoria_jugador_id")
+        context["categorias"] = (
+            Categoria.objects.filter(id_categoria=categoria_id, estado=True)
+            if categoria_id
+            else Categoria.objects.none()
+        )
     else:
         context.update({
             "rol_dashboard": "usuario",

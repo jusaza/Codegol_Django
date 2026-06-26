@@ -4,7 +4,7 @@ from .models import SesionEntrenamiento
 from entrenamientos.models import Entrenamiento
 from usuario.models import Usuario
 from categoria.models import Categoria
-from matricula.models import HistorialCategoria
+from matricula.models import HistorialCategoria, Matricula
 from asistencia.models import Asistencia
 from sesion_categoria.models import SesionCategoria
 from entrenamiento_actividad.models import EntrenamientoActividad
@@ -437,7 +437,28 @@ def calendario(request):
     )
 
 
+def _categoria_jugador_id(usuario_id):
+    matriculas = Matricula.objects.filter(
+        id_jugador_id=usuario_id,
+        estado=True,
+    )
+    historial = HistorialCategoria.objects.filter(
+        id_matricula__in=matriculas,
+        estado=True,
+    ).first()
+    return historial.id_categoria_id if historial else None
+
+
 def calendario_eventos(request):
+
+    usuario_id = request.session.get("usuario_id")
+    if not usuario_id:
+        return JsonResponse([], safe=False)
+
+    roles = request.session.get("roles", "")
+    es_admin = "Administrador" in roles
+    es_entrenador = "Entrenador" in roles and not es_admin
+    es_jugador = "Jugador" in roles and not es_admin and not es_entrenador
 
     entrenamiento = request.GET.get(
         'entrenamiento'
@@ -462,24 +483,46 @@ def calendario_eventos(request):
         )
     )
 
-    if entrenamiento:
-
+    if es_entrenador:
         sesiones = sesiones.filter(
-            id_entrenamiento_id=entrenamiento
+            id_entrenador_id=usuario_id,
         )
+        if entrenamiento:
+            sesiones = sesiones.filter(
+                id_entrenamiento_id=entrenamiento,
+            )
+        if categoria:
+            sesiones = sesiones.filter(
+                sesioncategoria__id_categoria_id=categoria,
+                sesioncategoria__estado=True,
+            ).distinct()
+    elif es_jugador:
+        categoria_jugador = _categoria_jugador_id(usuario_id)
+        if categoria_jugador:
+            sesiones = sesiones.filter(
+                sesioncategoria__id_categoria_id=categoria_jugador,
+                sesioncategoria__estado=True,
+            ).distinct()
+        else:
+            sesiones = sesiones.none()
+    elif es_admin:
+        if entrenamiento:
+            sesiones = sesiones.filter(
+                id_entrenamiento_id=entrenamiento,
+            )
 
-    if entrenador:
+        if entrenador:
+            sesiones = sesiones.filter(
+                id_entrenador_id=entrenador,
+            )
 
-        sesiones = sesiones.filter(
-            id_entrenador_id=entrenador
-        )
-
-    if categoria:
-
-        sesiones = sesiones.filter(
-            sesioncategoria__id_categoria_id=categoria,
-            sesioncategoria__estado=True
-        ).distinct()
+        if categoria:
+            sesiones = sesiones.filter(
+                sesioncategoria__id_categoria_id=categoria,
+                sesioncategoria__estado=True,
+            ).distinct()
+    else:
+        sesiones = sesiones.none()
 
     eventos = []
 
