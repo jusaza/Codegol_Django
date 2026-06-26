@@ -338,16 +338,21 @@ canvas{
             </select>
             {% endif %}
 
+            {% if mostrar_filtro_categoria != False %}
             <select id="categoria">
                 <option value="">Todas las categorías</option>
 
                 {% for c in categorias %}
-                    <option value="{{ c.id_categoria }}"
-                        {% if categoria_jugador_id == c.id_categoria %}selected{% endif %}>
+                    <option value="{{ c.id_categoria }}">
                         {{ c.nombre_categoria }}
                     </option>
                 {% endfor %}
             </select>
+            {% elif categoria_jugador %}
+            <p class="info" style="margin:0;padding:10px 0;">
+                Sesiones de tu categoría: <strong>{{ categoria_jugador }}</strong>
+            </p>
+            {% endif %}
 
             {% if mostrar_filtro_entrenador %}
             <select id="entrenador">
