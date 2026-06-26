@@ -94,9 +94,11 @@
                 ← Volver
             </a>
 
+            {% if "Administrador" in request.session.roles %}
             <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalSesion">
                 + Nueva Sesión
             </button>
+            {% endif %}
         </div>
     </div>
 
@@ -117,14 +119,13 @@
 
                         <div class="d-flex gap-2">
 
-                            <!-- EDITAR -->
+                           {% if "Administrador" in request.session.roles %}
                             <button class="btn btn-sm btn-warning"
                                     data-bs-toggle="modal"
                                     data-bs-target="#editarSesion{{ s.id_sesion }}">
                                 ✏️
                             </button>
 
-                            <!-- ELIMINAR -->
                             <a class="btn btn-sm btn-danger"
                                     onclick="confirmarEliminar(
                                         '{% url 'eliminar_sesion' s.id_sesion %}',
@@ -132,7 +133,7 @@
                                     )">
                                 🗑️
                             </a>
-
+                            {% endif %}
                         </div>
 
                     </div>
@@ -174,7 +175,7 @@
             📋 Asistencia
         </button>
     </div>
-
+    {% if "Administrador" in request.session.roles or "Entrenador" in request.session.roles %}
     <div class="col-6">
                 <button
                     id="btnRendimiento_{{ s.id_sesion }}"
@@ -183,7 +184,6 @@
                     📊 Rendimiento
                 </button>
     </div>
-
     <div class="col-6">
         <a class="btn text-white w-100"
            style="background:green;border-color:green"
@@ -191,7 +191,17 @@
             📦 Movimientos
         </a>
     </div>
-
+    {% endif %}
+    {% if "Jugador" in request.session.roles %}
+    <div class="col-12">
+                <button
+                    id="btnRendimiento_{{ s.id_sesion }}"
+                    class="btn btn-warning w-100"
+                    onclick="irRendimiento({{ s.id_sesion }})">
+                    📊 Rendimiento
+                </button>
+    </div>
+    {% endif %}
 </div>
 
                 </div>

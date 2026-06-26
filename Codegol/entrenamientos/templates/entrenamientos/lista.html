@@ -106,12 +106,14 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1>Entrenamientos</h1>
 
+        {% if "Administrador" in request.session.roles %}
         <button class="btn btn-primary"
                 data-bs-toggle="modal"
                 data-bs-target="#modalEntrenamiento"
                 onclick="nuevoEntrenamiento()">
             + Entrenamiento
         </button>
+        {% endif %}
     </div>
 
     <!-- CARDS -->
@@ -140,6 +142,7 @@
                                 Sesiones {{ e.sesiones.count }}
                             </a>
 
+                            {% if "Administrador" in request.session.roles %}
                             <button class="btn btn-sm btn-success"
                                     data-bs-toggle="modal"
                                     data-bs-target="#modalRelacion"
@@ -159,34 +162,34 @@
                             </button>
 
                             <form method="post"
-      style="display:inline;"
-      class="formEliminar">
+                                style="display:inline;"
+                                class="formEliminar">
 
-    {% csrf_token %}
+                                {% csrf_token %}
 
-    <input type="hidden"
-           name="tipo"
-           value="eliminar_entrenamiento">
+                                <input type="hidden"
+                                    name="tipo"
+                                    value="eliminar_entrenamiento">
 
-    <input type="hidden"
-           name="id"
-           value="{{ e.id_entrenamiento }}">
+                                <input type="hidden"
+                                    name="id"
+                                    value="{{ e.id_entrenamiento }}">
 
-    <button type="button"
-            class="btn btn-sm btn-danger"
-            onclick="confirmarEliminar(this, '{{ e.descripcion }}')">
-        🗑️
-    </button>
+                                <button type="button"
+                                        class="btn btn-sm btn-danger"
+                                        onclick="confirmarEliminar(this, '{{ e.descripcion }}')">
+                                    🗑️
+                                </button>
+                                {% endif %}
 
-</form>
+                                </form>
 
                         </div>
 
                     </div>
 
                     <hr>
-
-                    <!-- ACTIVIDADES -->
+                    
                     <div class="actividades-box">
 
                         {% for r in relaciones %}

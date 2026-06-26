@@ -208,6 +208,7 @@
 
         {% endfor %}
 
+        {% if "Administrador" in request.session.roles or "Entrenador" in request.session.roles %}
         <div class="text-end mb-4">
 
             <button class="btn btn-success btn-lg">
@@ -215,6 +216,7 @@
             </button>
 
         </div>
+        {% endif %}
 
     </form>
 

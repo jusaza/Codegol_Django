@@ -53,11 +53,13 @@
 
 {% else %}
 
-<a class="boton-registrar"
-   style="background-color:#6c757d;"
-   href="{% url 'lista_matricula_inactivos' %}">
-   Matrículas Inactivas
-</a>
+        {% if "Administrador" in request.session.roles %}
+        <a class="boton-registrar"
+        style="background-color:#6c757d;"
+        href="{% url 'lista_matricula_inactivos' %}">
+        Matrículas Inactivas
+        </a>
+        {% endif %}
 
 {% endif %}
   </div>
