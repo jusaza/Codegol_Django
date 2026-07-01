@@ -6,7 +6,7 @@ from django.contrib import messages
 from .models import PosicionActividad
 from posicion.models import Posicion
 from actividad.models import Actividad
-
+from django.core.paginator import Paginator
 import json
 
 
@@ -432,15 +432,29 @@ def eliminar_relacion(request, id):
 # =====================================================
 def lista_actividades(request):
 
-    actividades = Actividad.objects.all().order_by(
-        'nombre'
+    actividades = (
+        Actividad.objects
+        .all()
+        .order_by("nombre")
+    )
+
+    paginator = Paginator(
+        actividades,
+        10
+    )
+
+    page_number = request.GET.get("page")
+
+    page_obj = paginator.get_page(
+        page_number
     )
 
     return render(
         request,
         'posicion_actividad/lista_actividades.html',
         {
-            'actividades': actividades
+            'actividades': page_obj,
+            'page_obj': page_obj
         }
     )
 

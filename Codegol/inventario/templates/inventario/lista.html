@@ -152,7 +152,48 @@
       {% endfor %}
     </tbody>
   </table>
+{% if inventarios.has_other_pages %}
+<nav class="mt-4">
+    <ul class="pagination justify-content-center">
 
+        {% if inventarios.has_previous %}
+        <li class="page-item">
+            <a class="page-link"
+               href="?page={{ inventarios.previous_page_number }}{% if query %}&q={{ query }}{% endif %}">
+                Anterior
+            </a>
+        </li>
+        {% endif %}
+
+        {% for num in inventarios.paginator.page_range %}
+
+            {% if inventarios.number == num %}
+                <li class="page-item active">
+                    <span class="page-link">{{ num }}</span>
+                </li>
+            {% else %}
+                <li class="page-item">
+                    <a class="page-link"
+                       href="?page={{ num }}{% if query %}&q={{ query }}{% endif %}">
+                        {{ num }}
+                    </a>
+                </li>
+            {% endif %}
+
+        {% endfor %}
+
+        {% if inventarios.has_next %}
+        <li class="page-item">
+            <a class="page-link"
+               href="?page={{ inventarios.next_page_number }}{% if query %}&q={{ query }}{% endif %}">
+                Siguiente
+            </a>
+        </li>
+        {% endif %}
+
+    </ul>
+</nav>
+{% endif %}
 </div>
 
 <div class="modal fade" id="modalInventario">

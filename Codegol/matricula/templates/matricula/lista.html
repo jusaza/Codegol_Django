@@ -200,7 +200,50 @@
       {% endfor %}
     </tbody>
   </table>
+{% if matriculas.has_other_pages %}
+<div class="d-flex justify-content-center mt-4">
+    <nav>
+        <ul class="pagination">
 
+            {% if matriculas.has_previous %}
+            <li class="page-item">
+                <a class="page-link"
+                   href="?page={{ matriculas.previous_page_number }}{% if query %}&q={{ query }}{% endif %}">
+                    Anterior
+                </a>
+            </li>
+            {% endif %}
+
+            {% for num in matriculas.paginator.page_range %}
+                {% if matriculas.number == num %}
+                    <li class="page-item active">
+                        <span class="page-link">
+                            {{ num }}
+                        </span>
+                    </li>
+                {% else %}
+                    <li class="page-item">
+                        <a class="page-link"
+                           href="?page={{ num }}{% if query %}&q={{ query }}{% endif %}">
+                            {{ num }}
+                        </a>
+                    </li>
+                {% endif %}
+            {% endfor %}
+
+            {% if matriculas.has_next %}
+            <li class="page-item">
+                <a class="page-link"
+                   href="?page={{ matriculas.next_page_number }}{% if query %}&q={{ query }}{% endif %}">
+                    Siguiente
+                </a>
+            </li>
+            {% endif %}
+
+        </ul>
+    </nav>
+</div>
+{% endif %}
 </div>
 <!-- MODAL MATRÍCULA -->
 <div class="modal fade"

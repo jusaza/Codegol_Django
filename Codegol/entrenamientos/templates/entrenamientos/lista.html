@@ -190,20 +190,50 @@
 
                     <hr>
                     
-                    <div class="actividades-box">
+                    <div
+    class="actividades-box d-none"
+    id="act-{{ e.id_entrenamiento }}">
 
-                        {% for r in relaciones %}
-                            {% if r.entrenamiento.id_entrenamiento == e.id_entrenamiento %}
-                                <div class="d-flex justify-content-between mb-2 p-2 rounded" style="background:#f5f5f5;">
-                                    <span>{{ r.actividad.nombre }}</span>
-                                    <span class="badge bg-primary">{{ r.duracion_min }} min</span>
-                                </div>
-                            {% endif %}
-                        {% empty %}
-                            <p>No hay actividades</p>
-                        {% endfor %}
+    {% for r in relaciones %}
 
-                    </div>
+        {% if r.entrenamiento.id_entrenamiento == e.id_entrenamiento %}
+
+        <div
+            class="d-flex justify-content-between mb-2 p-2 rounded"
+            style="background:#f5f5f5;">
+
+            <span>
+
+                {{ r.actividad.nombre }}
+
+            </span>
+
+            <span class="badge bg-primary">
+
+                {{ r.duracion_min }} min
+
+            </span>
+
+        </div>
+
+        {% endif %}
+
+    {% empty %}
+
+        <p>No hay actividades</p>
+
+    {% endfor %}
+
+</div>
+
+<button
+    type="button"
+    class="btn btn-primary w-100 mt-3 toggle-btn"
+    data-id="{{ e.id_entrenamiento }}">
+
+    Ver actividades
+
+</button>
 
                 </div>
             </div>
@@ -478,6 +508,25 @@ document.addEventListener("DOMContentLoaded", function(){
 
             e.preventDefault();
         }
+
+    });
+
+});
+document.querySelectorAll('.toggle-btn').forEach(btn => {
+
+    btn.addEventListener('click', function(){
+
+        const id = this.dataset.id;
+
+        const div = document.getElementById(
+            'act-' + id
+        );
+
+        div.classList.toggle('d-none');
+
+        this.innerText = div.classList.contains('d-none')
+            ? 'Ver actividades'
+            : 'Ocultar actividades';
 
     });
 

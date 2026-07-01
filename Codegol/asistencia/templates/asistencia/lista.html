@@ -1,18 +1,27 @@
 <h4 class="text-center mb-3">Asistencia de la sesión</h4>
 
-{% if "Administrador" in request.session.roles or "Entrenador" in request.session.roles %}
+{% if es_responsable %}
 <div class="text-center mb-3">
     <span class="me-2">Marcar todos:</span>
-    <button type="button" class="btn btn-success btn-sm"
-            onclick="document.querySelectorAll('#contenidoAsistencia .tipo-asistencia').forEach(function(s){s.value='asiste';s.dispatchEvent(new Event('change',{bubbles:true}));});">
+
+    <button
+        type="button"
+        class="btn btn-success btn-sm"
+        onclick="document.querySelectorAll('#contenidoAsistencia .tipo-asistencia').forEach(function(s){s.value='asiste';s.dispatchEvent(new Event('change',{bubbles:true}));});">
         Asiste
     </button>
-    <button type="button" class="btn btn-danger btn-sm"
-            onclick="document.querySelectorAll('#contenidoAsistencia .tipo-asistencia').forEach(function(s){s.value='inasiste';s.dispatchEvent(new Event('change',{bubbles:true}));});">
+
+    <button
+        type="button"
+        class="btn btn-danger btn-sm"
+        onclick="document.querySelectorAll('#contenidoAsistencia .tipo-asistencia').forEach(function(s){s.value='inasiste';s.dispatchEvent(new Event('change',{bubbles:true}));});">
         Inasiste
     </button>
-    <button type="button" class="btn btn-warning btn-sm"
-            onclick="document.querySelectorAll('#contenidoAsistencia .tipo-asistencia').forEach(function(s){s.value='llegada_tarde';s.dispatchEvent(new Event('change',{bubbles:true}));});">
+
+    <button
+        type="button"
+        class="btn btn-warning btn-sm"
+        onclick="document.querySelectorAll('#contenidoAsistencia .tipo-asistencia').forEach(function(s){s.value='llegada_tarde';s.dispatchEvent(new Event('change',{bubbles:true}));});">
         Tarde
     </button>
 </div>

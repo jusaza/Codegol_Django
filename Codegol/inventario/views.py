@@ -3,6 +3,7 @@ from .models import Inventario
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from movimiento_inventario.models import MovimientoInventario
+from django.core.paginator import Paginator
 # Create your views here.
 def lista_inventario(request):
     query = request.GET.get('q')
@@ -11,16 +12,22 @@ def lista_inventario(request):
         inventarios = Inventario.objects.filter(
             nombre_articulo__icontains=query,
             estado=True
-        )
+        ).order_by('id_inventario')
     else:
-        inventarios = Inventario.objects.filter(estado=True)
+        inventarios = Inventario.objects.filter(
+            estado=True
+        ).order_by('id_inventario')
+
+    paginator = Paginator(inventarios, 10)   # 10 registros por página
+
+    page_number = request.GET.get('page')
+    inventarios = paginator.get_page(page_number)
 
     return render(request, 'inventario/lista.html', {
         'inventarios': inventarios,
         'query': query,
         'modo_inactivos': False
     })
-
 
 def crear_inventario(request):
     if request.method == 'POST':
@@ -87,13 +94,17 @@ def lista_inventario_inactivos(request):
 
     inventarios = Inventario.objects.filter(
         estado=False
-    )
+    ).order_by('id_inventario')
 
     if query:
-
         inventarios = inventarios.filter(
             nombre_articulo__icontains=query
         )
+
+    paginator = Paginator(inventarios, 10)
+
+    page_number = request.GET.get('page')
+    inventarios = paginator.get_page(page_number)
 
     return render(
         request,

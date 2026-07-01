@@ -1,21 +1,30 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import Categoria
+from django.core.paginator import Paginator
 
 
 def lista_categoria(request):
     query = request.GET.get('q')
 
+    categorias = Categoria.objects.filter(
+        estado=True
+    ).order_by('id_categoria')
+
     if query:
-        categorias = Categoria.objects.filter(
-            nombre_categoria__icontains=query,
-            estado=True
+        categorias = categorias.filter(
+            nombre_categoria__icontains=query
         )
-    else:
-        categorias = Categoria.objects.filter(estado=True)
+
+    paginator = Paginator(categorias, 10)
+
+    page_number = request.GET.get("page")
+
+    page_obj = paginator.get_page(page_number)
 
     return render(request, 'categoria/lista.html', {
-        'categorias': categorias,
-        'query': query
+        'categorias': page_obj,
+        'query': query,
+        'page_obj': page_obj
     })
 
 

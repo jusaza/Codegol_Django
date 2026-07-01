@@ -144,7 +144,44 @@
     </tbody>
 
   </table>
+{% if pagos.has_other_pages %}
 
+<div class="paginacion">
+
+    {% if pagos.has_previous %}
+
+        <a href="?page=1{% if query %}&q={{ query }}{% endif %}">
+            Primero
+        </a>
+
+        <a href="?page={{ pagos.previous_page_number }}{% if query %}&q={{ query }}{% endif %}">
+            Anterior
+        </a>
+
+    {% endif %}
+
+    <span>
+
+        Página {{ pagos.number }}
+        de {{ pagos.paginator.num_pages }}
+
+    </span>
+
+    {% if pagos.has_next %}
+
+        <a href="?page={{ pagos.next_page_number }}{% if query %}&q={{ query }}{% endif %}">
+            Siguiente
+        </a>
+
+        <a href="?page={{ pagos.paginator.num_pages }}{% if query %}&q={{ query }}{% endif %}">
+            Última
+        </a>
+
+    {% endif %}
+
+</div>
+
+{% endif %}
 </div>
 
 <!-- MODAL -->

@@ -28,6 +28,7 @@ from openpyxl.styles import (
 )
 from openpyxl.utils import get_column_letter
 from django.db.models import Q
+from django.core.paginator import Paginator
 
 def cargar_matriculas_csv(request):
 
@@ -299,11 +300,22 @@ def lista_matricula(request):
         ultima = HistorialCategoria.objects.filter(
             id_matricula=m,
             estado=True
-        ).order_by('-fecha_registro', '-id_historial').first()
+        ).order_by(
+            '-fecha_registro',
+            '-id_historial'
+        ).first()
+
         m.categoria_actual = (
             ultima.id_categoria.nombre_categoria
             if ultima else "Sin categoría"
         )
+
+    paginator = Paginator(matriculas, 10)
+
+    page_number = request.GET.get("page")
+
+    matriculas = paginator.get_page(page_number)
+
     return render(request, 'matricula/lista.html', {
         'matriculas': matriculas,
         'query': query,
@@ -1053,6 +1065,12 @@ def lista_matricula_inactivos(request):
             ultima.id_categoria.nombre_categoria
             if ultima else "Sin categoría"
         )
+
+    paginator = Paginator(matriculas, 10)
+
+    page_number = request.GET.get("page")
+
+    matriculas = paginator.get_page(page_number)
 
     return render(
         request,

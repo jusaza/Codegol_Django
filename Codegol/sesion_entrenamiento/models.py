@@ -1,7 +1,6 @@
 from django.db import models
 
 # Create your models here.
-from django.db import models
 
 class SesionEntrenamiento(models.Model):
     id_sesion = models.AutoField(primary_key=True)

@@ -8,29 +8,58 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
 from datetime import datetime
 from django.db.models import Sum
+from django.core.paginator import Paginator
 
 # LISTAR
 def lista_pagos(request):
+
     query = request.GET.get('q')
     usuario_id = request.session.get("usuario_id")
+
     es_jugador = DetallesUsuarioRol.objects.filter(
         id_usuario_id=usuario_id,
         id_rol__rol_usuario__iexact="Jugador"
     ).exists()
+
     if es_jugador:
+
         pagos = Pago.objects.filter(
             id_matricula__id_jugador__id_usuario=usuario_id
         )
+
     else:
+
         pagos = Pago.objects.all()
+
     if query:
+
         pagos = pagos.filter(
             concepto_pago__icontains=query
         )
-    return render(request, 'pago/lista.html', {
-        'pagos': pagos,
-        'query': query
-    })
+
+    # ===========================
+    # PAGINACIÓN
+    # ===========================
+
+    paginator = Paginator(
+        pagos.order_by("-id"),
+        10
+    )
+
+    page_number = request.GET.get("page")
+
+    pagos = paginator.get_page(
+        page_number
+    )
+
+    return render(
+        request,
+        "pago/lista.html",
+        {
+            "pagos": pagos,
+            "query": query
+        }
+    )
 
 # CREAR
 def crear_pago(request):

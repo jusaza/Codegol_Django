@@ -12,6 +12,8 @@ from sesion_actividad.models import SesionActividad
 from django.db.models import Q
 from django.contrib import messages
 from datetime import date
+from movimiento_inventario.models import MovimientoInventario
+from django.contrib import messages
 
 def lista_sesiones(request, id_entrenamiento):
 
@@ -435,11 +437,34 @@ def eliminar_sesion(request, id):
         id_sesion=id
     )
 
+    movimientos_pendientes = MovimientoInventario.objects.filter(
+        sesion=sesion,
+        tipo_movimiento="salida",
+        devoluciones__isnull=True
+    ).exists()
+
+    if movimientos_pendientes:
+
+        messages.error(
+            request,
+            "No se puede eliminar la sesión porque tiene movimientos de inventario pendientes por devolver."
+        )
+
+        return redirect(
+            "lista_sesiones",
+            id_entrenamiento=sesion.id_entrenamiento.id_entrenamiento
+        )
+
     sesion.estado = False
     sesion.save()
 
+    messages.success(
+        request,
+        "Sesión eliminada correctamente."
+    )
+
     return redirect(
-        'lista_sesiones',
+        "lista_sesiones",
         id_entrenamiento=sesion.id_entrenamiento.id_entrenamiento
     )
 

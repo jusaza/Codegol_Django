@@ -74,6 +74,8 @@
 {% endblock %}
 
 {% block content %}
+
+<div class="container mt-4">
 {% if messages %}
 <div class="container mt-3">
     {% for message in messages %}
@@ -83,8 +85,6 @@
     {% endfor %}
 </div>
 {% endif %}
-<div class="container mt-4">
-
     <!-- HEADER -->
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h1>Sesiones - {{ entrenamiento.descripcion }}</h1>
@@ -256,9 +256,13 @@
                     value="{{ s.fecha|date:'Y-m-d' }}"
                     required>
 
-                  <input type="time" name="hora_inicio" class="form-control mb-2" value="{{ s.hora_inicio }}" required>
+                  <input type="time" name="hora_inicio" class="form-control mb-2" value="{{ s.hora_inicio }}"     min="09:00"
+    max="13:00"
+    step="1800"required>
 
-                  <input type="time" name="hora_fin" class="form-control mb-2" value="{{ s.hora_fin }}" required>
+                  <input type="time" name="hora_fin" class="form-control mb-2" value="{{ s.hora_fin }}"     min="09:00"
+    max="13:00"
+    step="1800"required>
 
                   <hr>
 
@@ -341,8 +345,8 @@
             name="fecha"
             class="form-control mb-2"
             required>
-          <input type="time" name="hora_inicio" class="form-control mb-2" required>
-          <input type="time" name="hora_fin" class="form-control mb-2" required>
+          <input type="time" name="hora_inicio" class="form-control mb-2" min="09:00" max="13:00" step="1800" required>
+          <input type="time" name="hora_fin" class="form-control mb-2" min="09:00" max="13:00" step="1800" required>
 
           <label class="fw-bold">Categorías</label>
 
@@ -1114,6 +1118,7 @@ document.addEventListener("DOMContentLoaded", function () {
     );
 
 });
+
 document.addEventListener("DOMContentLoaded", function(){
 
     let hoy = new Date().toISOString().split("T")[0];
@@ -1136,5 +1141,107 @@ document.addEventListener("DOMContentLoaded", function(){
         });
 
 });
+function seCruzan(inicio1, fin1, inicio2, fin2){
+
+    return inicio1 < fin2 && fin1 > inicio2;
+
+}
+
+function actualizarEntrenadoresCrear(){
+
+    const fecha =
+        document.querySelector("#modalSesion input[name='fecha']").value;
+
+    const inicio =
+        document.querySelector("#modalSesion input[name='hora_inicio']").value;
+
+    const fin =
+        document.querySelector("#modalSesion input[name='hora_fin']").value;
+
+    const select =
+        document.getElementById("entrenadorCrear");
+
+    // Esperar a que estén completos los datos
+    if(!fecha || !inicio || !fin){
+
+        select.style.display = "none";
+        return;
+
+    }
+
+    // ==========================
+    // VALIDAR HORARIO PERMITIDO
+    // ==========================
+
+    if(inicio < "09:00"){
+
+        alert("La sesión no puede iniciar antes de las 09:00.");
+
+        select.style.display = "none";
+        return;
+    }
+
+    if(fin > "13:00"){
+
+        alert("La sesión no puede terminar después de las 13:00.");
+
+        select.style.display = "none";
+        return;
+    }
+
+    // Máximo 2 horas
+
+    const minutosInicio =
+        parseInt(inicio.split(":")[0]) * 60 +
+        parseInt(inicio.split(":")[1]);
+
+    const minutosFin =
+        parseInt(fin.split(":")[0]) * 60 +
+        parseInt(fin.split(":")[1]);
+
+    if((minutosFin - minutosInicio) > 120){
+
+        alert("Una sesión no puede durar más de 2 horas.");
+
+        select.style.display = "none";
+        return;
+    }
+
+    if(minutosFin <= minutosInicio){
+
+        alert("La hora final debe ser mayor a la hora inicial.");
+
+        select.style.display = "none";
+        return;
+    }
+
+    // ==========================
+    // FILTRAR ENTRENADORES
+    // ==========================
+
+    select.style.display = "";
+
+    [...select.options].forEach(opcion=>{
+
+        opcion.hidden = false;
+
+        let ocupado = SESIONES.some(s=>{
+
+            return s.fecha === fecha &&
+                   s.id_entrenador_id == opcion.value &&
+                   seCruzan(
+                        inicio,
+                        fin,
+                        s.hora_inicio,
+                        s.hora_fin
+                   );
+
+        });
+
+        opcion.hidden = ocupado;
+
+    });
+
+}
 </script>
 {% endblock %}
