@@ -2,32 +2,82 @@ from django import forms
 from datetime import date
 from .models import Usuario, Rol, Documentos
 
+
 class UsuarioForm(forms.ModelForm):
     roles = forms.ModelMultipleChoiceField(
         queryset=Rol.objects.all(),
         widget=forms.CheckboxSelectMultiple()
     )
+
     class Meta:
         model = Usuario
-        widgets = {'fecha_nacimiento': forms.DateInput(attrs={'type': 'date'})}
-        exclude = ['contrasena', 'estado', 'id_usuario_registro', 'lugar_nacimiento'] # campo de lugar_nacimiento se usa desde la API.
+        widgets = {
+            'fecha_nacimiento': forms.DateInput(
+                attrs={'type': 'date'}
+            )
+        }
+        exclude = [
+            'contrasena',
+            'estado',
+            'id_usuario_registro',
+            'lugar_nacimiento'  # Se usa desde la API.
+        ]
+
     def clean(self):
         cleaned_data = super().clean()
+
         fecha = cleaned_data.get("fecha_nacimiento")
         roles = cleaned_data.get("roles")
-        if not fecha or not roles:
+
+        if not fecha:
             return cleaned_data
+
         hoy = date.today()
+
+        # No permitir fechas futuras
+        if fecha > hoy:
+            self.add_error(
+                "fecha_nacimiento",
+                "La fecha de nacimiento no puede ser una fecha futura."
+            )
+            return cleaned_data
+
+        # Calcular edad
         edad = hoy.year - fecha.year - (
-            (hoy.month, hoy.day) < (fecha.month, fecha.day))
+            (hoy.month, hoy.day) < (fecha.month, fecha.day)
+        )
+
+        # No permitir edades mayores a 100 años
+        if edad > 100:
+            self.add_error(
+                "fecha_nacimiento",
+                "La fecha de nacimiento no es válida."
+            )
+
+        if not roles:
+            return cleaned_data
+
         for rol in roles:
             nombre = rol.rol_usuario
-            if nombre == "Jugador" and edad < 5:
-                self.add_error("fecha_nacimiento", "Jugadores requiere mínimo 5 años.")
-            if nombre in ["Administrador"] and edad < 18:
-                self.add_error("fecha_nacimiento", "Administrador debe ser mayor de edad (18+).")
-            if nombre == "Entrenador" and edad < 18:
-                self.add_error("fecha_nacimiento", "Entrenador debe ser mayor de edad (18+).")
+
+            if nombre == "Jugador" and edad < 10:
+                self.add_error(
+                    "fecha_nacimiento",
+                    "Los jugadores deben tener mínimo 10 años."
+                )
+
+            elif nombre == "Administrador" and edad < 18:
+                self.add_error(
+                    "fecha_nacimiento",
+                    "El administrador debe ser mayor de edad (18+)."
+                )
+
+            elif nombre == "Entrenador" and edad < 18:
+                self.add_error(
+                    "fecha_nacimiento",
+                    "El entrenador debe ser mayor de edad (18+)."
+                )
+
         return cleaned_data
 
 

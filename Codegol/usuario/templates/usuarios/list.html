@@ -107,7 +107,8 @@
       </tr>
       {% endfor %}
     </tbody>
-  </table>
+  </table><br>
+  <div id="paginacion" class="paginacion"></div>
 </div>
 <div class="modal fade" id="modalEliminar" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered">
@@ -212,5 +213,64 @@ function confirmarEliminacion(url, nombreUsuario){
 
     modal.show();
 }
+</script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const filas = document.querySelectorAll("#tablaUsuarios tbody tr");
+    const filasPorPagina = 10;
+    const totalPaginas = Math.ceil(filas.length / filasPorPagina);
+    const contenedor = document.getElementById("paginacion");
+
+    function mostrarPagina(pagina){
+
+        filas.forEach((fila, index)=>{
+
+            if(index >= (pagina-1)*filasPorPagina &&
+               index < pagina*filasPorPagina){
+                fila.style.display = "";
+            }else{
+                fila.style.display = "none";
+            }
+
+        });
+
+        actualizarBotones(pagina);
+    }
+
+    function actualizarBotones(pagina){
+
+        contenedor.innerHTML = "";
+
+        let btnAnterior = document.createElement("button");
+        btnAnterior.textContent = "Anterior";
+        btnAnterior.disabled = pagina === 1;
+        btnAnterior.onclick = ()=>mostrarPagina(pagina-1);
+        contenedor.appendChild(btnAnterior);
+
+        for(let i=1;i<=totalPaginas;i++){
+
+            let btn = document.createElement("button");
+            btn.textContent = i;
+
+            if(i===pagina){
+                btn.classList.add("activo");
+            }
+
+            btn.onclick = ()=>mostrarPagina(i);
+
+            contenedor.appendChild(btn);
+        }
+
+        let btnSiguiente = document.createElement("button");
+        btnSiguiente.textContent = "Siguiente";
+        btnSiguiente.disabled = pagina === totalPaginas;
+        btnSiguiente.onclick = ()=>mostrarPagina(pagina+1);
+        contenedor.appendChild(btnSiguiente);
+    }
+
+    mostrarPagina(1);
+
+});
 </script>
 {% endblock %}

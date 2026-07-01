@@ -199,6 +199,12 @@ class AsistenciaViewsTest(TestCase):
         se almacenen correctamente.
         """
 
+        # Simular que el usuario inició sesión como administrador
+        session = self.client.session
+        session["roles"] = ["Administrador"]
+        session["usuario_id"] = self.entrenador.id_usuario   # o .id si ese es tu PK
+        session.save()
+
         response = self.client.post(
             reverse(
                 "guardar_asistencia",
