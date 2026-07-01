@@ -60,10 +60,10 @@ class UsuarioForm(forms.ModelForm):
         for rol in roles:
             nombre = rol.rol_usuario
 
-            if nombre == "Jugador" and edad < 5:
+            if nombre == "Jugador" and edad < 10:
                 self.add_error(
                     "fecha_nacimiento",
-                    "Los jugadores deben tener mínimo 5 años."
+                    "Los jugadores deben tener mínimo 10 años."
                 )
 
             elif nombre == "Administrador" and edad < 18:
