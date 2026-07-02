@@ -8,10 +8,9 @@
 {% block content %}
 
 <div class="contenido">
-  <br>
   <div class="barra-top">
     <div class="barra-busqueda">
-      <form method="get" style="display:flex; gap:10px; align-items:center;">
+      <form method="get">
         <input type="text" name="busqueda" placeholder="Buscar usuario..." value="{{ busqueda }}">
 
         <select name="rol">
@@ -25,11 +24,14 @@
         <button type="submit">Filtrar</button>
       </form>
     </div>
+    <div class="barra-acciones">
     <a href="{% url 'usuario' %}" class="boton-registrar">
       Volver a usuarios activos
     </a>
+    </div>
   </div>
   <h2>Usuarios Inactivos</h2>
+  <div class="tabla-scroll">
   <table>
     <thead>
       <tr>
@@ -79,5 +81,6 @@
       {% endfor %}
     </tbody>
   </table>
+  </div>
 </div>
 {% endblock %}

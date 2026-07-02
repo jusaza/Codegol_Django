@@ -95,6 +95,34 @@
     font-size: 12px;
 }
 
+@media (max-width: 768px) {
+    .header-card {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .header-card .btn,
+    .header-card .btn-group {
+        width: 100%;
+    }
+
+    .header-card .btn {
+        margin-bottom: 6px;
+    }
+
+    .card-body {
+        padding: 15px;
+    }
+
+    .btn-sm {
+        white-space: normal;
+    }
+
+    .acciones {
+        justify-content: center;
+    }
+}
+
 </style>
 {% endblock %}
 

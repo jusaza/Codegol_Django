@@ -93,6 +93,28 @@
 }
 
 /* Responsive para móviles */
+@media (max-width: 768px) {
+    .contenedor {
+        padding: 15px;
+        margin: 20px auto;
+        width: calc(100% - 24px);
+    }
+
+    .contenedor h2 {
+        font-size: 22px;
+    }
+
+    .btn-volver,
+    .btn-editar,
+    .btn-documentos {
+        display: block;
+        width: 100%;
+        text-align: center;
+        margin-top: 10px;
+        box-sizing: border-box;
+    }
+}
+
 @media (max-width: 600px) {
     .contenedor {
         padding: 15px;
@@ -105,5 +127,10 @@
 
     .tabla-usuario th, .tabla-usuario td {
         padding: 10px;
+        font-size: 14px;
+    }
+
+    .tabla-usuario td:first-child {
+        width: 40%;
     }
 }

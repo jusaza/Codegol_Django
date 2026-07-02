@@ -23,15 +23,18 @@
                value="{{ query|default:'' }}">
       </form>
     </div>
+    <div class="barra-acciones">
     <a class="boton-registrar"
         onclick="abrirModalMovimiento('{% url 'crear_movimiento' inventario.id_inventario %}')">
         + Registrar Entrada de Movimiento
     </a>
+    </div>
   </div>
 <div class = "acciones">
   <button  onclick="guardarCambios()"  class="actualizar">Guardar cambios</button>
 </div>
 
+<div class="tabla-scroll">
 <table border="1">
     <thead>
         <tr>
@@ -145,6 +148,7 @@
 {% endfor %}
 </tbody>
 </table>
+</div>
 
 </div>
 <div class="modal fade" id="modalMovimiento">

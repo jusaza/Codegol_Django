@@ -9,8 +9,6 @@
 
 <div class="contenido">
 
-  <br>
-
   <div class="barra-top">
     <div class="barra-busqueda">
         <form method="get">
@@ -19,6 +17,7 @@
                 value="{{ query|default:'' }}">
         </form>
     </div>
+    <div class="barra-acciones">
     {% if "Administrador" in request.session.roles %}
     <a class="boton-registrar"
         onclick="abrirModalMatricula('{% url 'crear_matricula' %}')">
@@ -62,8 +61,10 @@
         {% endif %}
 
 {% endif %}
+    </div>
   </div>
 
+  <div class="tabla-scroll">
   <table>
     <thead>
       <tr>
@@ -200,6 +201,7 @@
       {% endfor %}
     </tbody>
   </table>
+  </div>
 {% if matriculas.has_other_pages %}
 <div class="d-flex justify-content-center mt-4">
     <nav>

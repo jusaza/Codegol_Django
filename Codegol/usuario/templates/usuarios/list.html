@@ -8,10 +8,9 @@
 {% block content %}
 
 <div class="contenido">
-  <br>
   <div class="barra-top">
     <div class="barra-busqueda">
-      <form method="get" style="display:flex; gap:10px; align-items:center;">
+      <form method="get">
         <input type="text" name="busqueda" placeholder="Buscar usuario..." value="{{ busqueda }}">
 
         <select name="rol">
@@ -26,24 +25,27 @@
       </form>
     </div>
 
-    <a href="{% url 'crear_usuario' %}" class="boton-registrar">
-      Registrar nuevo usuario
-    </a>
+    <div class="barra-acciones">
+      <a href="{% url 'crear_usuario' %}" class="boton-registrar">
+        Registrar nuevo usuario
+      </a>
 
-    <a href="{% url 'usuarios_inactivos' %}" class="boton-registrar">
-      Usuarios inactivos
-    </a>
+      <a href="{% url 'usuarios_inactivos' %}" class="boton-registrar">
+        Usuarios inactivos
+      </a>
 
-    <a href="#" onclick="generarReporte(); return false;" class="boton-registrar">
-      PDF
-    </a>
+      <a href="#" onclick="generarReporte(); return false;" class="boton-registrar">
+        PDF
+      </a>
 
-    <a href="{% url 'carga_masiva_usuario' %}" class="boton-registrar">
-      Carga Masiva
-    </a>
+      <a href="{% url 'carga_masiva_usuario' %}" class="boton-registrar">
+        Carga Masiva
+      </a>
+    </div>
 
   </div>
 
+  <div class="tabla-scroll">
   <table id="tablaUsuarios">
     <thead>
       <tr>
@@ -107,7 +109,8 @@
       </tr>
       {% endfor %}
     </tbody>
-  </table><br>
+  </table>
+  </div>
   <div id="paginacion" class="paginacion"></div>
 </div>
 <div class="modal fade" id="modalEliminar" tabindex="-1">

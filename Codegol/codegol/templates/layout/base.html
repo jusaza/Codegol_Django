@@ -7,39 +7,272 @@
   <title>{% block title %}Escuela de Fútbol Pinze{% endblock %}</title>
 
   <link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+  <style>
+    /* ===== HEADER PÚBLICO — estilos autocontenidos ===== */
+    html {
+      overflow-x: hidden;
+    }
+
+    body.site-body {
+      overflow-x: hidden;
+    }
+
+    body.site-body.nav-open {
+      overflow: hidden;
+    }
+
+    .site-header {
+      background-color: #001f3f;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+      display: block;
+      padding: 0;
+      text-align: initial;
+    }
+
+    .site-header-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 20px;
+      max-width: 100%;
+    }
+
+    .site-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+      flex: 1;
+      text-align: left;
+    }
+
+    .site-brand img {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      border: 3px solid #00bfff;
+      object-fit: cover;
+      flex-shrink: 0;
+    }
+
+    .site-brand h2 {
+      color: #00bfff;
+      font-weight: 700;
+      font-size: clamp(1rem, 3.5vw, 1.5rem);
+      margin: 0;
+      line-height: 1.2;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      text-align: left;
+    }
+
+    .site-nav-toggle {
+      display: none;
+      flex-shrink: 0;
+      width: 44px;
+      height: 44px;
+      border: 2px solid #00bfff;
+      border-radius: 10px;
+      background: rgba(0, 191, 255, 0.1);
+      color: #00bfff;
+      font-size: 22px;
+      line-height: 1;
+      cursor: pointer;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s ease, color 0.2s ease;
+    }
+
+    .site-nav-toggle:hover,
+    .site-nav-toggle:focus-visible {
+      background: rgba(0, 191, 255, 0.25);
+      color: #fff;
+      outline: none;
+    }
+
+    .site-nav {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+      gap: 6px;
+      padding: 0 20px 14px;
+      text-align: center;
+    }
+
+    .site-nav a {
+      color: #cce7ff;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.95rem;
+      padding: 8px 14px;
+      border-radius: 6px;
+      transition: color 0.3s, background 0.3s;
+      white-space: nowrap;
+    }
+
+    .site-nav a:hover,
+    .site-nav a:focus-visible {
+      color: #00bfff;
+    }
+
+    .site-nav a.iniciar-sesion {
+      background-color: #0074d9;
+      color: #f0f8ff;
+      padding: 10px 18px;
+    }
+
+    .site-nav a.iniciar-sesion:hover,
+    .site-nav a.iniciar-sesion:focus-visible {
+      background-color: #005fa3;
+      color: #fff;
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 768px) {
+      .site-nav-toggle {
+        display: inline-flex;
+      }
+
+      .site-nav {
+        display: none;
+        flex-direction: column;
+        align-items: stretch;
+        padding: 0 16px 16px;
+        gap: 4px;
+        border-top: 1px solid rgba(0, 191, 255, 0.2);
+        background: #001f3f;
+      }
+
+      .site-nav.nav-open {
+        display: flex;
+      }
+
+      .site-nav a {
+        margin: 0;
+        padding: 12px 14px;
+        text-align: center;
+        border-radius: 8px;
+      }
+
+      .site-nav a:hover {
+        background: rgba(0, 191, 255, 0.1);
+      }
+
+      .site-nav a.iniciar-sesion {
+        margin-top: 6px;
+      }
+
+      .site-header-inner {
+        padding: 10px 14px;
+      }
+
+      .site-brand img {
+        width: 44px;
+        height: 44px;
+      }
+    }
+
+    @media (max-width: 360px) {
+      .site-brand h2 {
+        font-size: 0.95rem;
+      }
+    }
+
+    @media (min-width: 769px) {
+      .site-header-inner {
+        padding: 16px 40px 8px;
+      }
+
+      .site-nav {
+        padding: 0 40px 16px;
+      }
+    }
+  </style>
 </head>
 
-<body>
+<body class="site-body">
 
-<header>
-  <div class="logo">
-    <img src="{% static 'imagenes/logo.jpg' %}" alt="Logo Escuela de Fútbol Pinze" />
-    <h2>Escuela de Fútbol Pinze</h2>
-  </div>
+  <header class="site-header">
+    <div class="site-header-inner">
+      <div class="site-brand">
+        <img src="{% static 'imagenes/logo.jpg' %}" alt="Logo Escuela de Fútbol Pinze" />
+        <h2>Escuela de Fútbol Pinze</h2>
+      </div>
 
-  <nav>
-    <a href="{% url 'inicio' %}">⚽ Inicio</a>
-    <a href="{% url 'servicios' %}">🥅 Servicios</a>
-    <a href="{% url 'nosotros' %}">🏆 Nosotros</a>
-    <a href="{% url 'login' %}" class="iniciar-sesion">Iniciar sesión</a>
-  </nav>
-</header>
+      <button type="button"
+              class="site-nav-toggle"
+              id="navToggle"
+              aria-label="Abrir navegación"
+              aria-expanded="false"
+              aria-controls="mainNav">
+        ☰
+      </button>
+    </div>
 
-<!-- CONTENIDO DE CADA PAGINA -->
-<main>
-{% block content %}
-{% endblock %}
-</main>
+    <nav class="site-nav" id="mainNav">
+      <a href="{% url 'inicio' %}">⚽ Inicio</a>
+      <a href="{% url 'servicios' %}">🥅 Servicios</a>
+      <a href="{% url 'nosotros' %}">🏆 Nosotros</a>
+      <a href="{% url 'login' %}" class="iniciar-sesion">Iniciar sesión</a>
+    </nav>
+  </header>
 
-<footer>
-  <p>&copy; 2025 Escuela de Fútbol Pinze. Todos los derechos reservados.</p>
+  <main>
+    {% block content %}
+    {% endblock %}
+  </main>
 
-  <nav class="redes">
-    <a href="https://www.facebook.com/PinzeColombia/" target="_blank">Facebook</a>
-    <a href="https://www.instagram.com/pinzecolombia/" target="_blank">Instagram</a>
-    <a href="https://goo.gl/maps/sUog16biK1m6GBp16" target="_blank">Ubicación</a>
-  </nav>
-</footer>
+  <footer>
+    <p>&copy; 2025 Escuela de Fútbol Pinze. Todos los derechos reservados.</p>
+
+    <nav class="redes">
+      <a href="https://www.facebook.com/PinzeColombia/" target="_blank">Facebook</a>
+      <a href="https://www.instagram.com/pinzecolombia/" target="_blank">Instagram</a>
+      <a href="https://goo.gl/maps/sUog16biK1m6GBp16" target="_blank">Ubicación</a>
+    </nav>
+  </footer>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      var body = document.body;
+      var toggle = document.getElementById('navToggle');
+      var nav = document.getElementById('mainNav');
+      if (!toggle || !nav) return;
+
+      function setNavOpen(isOpen) {
+        nav.classList.toggle('nav-open', isOpen);
+        body.classList.toggle('nav-open', isOpen);
+        toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        toggle.setAttribute('aria-label', isOpen ? 'Cerrar navegación' : 'Abrir navegación');
+        toggle.textContent = isOpen ? '✕' : '☰';
+      }
+
+      toggle.addEventListener('click', function () {
+        setNavOpen(!nav.classList.contains('nav-open'));
+      });
+
+      nav.querySelectorAll('a').forEach(function (link) {
+        link.addEventListener('click', function () {
+          setNavOpen(false);
+        });
+      });
+
+      window.addEventListener('resize', function () {
+        if (window.innerWidth > 768) setNavOpen(false);
+      });
+
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') setNavOpen(false);
+      });
+    });
+  </script>
 
 </body>
 </html>
