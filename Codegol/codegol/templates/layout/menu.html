@@ -18,47 +18,170 @@
         rel="stylesheet">
 
   <style>
-
-    .menu{
-      width: 260px;
-      min-height: 100vh;
-      background: #1e293b;
-      padding: 15px;
-      overflow-y: auto;
+    /* ===== LAYOUT APP ===== */
+    html {
+      overflow-x: hidden;
     }
 
-    .menu ul{
-      padding: 0;
+    body.app-body {
+      display: flex;
+      align-items: stretch;
+      min-height: 100vh;
+      overflow-x: hidden;
+      width: 100%;
       margin: 0;
     }
 
-    .menu li{
-      list-style: none;
+    body.app-body.menu-open {
+      overflow: hidden;
+      position: fixed;
+      inset: 0;
+      width: 100%;
     }
 
-    .logo{
+    .app-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.6);
+      z-index: 1040;
+      backdrop-filter: blur(2px);
+    }
+
+    body.app-body.menu-open .app-overlay {
+      display: block;
+    }
+
+    /* ===== BARRA SUPERIOR MÓVIL ===== */
+    .app-topbar {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 56px;
+      z-index: 1030;
+      background: #1e293b;
+      border-bottom: 3px solid #38bdf8;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+      align-items: center;
+      gap: 12px;
+      padding: 0 12px 0 10px;
+    }
+
+    .app-topbar-title {
+      flex: 1;
+      min-width: 0;
+      color: #fff;
+      font-size: 15px;
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      text-align: left;
+    }
+
+    .menu-toggle {
+      flex-shrink: 0;
+      width: 44px;
+      height: 44px;
+      border: none;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+      font-size: 22px;
+      line-height: 1;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s ease, transform 0.2s ease;
+    }
+
+    .menu-toggle:hover,
+    .menu-toggle:focus-visible {
+      background: rgba(56, 189, 248, 0.25);
+      outline: 2px solid #38bdf8;
+      outline-offset: 2px;
+    }
+
+    /* ===== SIDEBAR — base compartida ===== */
+    .menu {
+      width: 260px;
+      background: #1e293b;
+      flex-shrink: 0;
+      z-index: 1050;
+      box-sizing: border-box;
+      overflow-x: hidden;
+    }
+
+    .menu-inner {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .menu-header {
+      flex-shrink: 0;
+      padding: 15px 15px 10px;
+      text-align: center;
+    }
+
+    .menu-header .logo {
       display: flex;
       justify-content: center;
-      margin-bottom: 15px;
+      margin-bottom: 12px;
+      text-decoration: none;
     }
 
-    .logo img{
-      width: 120px;
+    .menu-header .logo img {
+      width: 90px;
+      height: 90px;
+      object-fit: cover;
       border-radius: 12px;
     }
 
-    .menu h2{
+    .menu-header h2 {
       color: white;
       text-align: center;
-      margin-bottom: 20px;
+      margin: 0 0 12px;
+      font-size: 18px;
     }
 
-    .menu-item{
-      margin-bottom: 10px;
+    .menu-body {
+      padding: 0 15px 10px;
+      text-align: left;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .menu-footer {
+      flex-shrink: 0;
+      width: 100%;
+      max-width: 100%;
+      box-sizing: border-box;
+      padding: 12px 15px 15px;
+      border-top: 1px solid rgba(255, 255, 255, 0.12);
+      background: #1e293b;
+    }
+
+    .menu ul {
+      padding: 0;
+      margin: 0;
+      list-style: none;
+    }
+
+    .menu li {
+      list-style: none;
+    }
+
+    .menu-item {
+      margin-bottom: 8px;
     }
 
     .menu-item > a,
-    .menu-title{
+    .menu-title {
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -69,55 +192,64 @@
       transition: 0.3s;
       cursor: pointer;
       font-weight: 600;
+      font-size: 14px;
+      gap: 8px;
     }
 
     .menu-item > a:hover,
-    .menu-title:hover{
+    .menu-title:hover {
       background: #334155;
     }
 
     .menu-item.active > a,
-    .menu-item.active .menu-title{
+    .menu-item.active .menu-title {
       background: #0f172a;
       border-left: 5px solid #38bdf8;
     }
 
-    .submenu{
+    .submenu {
       display: none;
-      margin-top: 5px;
+      margin-top: 4px;
       padding-left: 10px;
     }
 
-    .menu-item.open .submenu{
+    .menu-item.open .submenu {
       display: block;
     }
 
-    .submenu li{
-      margin: 5px 0;
+    .submenu li {
+      margin: 4px 0;
     }
 
-    .submenu a{
+    .submenu a {
       display: block;
       text-decoration: none;
       color: #cbd5e1;
       padding: 10px;
       border-radius: 6px;
       transition: 0.3s;
+      font-size: 13px;
     }
 
-    .submenu a:hover{
+    .submenu a:hover {
       background: #334155;
     }
 
-    .submenu-active{
+    .submenu-active {
       background: #475569 !important;
       color: white !important;
       border-left: 4px solid #38bdf8;
     }
 
-    .cerrar-sesion{
+    .menu-footer .cerrar-sesion {
+      position: static;
+      left: auto;
+      right: auto;
+      bottom: auto;
       display: block;
-      margin-top: 30px;
+      width: 100%;
+      max-width: 100%;
+      box-sizing: border-box;
       text-align: center;
       background: #dc2626;
       color: white;
@@ -125,71 +257,246 @@
       padding: 12px;
       border-radius: 8px;
       transition: 0.3s;
+      font-weight: 600;
+      font-size: 14px;
     }
 
-    .cerrar-sesion:hover{
+    .menu-footer .cerrar-sesion:hover {
       background: #b91c1c;
+      color: white;
     }
 
     /* ===== PERFIL USUARIO ===== */
+    .perfil-usuario {
+      background: linear-gradient(145deg, #0f172a, #1e293b);
+      border: 1px solid rgba(56, 189, 248, 0.2);
+      border-radius: 16px;
+      padding: 14px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
+      text-align: left;
+    }
 
-.perfil-usuario{
-    background: linear-gradient(145deg, #0f172a, #1e293b);
-    border: 1px solid rgba(56, 189, 248, 0.2);
-    border-radius: 16px;
-    padding: 18px 15px;
-    margin-bottom: 25px;
+    .perfil-foto img {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid #38bdf8;
+    }
 
-    display: flex;
-    align-items: center;
-    gap: 15px;
+    .perfil-info {
+      flex: 1;
+      min-width: 0;
+    }
 
-    box-shadow: 0 4px 15px rgba(0,0,0,0.25);
-}
+    .perfil-info h3 {
+      margin: 0;
+      color: white;
+      font-size: 14px;
+      font-weight: 700;
+      line-height: 1.35;
+      overflow-wrap: break-word;
+    }
 
-.perfil-foto{
-    position: relative;
-}
+    .perfil-rol {
+      display: inline-block;
+      margin-top: 5px;
+      padding: 4px 10px;
+      background: rgba(56, 189, 248, 0.15);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      color: #38bdf8;
+      font-size: 11px;
+      font-weight: 600;
+      border-radius: 20px;
+    }
 
-.perfil-foto img{
-    width: 65px;
-    height: 65px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 3px solid #38bdf8;
-    box-shadow: 0 0 15px rgba(56,189,248,0.4);
-}
+    .menu-body .alert {
+      font-size: 0.82rem;
+      text-align: left;
+      margin-bottom: 10px;
+    }
 
-.perfil-info{
-    flex: 1;
-    overflow: hidden;
-}
+    /* ===== CONTENIDO PRINCIPAL ===== */
+    .app-main {
+      flex: 1 1 auto;
+      min-width: 0;
+      width: 100%;
+      overflow-x: hidden;
+    }
 
-.perfil-info h3{
-    margin: 0;
-    color: white;
-    font-size: 15px;
-    font-weight: 700;
-    white-space: normal;
-    overflow-wrap: break-word;
-    line-height: 1.4;
-}
+    body.app-body.menu-open .app-main {
+      pointer-events: none;
+      user-select: none;
+    }
 
-.perfil-rol{
-    display: inline-block;
-    margin-top: 6px;
-    padding: 5px 12px;
+    @media (min-width: 992px) {
+      body.app-body.menu-open .app-main {
+        pointer-events: auto;
+        user-select: auto;
+      }
+    }
 
-    background: rgba(56,189,248,0.15);
-    border: 1px solid rgba(56,189,248,0.3);
+    /* ===== CONTENIDO ADMIN RESPONSIVE (desde layout) ===== */
+    @media (max-width: 991.98px) {
+      .app-main .contenido,
+      .app-main .dashboard,
+      .app-main .container,
+      .app-main .container-fluid {
+        max-width: 100%;
+        overflow-x: hidden;
+      }
 
-    color: #38bdf8;
-    font-size: 12px;
-    font-weight: 600;
+      .app-main .tabla-scroll {
+        width: 100%;
+        max-width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
 
-    border-radius: 20px;
-}
+      .app-main .barra-top {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+      }
 
+      .app-main .barra-acciones {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .app-main .barra-acciones .boton-registrar,
+      .app-main .barra-top > .boton-registrar {
+        flex: 1 1 calc(50% - 4px);
+        margin: 0;
+        font-size: 13px;
+        padding: 10px 8px;
+        white-space: normal;
+        min-height: 44px;
+      }
+
+      .app-main .acciones {
+        flex-wrap: wrap;
+        gap: 6px;
+        justify-content: center;
+      }
+
+      .app-main .acciones button {
+        font-size: 12px;
+        padding: 6px 10px;
+        min-height: 36px;
+      }
+    }
+
+    @media (max-width: 576px) {
+      .app-main .barra-acciones .boton-registrar,
+      .app-main .barra-top > .boton-registrar {
+        flex: 1 1 100%;
+      }
+
+      .app-main .acciones button {
+        flex: 1 1 calc(50% - 3px);
+        max-width: calc(50% - 3px);
+      }
+    }
+
+    /* ===== RESPONSIVE SIDEBAR ===== */
+
+    /* Escritorio: sidebar integrado, crece con la página, sin scroll interno */
+    @media (min-width: 992px) {
+      .app-topbar {
+        display: none !important;
+      }
+
+      .app-overlay {
+        display: none !important;
+      }
+
+      .menu {
+        position: relative;
+        align-self: stretch;
+        min-height: 100vh;
+        height: auto;
+        overflow: visible;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .menu-inner {
+        flex: 1;
+        min-height: 100%;
+        overflow: visible;
+      }
+
+      .menu-body {
+        flex: 1 1 auto;
+        overflow: visible;
+      }
+
+      .menu-footer {
+        margin-top: auto;
+      }
+    }
+
+    /* Móvil / tablet: offcanvas con scroll interno */
+    @media (max-width: 991.98px) {
+      .app-topbar {
+        display: flex;
+      }
+
+      .menu {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: min(300px, 88vw);
+        height: 100dvh;
+        max-height: 100dvh;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        transform: translateX(-100%);
+        transition: transform 0.28s ease;
+        box-shadow: 4px 0 24px rgba(0, 0, 0, 0.25);
+      }
+
+      body.app-body.menu-open .menu {
+        transform: translateX(0);
+      }
+
+      .menu-inner {
+        height: 100%;
+        min-height: 0;
+        overflow: hidden;
+      }
+
+      .menu-body {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow-y: auto;
+        overflow-x: hidden;
+        overscroll-behavior: contain;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .menu-footer {
+        margin-top: 0;
+      }
+
+      .app-main {
+        padding-top: 56px;
+        width: 100%;
+        flex: 1 1 100%;
+      }
+
+      .app-main .contenido,
+      .app-main .dashboard {
+        padding-top: 0;
+      }
+    }
   </style>
 
   {% block extra_css %}
@@ -197,484 +504,357 @@
 
 </head>
 
-<body>
+<body class="app-body">
 
-  <aside class="menu">
+  <div class="app-overlay" id="menuOverlay" aria-hidden="true"></div>
 
-    <a href="{% url 'inicio' %}" class="logo">
-      <img src="{% static 'imagenes/logo.jpg' %}"
-           alt="Logo Escuela de Fútbol Pinze">
-    </a>
-  
-    <h2>⚽ Menú ⚽</h2>
-<div class="perfil-usuario">
+  <header class="app-topbar">
+    <button type="button"
+            class="menu-toggle"
+            id="menuToggle"
+            aria-label="Abrir menú"
+            aria-expanded="false"
+            aria-controls="sidebarMenu">
+      ☰
+    </button>
+    <span class="app-topbar-title">⚽ Escuela de Fútbol Pinze</span>
+  </header>
 
-    <div class="perfil-foto">
+  <aside class="menu" id="sidebarMenu" aria-label="Menú principal">
+
+    <div class="menu-inner">
+
+      <div class="menu-header">
+        <a href="{% url 'inicio' %}" class="logo">
+          <img src="{% static 'imagenes/logo.jpg' %}"
+               alt="Logo Escuela de Fútbol Pinze">
+        </a>
+        <h2>⚽ Menú ⚽</h2>
+
+        <div class="perfil-usuario">
+          <div class="perfil-foto">
             <a href="{% url 'mi_perfil' request.session.usuario_id %}">
-                {% if request.session.foto %}
-                    <img src="{{ request.session.foto }}" alt="Foto de perfil">
-                {% else %}
-                    <img src="/static/imagenes/default.png" alt="Foto de perfil">
-                {% endif %}
+              {% if request.session.foto %}
+                <img src="{{ request.session.foto }}" alt="Foto de perfil">
+              {% else %}
+                <img src="/static/imagenes/default.png" alt="Foto de perfil">
+              {% endif %}
             </a>
-        </div>
-
-        <div class="perfil-info">
+          </div>
+          <div class="perfil-info">
             <h3>{{ request.session.nombre }}</h3>
-            <span class="perfil-rol">
-                {{ request.session.roles }}
-            </span>
+            <span class="perfil-rol">{{ request.session.roles }}</span>
+          </div>
         </div>
+      </div>
 
-    </div>
+      <div class="menu-body">
 
-    <!-- ALERTA -->
-    {% if not docs_completos %}
-
-    <div class="alert alert-danger mt-3" role="alert">
-
-        <strong>
-            ⚠ Documentos pendientes
-        </strong>
-
-        <hr>
-
-        Debes subir los siguientes documentos:
-
-        <ul class="mt-2 mb-0">
-
+        {% if not docs_completos %}
+        <div class="alert alert-danger" role="alert">
+          <strong>⚠ Documentos pendientes</strong>
+          <hr>
+          Debes subir los siguientes documentos:
+          <ul class="mt-2 mb-0">
             {% for documento in faltantes %}
-
-                <li>{{ documento }}</li>
-
+              <li>{{ documento }}</li>
             {% endfor %}
-
-        </ul>
-
-    </div>
-
-    {% endif %}
-
-    {% if documentos_rechazados %}
-
-    <div class="alert alert-warning mt-3" role="alert">
-
-        <strong>
-            📄 Documentos devueltos
-        </strong>
-
-        <hr>
-
-        <p class="mb-2">
-            El administrador devolvió los siguientes documentos. Debes corregirlos y subirlos nuevamente.
-        </p>
-
-        <ul class="mt-2 mb-0">
-
-            {% for doc in documentos_rechazados %}
-
-                <li>
-                    <strong>{{ doc.nombre }}</strong>
-                    — {{ doc.observacion }}
-                </li>
-
-            {% endfor %}
-
-        </ul>
-
-    </div>
-
-    {% endif %}
-
-    {% if documentos_rechazados %}
-
-<div class="modal fade"
-     id="modalRechazados"
-     tabindex="-1">
-
-    <div class="modal-dialog">
-
-        <div class="modal-content">
-
-            <div class="modal-header bg-warning">
-
-                <h5 class="modal-title">
-                    📄 Documentos devueltos
-                </h5>
-
-                <button
-                    type="button"
-                    class="btn-close"
-                    data-bs-dismiss="modal">
-                </button>
-
-            </div>
-
-            <div class="modal-body">
-
-                <p>
-                    Los siguientes documentos fueron devueltos por el administrador.
-                </p>
-
-                <hr>
-
-                {% for doc in documentos_rechazados %}
-
-                    <div class="mb-3">
-
-                        <strong>
-                            {{ doc.nombre }}
-                        </strong>
-
-                        <br>
-
-                        <span class="text-danger">
-
-                            Motivo:
-
-                        </span>
-
-                        {{ doc.observacion }}
-
-                    </div>
-
-                {% endfor %}
-
-            </div>
-
-            <div class="modal-footer">
-
-                <a href="{% url 'documentos' request.session.usuario_id %}"
-                   class="btn btn-warning">
-
-                    Subir nuevamente
-
-                </a>
-
-            </div>
-
+          </ul>
         </div>
+        {% endif %}
 
-    </div>
+        {% if documentos_rechazados %}
+        <div class="alert alert-warning" role="alert">
+          <strong>📄 Documentos devueltos</strong>
+          <hr>
+          <p class="mb-2">
+            El administrador devolvió los siguientes documentos. Debes corregirlos y subirlos nuevamente.
+          </p>
+          <ul class="mt-2 mb-0">
+            {% for doc in documentos_rechazados %}
+              <li><strong>{{ doc.nombre }}</strong> — {{ doc.observacion }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+        {% endif %}
 
-</div>
+        <ul>
+          {% if docs_completos %}
 
-{% endif %}
-
-    <ul>
-
-      <!-- SOLO SI DOCUMENTOS COMPLETOS -->
-      {% if docs_completos %}
-
-      <!-- DASHBOARD -->
-      <li class="menu-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
-          <a href="{% url 'dashboard' %}">
-              Inicio
-          </a>
-      </li>
-
-      <!-- USUARIOS -->
-      {% if "Administrador" in request.session.roles %}
-      <li class="menu-item {% if request.resolver_match.url_name == 'usuario' %}active{% endif %}">
-          <a href="{% url 'usuario' %}">
-              Usuarios
-          </a>
-      </li>
-      {% endif %}
-
-      <!-- INVENTARIO -->
-      {% if "Administrador" in request.session.roles or "Entrenador" in request.session.roles %}
-      <li class="menu-item {% if 'inventario' in request.path %}active{% endif %}">
-        <a href="{% url 'lista_inventario' %}">
-          Inventario
-        </a>
-      </li>
-      {% endif %}
-
-      <!-- ENTRENAMIENTO -->
-      {% if "Administrador" in request.session.roles or "Entrenador" in request.session.roles or "Jugador" in request.session.roles %}
-
-          {% if "Administrador" in request.session.roles or "Entrenador" in request.session.roles %}
-
-          <li class="menu-item {% if 'entrenamiento' in request.path or 'sesiones' in request.path or 'posicion_actividad' in request.path or 'atributo_actividad' in request.path %}active open{% endif %}">
-
-              <div class="menu-title"
-                   onclick="toggleMenu('entrenamiento-menu')">
-
-                  Entrenamiento
-
-                  <span>▼</span>
-
-              </div>
-
-              <ul id="entrenamiento-menu"
-                  class="submenu">
-
-                  <li>
-                      <a href="{% url 'panel_entrenamiento' %}"
-                         class="{% if 'entrenamiento' in request.path or 'sesiones' in request.path %}{% if 'posicion_actividad' not in request.path and 'atributo_actividad' not in request.path %}submenu-active{% endif %}{% endif %}">
-                          Ver Entrenamientos
-                      </a>
-                  </li>
-
-                  <li>
-                      <a href="{% url 'panel_posicion_actividad' %}"
-                         class="{% if 'posicion_actividad' in request.path %}submenu-active{% endif %}">
-                          Posiciones y actividades
-                      </a>
-                  </li>
-
-                  <li>
-                      <a href="{% url 'panel_actividad_atributo' %}"
-                         class="{% if 'atributo_actividad' in request.path %}submenu-active{% endif %}">
-                          Aspectos tecnicos
-                      </a>
-                  </li>
-
-              </ul>
-
+          <li class="menu-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+            <a href="{% url 'dashboard' %}">Inicio</a>
           </li>
-
-          {% else %}
-
-          <li class="menu-item {% if 'entrenamiento/panel' in request.path %}active{% endif %}">
-              <a href="{% url 'panel_entrenamiento' %}">
-                  Entrenamiento
-              </a>
-          </li>
-
-          {% endif %}
-
-      {% endif %}
-
-      <!-- RENDIMIENTO -->
-      {% if "Administrador" in request.session.roles or "Entrenador" in request.session.roles or "Jugador" in request.session.roles %}
-      <li class="menu-item {% if 'rendimiento' in request.path %}active{% endif %}">
-        <a href="{% url 'historial_rendimiento' %}">
-          Rendimiento
-        </a>
-      </li>
-      {% endif %}
-
-      <!-- MATRICULA -->
-      {% if "Administrador" in request.session.roles or "Entrenador" in request.session.roles or "Jugador" in request.session.roles %}
 
           {% if "Administrador" in request.session.roles %}
+          <li class="menu-item {% if request.resolver_match.url_name == 'usuario' %}active{% endif %}">
+            <a href="{% url 'usuario' %}">Usuarios</a>
+          </li>
+          {% endif %}
 
-          <li class="menu-item {% if 'matricula' in request.path or 'categoria' in request.path %}active open{% endif %}">
+          {% if "Administrador" in request.session.roles or "Entrenador" in request.session.roles %}
+          <li class="menu-item {% if 'inventario' in request.path %}active{% endif %}">
+            <a href="{% url 'lista_inventario' %}">Inventario</a>
+          </li>
+          {% endif %}
 
-              <div class="menu-title"
-                   onclick="toggleMenu('matricula-menu')">
+          {% if "Administrador" in request.session.roles or "Entrenador" in request.session.roles or "Jugador" in request.session.roles %}
 
-                  Matrícula
+            {% if "Administrador" in request.session.roles or "Entrenador" in request.session.roles %}
 
-                  <span>▼</span>
-
+            <li class="menu-item {% if 'entrenamiento' in request.path or 'sesiones' in request.path or 'posicion_actividad' in request.path or 'atributo_actividad' in request.path %}active open{% endif %}">
+              <div class="menu-title" onclick="toggleMenu('entrenamiento-menu')">
+                Entrenamiento <span>▼</span>
               </div>
-
-              <ul id="matricula-menu"
-                  class="submenu">
-
-                  <li>
-                      <a href="{% url 'lista_matricula' %}"
-                         class="{% if 'matricula' in request.path %}submenu-active{% endif %}">
-                          Ver Matrículas
-                      </a>
-                  </li>
-
-                  <li>
-                      <a href="{% url 'lista_categoria' %}"
-                         class="{% if 'categoria' in request.path %}submenu-active{% endif %}">
-                          Categorías
-                      </a>
-                  </li>
-
+              <ul id="entrenamiento-menu" class="submenu">
+                <li>
+                  <a href="{% url 'panel_entrenamiento' %}"
+                     class="{% if 'entrenamiento' in request.path or 'sesiones' in request.path %}{% if 'posicion_actividad' not in request.path and 'atributo_actividad' not in request.path %}submenu-active{% endif %}{% endif %}">
+                    Ver Entrenamientos
+                  </a>
+                </li>
+                <li>
+                  <a href="{% url 'panel_posicion_actividad' %}"
+                     class="{% if 'posicion_actividad' in request.path %}submenu-active{% endif %}">
+                    Posiciones y actividades
+                  </a>
+                </li>
+                <li>
+                  <a href="{% url 'panel_actividad_atributo' %}"
+                     class="{% if 'atributo_actividad' in request.path %}submenu-active{% endif %}">
+                    Aspectos tecnicos
+                  </a>
+                </li>
               </ul>
+            </li>
 
-          </li>
+            {% else %}
 
-          {% else %}
+            <li class="menu-item {% if 'entrenamiento/panel' in request.path %}active{% endif %}">
+              <a href="{% url 'panel_entrenamiento' %}">Entrenamiento</a>
+            </li>
 
-          <li class="menu-item {% if 'matricula' in request.path %}active{% endif %}">
-              <a href="{% url 'lista_matricula' %}">
-                  Matrícula
-              </a>
-          </li>
+            {% endif %}
 
           {% endif %}
 
-      {% endif %}
+          {% if "Administrador" in request.session.roles or "Entrenador" in request.session.roles or "Jugador" in request.session.roles %}
+          <li class="menu-item {% if 'rendimiento' in request.path %}active{% endif %}">
+            <a href="{% url 'historial_rendimiento' %}">Rendimiento</a>
+          </li>
+          {% endif %}
 
-      <!-- PAGOS -->
-      {% if "Administrador" in request.session.roles or "Jugador" in request.session.roles %}
-      <li class="menu-item {% if 'pago' in request.path %}active{% endif %}">
-        <a href="{% url 'lista_pagos' %}">
-          Pago
-        </a>
-      </li>
-      {% endif %}
+          {% if "Administrador" in request.session.roles or "Entrenador" in request.session.roles or "Jugador" in request.session.roles %}
 
-      {% endif %}
+            {% if "Administrador" in request.session.roles %}
 
-      <!-- MI PERFIL -->
-      {% if "Administrador" in request.session.roles or "Entrenador" in request.session.roles or "Jugador" in request.session.roles %}
-      <li class="menu-item {% if request.resolver_match.url_name == 'mi_perfil' %}active{% endif %}">
-          <a href="{% url 'mi_perfil' request.session.usuario_id %}">
-              Mi Perfil
-              {% if not docs_completos %}
-                ⚠
-              {% endif %}
-          </a>
-      </li>
-      {% endif %}
-
-    </ul>
-
-    <a href="{% url 'logout' %}"
-       class="cerrar-sesion">
-
-      Cerrar sesión
-
-    </a>
-
-  </aside>
-
-  {% block content %}
-  {% endblock %}
-
-  <!-- MODAL BLOQUEO -->
-  {% if not docs_completos %}
-
-  <div class="modal fade"
-     id="modalBloqueo"
-     tabindex="-1">
-
-      <div class="modal-dialog modal-dialog-centered">
-
-          <div class="modal-content">
-
-              
-              <div class="modal-header bg-danger text-white">
-
-                  <h5 class="modal-title">
-                      ⚠ Acceso restringido
-                  </h5>
-
-                  <button type="button"
-                          class="btn-close btn-close-white"
-                          data-bs-dismiss="modal">
-                  </button>
-
+            <li class="menu-item {% if 'matricula' in request.path or 'categoria' in request.path %}active open{% endif %}">
+              <div class="menu-title" onclick="toggleMenu('matricula-menu')">
+                Matrícula <span>▼</span>
               </div>
+              <ul id="matricula-menu" class="submenu">
+                <li>
+                  <a href="{% url 'lista_matricula' %}"
+                     class="{% if 'matricula' in request.path %}submenu-active{% endif %}">
+                    Ver Matrículas
+                  </a>
+                </li>
+                <li>
+                  <a href="{% url 'lista_categoria' %}"
+                     class="{% if 'categoria' in request.path %}submenu-active{% endif %}">
+                    Categorías
+                  </a>
+                </li>
+              </ul>
+            </li>
 
-              <div class="modal-body">
+            {% else %}
 
-                  <p>
-                      Todavía no puedes interactuar con el sistema.
-                  </p>
+            <li class="menu-item {% if 'matricula' in request.path %}active{% endif %}">
+              <a href="{% url 'lista_matricula' %}">Matrícula</a>
+            </li>
 
-                  <p>
-                      Debes completar todos los documentos requeridos.
-                  </p>
+            {% endif %}
 
-                  {% if faltantes %}
+          {% endif %}
 
-                  <hr>
+          {% if "Administrador" in request.session.roles or "Jugador" in request.session.roles %}
+          <li class="menu-item {% if 'pago' in request.path %}active{% endif %}">
+            <a href="{% url 'lista_pagos' %}">Pago</a>
+          </li>
+          {% endif %}
 
-                  <strong>
-                      Documentos pendientes:
-                  </strong>
+          {% endif %}
 
-                  <ul class="mt-2">
+          {% if "Administrador" in request.session.roles or "Entrenador" in request.session.roles or "Jugador" in request.session.roles %}
+          <li class="menu-item {% if request.resolver_match.url_name == 'mi_perfil' %}active{% endif %}">
+            <a href="{% url 'mi_perfil' request.session.usuario_id %}">
+              Mi Perfil{% if not docs_completos %} ⚠{% endif %}
+            </a>
+          </li>
+          {% endif %}
 
-                      {% for documento in faltantes %}
-
-                          <li>{{ documento }}</li>
-
-                      {% endfor %}
-
-                  </ul>
-
-                  {% endif %}
-
-              </div>
-
-              <div class="modal-footer">
-
-    <button type="button"
-            class="btn btn-secondary"
-            data-bs-dismiss="modal">
-
-        Cerrar
-
-    </button>
-
-    <a href="{% url 'mi_perfil' request.session.usuario_id %}"
-       class="btn btn-primary">
-
-        Ir a mi perfil
-
-    </a>
-
-</div>
-
-          </div>
+        </ul>
 
       </div>
 
+      <div class="menu-footer">
+        <a href="{% url 'logout' %}" class="cerrar-sesion">Cerrar sesión</a>
+      </div>
+
+    </div>
+
+  </aside>
+
+  {% if documentos_rechazados %}
+  <div class="modal fade" id="modalRechazados" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header bg-warning">
+          <h5 class="modal-title">📄 Documentos devueltos</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <p>Los siguientes documentos fueron devueltos por el administrador.</p>
+          <hr>
+          {% for doc in documentos_rechazados %}
+            <div class="mb-3">
+              <strong>{{ doc.nombre }}</strong><br>
+              <span class="text-danger">Motivo:</span> {{ doc.observacion }}
+            </div>
+          {% endfor %}
+        </div>
+        <div class="modal-footer">
+          <a href="{% url 'documentos' request.session.usuario_id %}" class="btn btn-warning">
+            Subir nuevamente
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="app-main">
+    {% block content %}
+    {% endblock %}
   </div>
 
+  {% if not docs_completos %}
+  <div class="modal fade" id="modalBloqueo" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-danger text-white">
+          <h5 class="modal-title">⚠ Acceso restringido</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <p>Todavía no puedes interactuar con el sistema.</p>
+          <p>Debes completar todos los documentos requeridos.</p>
+          {% if faltantes %}
+          <hr>
+          <strong>Documentos pendientes:</strong>
+          <ul class="mt-2">
+            {% for documento in faltantes %}
+              <li>{{ documento }}</li>
+            {% endfor %}
+          </ul>
+          {% endif %}
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+          <a href="{% url 'mi_perfil' request.session.usuario_id %}" class="btn btn-primary">Ir a mi perfil</a>
+        </div>
+      </div>
+    </div>
+  </div>
   {% endif %}
 
   <script>
-
     function toggleMenu(id) {
-
       const menu = document.getElementById(id);
-
-      menu.parentElement.classList.toggle('open');
-
+      if (menu) menu.parentElement.classList.toggle('open');
     }
 
+    document.addEventListener('DOMContentLoaded', function () {
+      const body = document.body;
+      const menuToggle = document.getElementById('menuToggle');
+      const menuOverlay = document.getElementById('menuOverlay');
+      const sidebar = document.getElementById('sidebarMenu');
+      let scrollPosition = 0;
+
+      if (!menuToggle || !menuOverlay) return;
+
+      function setMenuOpen(isOpen) {
+        var isMobile = window.innerWidth < 992;
+
+        if (isOpen && isMobile) {
+          scrollPosition = window.scrollY;
+          body.classList.add('menu-open');
+          body.style.top = '-' + scrollPosition + 'px';
+        } else {
+          body.classList.remove('menu-open');
+          body.style.top = '';
+          if (isMobile) {
+            window.scrollTo(0, scrollPosition);
+          }
+        }
+
+        menuToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        menuToggle.setAttribute('aria-label', isOpen ? 'Cerrar menú' : 'Abrir menú');
+        menuToggle.textContent = isOpen ? '✕' : '☰';
+        menuOverlay.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
+      }
+
+      menuToggle.addEventListener('click', function () {
+        if (window.innerWidth >= 992) return;
+        setMenuOpen(!body.classList.contains('menu-open'));
+      });
+
+      menuOverlay.addEventListener('click', function () {
+        setMenuOpen(false);
+      });
+
+      if (sidebar) {
+        sidebar.querySelectorAll('a').forEach(function (link) {
+          link.addEventListener('click', function () {
+            if (window.innerWidth < 992) setMenuOpen(false);
+          });
+        });
+      }
+
+      window.addEventListener('resize', function () {
+        if (window.innerWidth >= 992) setMenuOpen(false);
+      });
+
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') setMenuOpen(false);
+      });
+    });
   </script>
 
   {% if not docs_completos %}
-
   <script>
-
-      document.addEventListener("DOMContentLoaded", function () {
-
-          {% if documentos_rechazados %}
-
-          let modalRechazadosEl = document.getElementById('modalRechazados');
-          let modalRechazados = new bootstrap.Modal(modalRechazadosEl);
-          let modalBloqueoEl = document.getElementById('modalBloqueo');
-
-          if (modalBloqueoEl) {
-              modalRechazadosEl.addEventListener('hidden.bs.modal', function () {
-                  new bootstrap.Modal(modalBloqueoEl).show();
-              });
-          }
-
-          modalRechazados.show();
-
-          {% else %}
-
-          let modal = new bootstrap.Modal(
-              document.getElementById('modalBloqueo')
-          );
-
-          modal.show();
-
-          {% endif %}
-
-      });
-
+    document.addEventListener("DOMContentLoaded", function () {
+      {% if documentos_rechazados %}
+      let modalRechazadosEl = document.getElementById('modalRechazados');
+      let modalRechazados = new bootstrap.Modal(modalRechazadosEl);
+      let modalBloqueoEl = document.getElementById('modalBloqueo');
+      if (modalBloqueoEl) {
+        modalRechazadosEl.addEventListener('hidden.bs.modal', function () {
+          new bootstrap.Modal(modalBloqueoEl).show();
+        });
+      }
+      modalRechazados.show();
+      {% else %}
+      let modal = new bootstrap.Modal(document.getElementById('modalBloqueo'));
+      modal.show();
+      {% endif %}
+    });
   </script>
-
   {% endif %}
-{% block extra_js %}
-{% endblock %}
+
+  {% block extra_js %}
+  {% endblock %}
+
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 </body>

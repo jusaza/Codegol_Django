@@ -4,19 +4,76 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .barra-top {
-  width: 90%;
+  width: 100%;
   max-width: 1100px;
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
+  gap: 12px;
   margin-bottom: 20px;
 }
 
 .barra-busqueda {
-  flex: 1;
+  flex: 1 1 220px;
+  min-width: 0;
+}
+
+.barra-busqueda form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.barra-busqueda input,
+.barra-busqueda select {
+  flex: 1 1 140px;
+  min-width: 0;
+}
+
+.barra-busqueda button {
+  flex: 0 0 auto;
+  min-height: 44px;
+  padding: 10px 16px;
+  background-color: #001f3f;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.barra-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.tabla-scroll {
+  width: 100%;
+  max-width: 1100px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-bottom: 10px;
+}
+
+.contenido table img {
+  max-width: 60px;
+  max-height: 60px;
+  width: auto;
+  height: auto;
+  object-fit: cover;
+  border-radius: 4px;
 }
 
 .barra-busqueda input {
@@ -40,7 +97,12 @@
   font-weight: 600;
   transition: background-color 0.3s ease, transform 0.2s ease;
   text-decoration: none;
-  margin-left: 15px;
+  margin-left: 0;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
 }
 
 .boton-registrar:hover {
@@ -50,13 +112,18 @@
 
 /* Estilo general de la tabla */
 table {
-  width: 90%;
+  width: 100%;
   max-width: 1100px;
   border-collapse: collapse;
   background: white;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   border-radius: 8px;
   overflow: hidden;
+}
+
+.tabla-scroll table {
+  width: 100%;
+  min-width: 640px;
 }
 
 /* Celdas de encabezado y datos */
@@ -85,21 +152,23 @@ tr:hover {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 10px;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .acciones button {
   margin: 0;
-  padding: 6px 12px;
+  padding: 8px 12px;
   border: none;
   border-radius: 5px;
   cursor: pointer;
   font-weight: 600;
   font-size: 14px;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   color: rgb(32, 117, 70);
+  min-height: 38px;
 }
 
 .acciones .ver {
@@ -319,4 +388,135 @@ h3.titulo-formulario {
     padding: 8px 15px;
     text-decoration: none;
     border-radius: 5px;
+}
+
+/* ---------------------- RESPONSIVE ---------------------- */
+
+@media (max-width: 991.98px) {
+  .contenido {
+    padding: 12px 15px;
+    align-items: stretch;
+  }
+
+  .barra-top {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .barra-busqueda {
+    width: 100%;
+    flex: 1 1 100%;
+  }
+
+  .barra-busqueda form {
+    width: 100%;
+  }
+
+  .barra-busqueda input,
+  .barra-busqueda select {
+    width: 100%;
+    flex: 1 1 100%;
+  }
+
+  .barra-acciones {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .barra-acciones .boton-registrar,
+  .barra-top > .boton-registrar {
+    flex: 1 1 calc(50% - 5px);
+    text-align: center;
+    font-size: 14px;
+    padding: 10px 12px;
+    white-space: normal;
+  }
+}
+
+@media (max-width: 576px) {
+  .contenido {
+    padding: 10px 12px;
+  }
+
+  th, td {
+    padding: 10px 8px;
+    font-size: 14px;
+  }
+
+  .barra-acciones .boton-registrar,
+  .barra-top > .boton-registrar {
+    flex: 1 1 100%;
+  }
+
+  .acciones button {
+    font-size: 13px;
+    padding: 8px 10px;
+  }
+
+  .ventana-flotante {
+    flex-direction: column;
+    width: 95%;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  form.registro-rendimiento input,
+  form.registro-rendimiento select,
+  form.registro-rendimiento button {
+    flex: 1 1 100%;
+  }
+
+  .tabla-usuario {
+    width: 100%;
+  }
+
+  .foto-usuario {
+    width: 80px;
+    height: 80px;
+  }
+}
+
+.paginacion {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  max-width: 1100px;
+  margin-top: 16px;
+}
+
+.paginacion button {
+  min-height: 40px;
+  min-width: 40px;
+  padding: 8px 12px;
+  border: 1px solid #0b1649;
+  border-radius: 6px;
+  background: white;
+  color: #0b1649;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.paginacion button.activo,
+.paginacion button:hover:not(:disabled) {
+  background: #0b1649;
+  color: white;
+}
+
+.paginacion button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Modales Bootstrap: formularios en columnas */
+@media (max-width: 576px) {
+  .modal-dialog {
+    margin: 0.75rem;
+  }
+
+  .modal-body .row > [class*="col-"] {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
 }

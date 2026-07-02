@@ -9,8 +9,6 @@
 
 <div class="contenido">
 
-  <br>
-
   <div class="barra-top">
 
     <div class="barra-busqueda">
@@ -22,6 +20,7 @@
       </form>
     </div>
 
+    <div class="barra-acciones">
     {% if "Administrador" in request.session.roles %}
 
     <a href="{% url 'reporte_pagos_pdf' %}"
@@ -40,9 +39,11 @@
     </a>
 
     {% endif %}
+    </div>
 
   </div>
 
+  <div class="tabla-scroll">
   <table>
 
     <thead>
@@ -144,6 +145,7 @@
     </tbody>
 
   </table>
+  </div>
 {% if pagos.has_other_pages %}
 
 <div class="paginacion">

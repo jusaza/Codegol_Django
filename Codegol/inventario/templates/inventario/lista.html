@@ -2,14 +2,38 @@
 {% load static %}
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/stylepag.css' %}">
+<style>
+  @media (min-width: 992px) {
+    .contenido-inventario {
+      align-items: stretch;
+    }
+
+    .contenido-inventario .barra-top {
+      width: 100%;
+      max-width: none;
+      align-self: stretch;
+    }
+
+    .contenido-inventario .tabla-scroll {
+      width: 100%;
+      max-width: none;
+      align-self: stretch;
+    }
+
+    .contenido-inventario .tabla-scroll table {
+      width: 100%;
+      max-width: none;
+      min-width: 0;
+      table-layout: auto;
+    }
+  }
+</style>
 {% endblock %}
 
 
 {% block content %}
 
-<div class="contenido">
-
-  <br>
+<div class="contenido contenido-inventario">
 
   <div class="barra-top">
     <div class="barra-busqueda">
@@ -19,6 +43,7 @@
                 value="{{ query|default:'' }}">
         </form>
     </div>
+    <div class="barra-acciones">
     {% if "Administrador" in request.session.roles %}
     <a class="boton-registrar"
             onclick="abrirModal('{% url 'crear_inventario' %}')">
@@ -42,6 +67,7 @@
 </a>
 
 {% endif %}
+    </div>
   </div>
 {% if messages %}
     {% for message in messages %}
@@ -50,6 +76,7 @@
         </div>
     {% endfor %}
 {% endif %}
+  <div class="tabla-scroll">
   <table>
     <thead>
       <tr>
@@ -152,6 +179,7 @@
       {% endfor %}
     </tbody>
   </table>
+  </div>
 {% if inventarios.has_other_pages %}
 <nav class="mt-4">
     <ul class="pagination justify-content-center">
