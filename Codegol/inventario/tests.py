@@ -83,12 +83,12 @@ class InventarioViewsTest(TestCase):
         inventarios = response.context["inventarios"]
 
         self.assertEqual(
-            inventarios.count(),
+            len(inventarios),
             1
         )
 
         self.assertEqual(
-            inventarios.first(),
+            inventarios[0],
             self.inventario_1
         )
 

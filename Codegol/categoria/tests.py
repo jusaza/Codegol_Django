@@ -91,12 +91,12 @@ class CategoriaViewsTest(TestCase):
         categorias = response.context["categorias"]
 
         self.assertEqual(
-            categorias.count(),
+            len(categorias),
             1
         )
 
         self.assertEqual(
-            categorias.first(),
+            categorias[0],
             self.categoria_1
         )
 

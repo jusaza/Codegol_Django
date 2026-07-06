@@ -206,7 +206,7 @@ class MatriculaViewsTest(TestCase):
 
         matriculas = response.context["matriculas"]
 
-        self.assertEqual(matriculas.count(), 2)
+        self.assertEqual(len(matriculas), 2)
         self.assertFalse(response.context["modo_inactivos"])
 
     def test_lista_matricula_jugador_solo_ve_las_suyas(self):
@@ -219,8 +219,11 @@ class MatriculaViewsTest(TestCase):
 
         matriculas = response.context["matriculas"]
 
-        self.assertEqual(matriculas.count(), 1)
-        self.assertEqual(matriculas.first().id, self.matricula_jugador.id)
+        self.assertEqual(len(matriculas), 1)
+        self.assertEqual(
+            matriculas[0].id,
+            self.matricula_jugador.id
+        )
 
     def test_lista_matricula_filtra_por_nombre(self):
 
@@ -233,8 +236,11 @@ class MatriculaViewsTest(TestCase):
 
         matriculas = response.context["matriculas"]
 
-        self.assertEqual(matriculas.count(), 1)
-        self.assertEqual(matriculas.first().id, self.matricula_otro.id)
+        self.assertEqual(len(matriculas), 1)
+        self.assertEqual(
+            matriculas[0].id,
+            self.matricula_otro.id
+        )
 
     def test_lista_matricula_asigna_categoria_actual(self):
 
@@ -836,9 +842,9 @@ class MatriculaViewsTest(TestCase):
 
         matriculas = response.context["matriculas"]
 
-        self.assertEqual(matriculas.count(), 1)
+        self.assertEqual(len(matriculas), 1)
         self.assertEqual(
-            matriculas.first().id,
+            matriculas[0].id,
             self.matricula_inactiva.id
         )
 
@@ -852,7 +858,7 @@ class MatriculaViewsTest(TestCase):
         )
 
         self.assertEqual(
-            response.context["matriculas"].count(),
+            len(response.context["matriculas"]),
             1
         )
 

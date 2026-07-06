@@ -296,6 +296,9 @@ def lista_matricula(request):
             Q(id_jugador__nombre_completo__icontains=query) |
             Q(id__icontains=query)
         )
+
+    matriculas = matriculas.order_by("-id")
+
     for m in matriculas:
         ultima = HistorialCategoria.objects.filter(
             id_matricula=m,
@@ -1045,14 +1048,14 @@ def lista_matricula_inactivos(request):
     )
 
     if query:
-
         matriculas = matriculas.filter(
             Q(id_jugador__nombre_completo__icontains=query) |
             Q(id__icontains=query)
         )
 
-    for m in matriculas:
+    matriculas = matriculas.order_by("-id")
 
+    for m in matriculas:
         ultima = HistorialCategoria.objects.filter(
             id_matricula=m,
             estado=True

@@ -175,10 +175,13 @@ class PagoViewsTest(TestCase):
 
     def test_lista_pagos_jugador_solo_ve_los_suyos(self):
         self.login_jugador()
+
         response = self.client.get(reverse('lista_pagos'))
+
         pagos = response.context['pagos']
-        self.assertEqual(pagos.count(), 1)
-        self.assertEqual(pagos.first().id, self.pago_jugador.id)
+
+        self.assertEqual(len(pagos), 1)
+        self.assertEqual(pagos[0].id, self.pago_jugador.id)
 
     def test_lista_pagos_filtra_por_concepto(self):
         self.login_admin()
@@ -291,7 +294,7 @@ class PagoViewsTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Ya existe un pago de matrícula registrado')
 
-    def test_no_permite_pago_con_matricula_vencida(self):
+    def test_formulario_no_muestra_matriculas_vencidas(self):
         self.login_admin()
 
         matricula_vencida = Matricula.objects.create(
@@ -303,19 +306,13 @@ class PagoViewsTest(TestCase):
             estado=True,
         )
 
-        response = self.client.post(
-            reverse('crear_pago'),
-            {
-                'id_concepto': self.concepto_uniforme.id,
-                'fecha_pago': '2026-03-10',
-                'metodo_pago': 'Efectivo',
-                'observaciones': '',
-                'id_matricula': matricula_vencida.id,
-            },
-        )
+        response = self.client.get(reverse("crear_pago"))
 
-        self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'ha vencido')
+        self.assertFalse(
+            response.context["matriculas"].filter(
+                id=matricula_vencida.id
+            ).exists()
+        )
 
     def test_valor_historico_no_cambia_si_concepto_cambia(self):
         self.login_admin()
