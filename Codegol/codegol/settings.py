@@ -63,7 +63,7 @@ INSTALLED_APPS = [
     'rendimiento',
     'categoria',
     'codegol',
-    'pago',
+    'pago.apps.PagoConfig',
     'posicion',
     'actividad',
     'atributo',

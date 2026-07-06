@@ -1,4 +1,5 @@
 <form method="POST"
+      id="formPago"
       action="{% if pago %}
                 {% url 'editar_pago' pago.id %}
               {% else %}
@@ -7,18 +8,15 @@
 
     {% csrf_token %}
 
-    <!-- HEADER -->
     <div class="modal-header text-white"
          style="background-color:#001f3f;">
 
         <h5>
-
             {% if pago %}
                 Editar Pago
             {% else %}
                 Registrar Pago
             {% endif %}
-
         </h5>
 
         <button type="button"
@@ -28,197 +26,183 @@
 
     </div>
 
-    <!-- BODY -->
     <div class="modal-body"
          style="display:grid;
                 grid-template-columns:1fr 1fr;
                 gap:20px;">
 
+        {% if sin_matriculas_vigentes %}
+        <div style="grid-column:1 / -1;"
+             class="alert alert-warning mb-0">
+            No existen matrículas vigentes para registrar pagos.
+        </div>
+        {% endif %}
+
+        {% if form.non_field_errors %}
+        <div style="grid-column:1 / -1;"
+             class="alert alert-danger mb-0">
+            {% for error in form.non_field_errors %}
+                <div>{{ error }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
         <!-- CONCEPTO -->
-        <div style="display:flex;
-                    flex-direction:column;">
-
-            <label class="fw-bold">
-                Concepto de Pago
-            </label>
-
-            <select name="concepto_pago"
-                    class="form-control"
-                    required>
-
-                <option value="">
-                    Seleccione un concepto
-                </option>
-
-                {% for value, label in conceptos %}
-
-                <option value="{{ value }}"
-                    {% if pago.concepto_pago == value %}
-                        selected
-                    {% endif %}
-                >
-                    {{ label }}
-                </option>
-
-                {% endfor %}
-
-            </select>
-
+        <div style="display:flex; flex-direction:column;">
+            <label class="fw-bold">Concepto de Pago</label>
+            {{ form.id_concepto }}
+            {% if form.id_concepto.errors %}
+                <div class="text-danger small">{{ form.id_concepto.errors.0 }}</div>
+            {% endif %}
         </div>
 
         <!-- FECHA -->
-        <div style="display:flex;
-                    flex-direction:column;">
-
-            <label class="fw-bold">
-                Fecha de Pago
-            </label>
-
-            <input type="date"
-                   name="fecha_pago"
-                   class="form-control"
-                   value="{{ pago.fecha_pago|date:'Y-m-d' }}"
-                   required>
-
+        <div style="display:flex; flex-direction:column;">
+            <label class="fw-bold">Fecha de Pago</label>
+            {{ form.fecha_pago }}
+            {% if form.fecha_pago.errors %}
+                <div class="text-danger small">{{ form.fecha_pago.errors.0 }}</div>
+            {% endif %}
         </div>
 
-        <!-- MÉTODO -->
-        <div style="display:flex;
-                    flex-direction:column;">
-
-            <label class="fw-bold">
-                Método de Pago
-            </label>
-
-            <select name="metodo_pago"
-                    class="form-control"
-                    required>
-
-                <option value="">
-                    Seleccione un método
-                </option>
-
-                {% for value, label in metodos %}
-
-                <option value="{{ value }}"
-                    {% if pago.metodo_pago == value %}
-                        selected
-                    {% endif %}
-                >
-                    {{ label }}
-                </option>
-
-                {% endfor %}
-
-            </select>
-
+        <!-- NOMBRE OTRO (condicional) -->
+        <div id="campoNombreOtro"
+             style="display:none; flex-direction:column;">
+            <label class="fw-bold">Nombre del concepto</label>
+            {{ form.nombre_otro }}
+            {% if form.nombre_otro.errors %}
+                <div class="text-danger small">{{ form.nombre_otro.errors.0 }}</div>
+            {% endif %}
         </div>
 
         <!-- VALOR -->
-        <div style="display:flex;
-                    flex-direction:column;">
-
-            <label class="fw-bold">
-                Valor Total
-            </label>
-
+        <div style="display:flex; flex-direction:column;">
+            <label class="fw-bold">Valor</label>
             <input type="number"
                    step="0.01"
-                   name="valor_total"
+                   id="valorConcepto"
                    class="form-control"
+                   readonly
+                   {% if pago and not pago.id_concepto.es_otro %}
                    value="{{ pago.valor_total|floatformat:0 }}"
-                   required>
+                   {% endif %}>
+            <div id="campoValorOtro" style="display:none;">
+                {{ form.valor_otro }}
+            </div>
+            {% if form.valor_otro.errors %}
+                <div class="text-danger small">{{ form.valor_otro.errors.0 }}</div>
+            {% endif %}
+        </div>
 
+        <!-- MÉTODO -->
+        <div style="display:flex; flex-direction:column;">
+            <label class="fw-bold">Método de Pago</label>
+            {{ form.metodo_pago }}
+            {% if form.metodo_pago.errors %}
+                <div class="text-danger small">{{ form.metodo_pago.errors.0 }}</div>
+            {% endif %}
         </div>
 
         <!-- OBSERVACIONES -->
-        <div style="display:flex;
-                    flex-direction:column;">
-
-            <label class="fw-bold">
-                Observaciones
-            </label>
-
-            <input type="text"
-                   name="observaciones"
-                   class="form-control"
-                   value="{{ pago.observaciones|default:'' }}"
-                   placeholder="Opcional">
-
+        <div style="display:flex; flex-direction:column;">
+            <label class="fw-bold">Observaciones</label>
+            {{ form.observaciones }}
         </div>
 
         <!-- BUSCADOR -->
-        <div style="display:flex;
-                    flex-direction:column;">
-
-            <label class="fw-bold">
-                Buscar Matrícula
-            </label>
-
+        <div style="display:flex; flex-direction:column;">
+            <label class="fw-bold">Buscar Matrícula</label>
             <input type="text"
                    id="buscarUsuario"
                    class="form-control"
                    placeholder="Buscar por matrícula o jugador...">
-
         </div>
 
-        <!-- USUARIO -->
-        <div style="display:flex;
-                    flex-direction:column;
-                    grid-column:1 / -1;">
-
-            <label class="fw-bold">
-                Seleccionar Matrícula
-            </label>
-
-            <select name="id_matricula"
-                    class="form-control"
-                    required>
-
-                <option value="">
-                    Seleccione una matrícula
-                </option>
-
-                {% for m in matriculas %}
-
-                <option value="{{ m.id }}"
-                    {% if pago.id_matricula.id == m.id %}
-                        selected
-                    {% endif %}
-                >
-
-                    Matrícula {{ m.id }}
-                    -
-                    {{ m.id_jugador.nombre_completo }}
-                    -
-                    {{ m.id_jugador.num_identificacion }}
-
-                </option>
-
-                {% endfor %}
-
-            </select>
-
+        <!-- MATRÍCULA -->
+        <div style="display:flex; flex-direction:column; grid-column:1 / -1;">
+            <label class="fw-bold">Seleccionar Matrícula</label>
+            {{ form.id_matricula }}
+            {% if form.id_matricula.errors %}
+                <div class="text-danger small">{{ form.id_matricula.errors.0 }}</div>
+            {% endif %}
         </div>
 
     </div>
 
-    <!-- FOOTER -->
     <div class="modal-footer">
-
         <button type="submit"
+                id="btnGuardarPago"
                 class="btn btn-success"
-                style="background-color:#001f3f;
-                       border-color:#001f3f;">
-
+                style="background-color:#001f3f; border-color:#001f3f;"
+                {% if sin_matriculas_vigentes %}disabled{% endif %}>
             {% if pago %}
                 Actualizar Pago
             {% else %}
                 Guardar Pago
             {% endif %}
-
         </button>
-
     </div>
 
 </form>
+
+<script>
+(function(){
+    const conceptos = {{ conceptos_json|safe }};
+    const conceptoOtroId = {{ concepto_otro_id|default:"null" }};
+    const selectConcepto = document.getElementById('id_id_concepto');
+    const valorConcepto = document.getElementById('valorConcepto');
+    const campoNombreOtro = document.getElementById('campoNombreOtro');
+    const campoValorOtro = document.getElementById('campoValorOtro');
+    const inputValorOtro = document.getElementById('id_valor_otro');
+    const inputNombreOtro = document.getElementById('id_nombre_otro');
+    const esEdicion = {% if pago %}true{% else %}false{% endif %};
+    const valorGuardado = {% if pago %}{{ pago.valor_total }}{% else %}null{% endif %};
+
+    if (!selectConcepto) return;
+
+    selectConcepto.classList.add('form-control');
+    document.getElementById('id_fecha_pago').classList.add('form-control');
+    document.getElementById('id_metodo_pago').classList.add('form-control');
+    document.getElementById('id_observaciones').classList.add('form-control');
+    document.getElementById('id_id_matricula').classList.add('form-control');
+
+    if (inputNombreOtro) inputNombreOtro.classList.add('form-control');
+    if (inputValorOtro) inputValorOtro.classList.add('form-control');
+
+    function obtenerConcepto(id){
+        return conceptos.find(c => String(c.id) === String(id));
+    }
+
+    function actualizarCamposConcepto(){
+        const concepto = obtenerConcepto(selectConcepto.value);
+        const esOtro = concepto && concepto.es_otro;
+
+        if (esOtro){
+            campoNombreOtro.style.display = 'flex';
+            valorConcepto.style.display = 'none';
+            campoValorOtro.style.display = 'block';
+            if (inputValorOtro) inputValorOtro.required = true;
+            if (inputNombreOtro) inputNombreOtro.required = true;
+        } else {
+            campoNombreOtro.style.display = 'none';
+            valorConcepto.style.display = 'block';
+            campoValorOtro.style.display = 'none';
+            if (inputValorOtro) inputValorOtro.required = false;
+            if (inputNombreOtro) inputNombreOtro.required = false;
+
+            if (concepto){
+                if (esEdicion){
+                    valorConcepto.value = valorGuardado;
+                } else {
+                    valorConcepto.value = concepto.valor;
+                }
+            } else {
+                valorConcepto.value = '';
+            }
+        }
+    }
+
+    selectConcepto.addEventListener('change', actualizarCamposConcepto);
+    actualizarCamposConcepto();
+})();
+</script>

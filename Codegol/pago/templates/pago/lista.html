@@ -7,6 +7,16 @@
 
 {% block content %}
 
+{% if messages %}
+<div class="contenido" style="padding-bottom:0;">
+  {% for message in messages %}
+  <div class="alert alert-{{ message.tags|default:'info' }} mb-0" role="alert">
+    {{ message }}
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
 <div class="contenido">
 
   <div class="barra-top">
@@ -30,6 +40,15 @@
       Descargar Reporte PDF
 
     </a>
+
+    {% if form_conceptos %}
+    <button type="button"
+            class="boton-registrar"
+            data-bs-toggle="modal"
+            data-bs-target="#modalConceptos">
+      Valores de conceptos
+    </button>
+    {% endif %}
 
     <a class="boton-registrar"
        onclick="abrirModalPago('{% url 'crear_pago' %}')">
@@ -189,6 +208,42 @@
 
 {% endif %}
 </div>
+
+{% if "Administrador" in request.session.roles and form_conceptos %}
+<div class="modal fade" id="modalConceptos" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <form method="POST" action="{% url 'actualizar_valores_conceptos' %}">
+        {% csrf_token %}
+        <div class="modal-header text-white" style="background-color:#001f3f;">
+          <h5 class="modal-title">Valores de conceptos de pago</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <p class="text-muted small">
+            Solo puede modificar el valor de cada concepto. Los nombres son fijos.
+          </p>
+          {% for field in form_conceptos %}
+          <div class="mb-3">
+            <label class="fw-bold">{{ field.label }}</label>
+            {{ field }}
+            {% if field.errors %}
+              <div class="text-danger small">{{ field.errors.0 }}</div>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-success"
+                  style="background-color:#001f3f; border-color:#001f3f;">
+            Guardar valores
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endif %}
 
 <!-- MODAL -->
 <div class="modal fade"
