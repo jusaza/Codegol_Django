@@ -42,12 +42,27 @@
                 Concepto de Pago
             </label>
 
-            <input type="text"
-                   name="concepto_pago"
-                   class="form-control"
-                   value="{{ pago.concepto_pago|default:'' }}"
-                   placeholder="Ingrese el concepto"
-                   required>
+            <select name="concepto_pago"
+                    class="form-control"
+                    required>
+
+                <option value="">
+                    Seleccione un concepto
+                </option>
+
+                {% for value, label in conceptos %}
+
+                <option value="{{ value }}"
+                    {% if pago.concepto_pago == value %}
+                        selected
+                    {% endif %}
+                >
+                    {{ label }}
+                </option>
+
+                {% endfor %}
+
+            </select>
 
         </div>
 
@@ -137,13 +152,13 @@
                     flex-direction:column;">
 
             <label class="fw-bold">
-                Buscar Usuario
+                Buscar Matrícula
             </label>
 
             <input type="text"
                    id="buscarUsuario"
                    class="form-control"
-                   placeholder="Buscar usuario...">
+                   placeholder="Buscar por matrícula o jugador...">
 
         </div>
 
@@ -153,7 +168,7 @@
                     grid-column:1 / -1;">
 
             <label class="fw-bold">
-                Seleccionar Usuario
+                Seleccionar Matrícula
             </label>
 
             <select name="id_matricula"
@@ -161,7 +176,7 @@
                     required>
 
                 <option value="">
-                    Seleccione un usuario
+                    Seleccione una matrícula
                 </option>
 
                 {% for m in matriculas %}
@@ -172,6 +187,8 @@
                     {% endif %}
                 >
 
+                    Matrícula {{ m.id }}
+                    -
                     {{ m.id_jugador.nombre_completo }}
                     -
                     {{ m.id_jugador.num_identificacion }}

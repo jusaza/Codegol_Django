@@ -1,8 +1,12 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
+from django.db.models import Q
 from .models import Entrenamiento
 from entrenamiento_actividad.models import EntrenamientoActividad
 from actividad.models import Actividad
+from sesion_entrenamiento.models import SesionEntrenamiento
+from asistencia.models import Asistencia
+from rendimiento.models import Rendimiento
 
 
 def panel_entrenamiento(request):
@@ -172,6 +176,25 @@ def panel_entrenamiento(request):
 
             messages.success(request, "Actividades asignadas")
             return redirect('panel_entrenamiento')
+
+    for entrenamiento in entrenamientos:
+
+        sesiones_ids = SesionEntrenamiento.objects.filter(
+            id_entrenamiento=entrenamiento
+        ).values_list('id_sesion', flat=True)
+
+        entrenamiento.tiene_registros = (
+            Asistencia.objects.filter(
+                id_sesion__in=sesiones_ids
+            ).exclude(
+                Q(tipo_asistencia__isnull=True) |
+                Q(tipo_asistencia="")
+            ).exists() or
+            Rendimiento.objects.filter(
+                sesion_id__in=sesiones_ids,
+                valor__isnull=False
+            ).exists()
+        )
 
     return render(request, 'entrenamientos/lista.html', {
         'entrenamientos': entrenamientos,

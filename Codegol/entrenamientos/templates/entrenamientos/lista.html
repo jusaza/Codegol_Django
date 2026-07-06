@@ -189,6 +189,7 @@
                                 ✏️
                             </button>
 
+                            {% if not e.tiene_registros %}
                             <form method="post"
                                 style="display:inline;"
                                 class="formEliminar">
@@ -208,9 +209,9 @@
                                         onclick="confirmarEliminar(this, '{{ e.descripcion }}')">
                                     🗑️
                                 </button>
-                                {% endif %}
-
-                                </form>
+                            </form>
+                            {% endif %}
+                            {% endif %}
 
                         </div>
 

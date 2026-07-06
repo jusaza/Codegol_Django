@@ -10,6 +10,17 @@ class Pago(models.Model):
         ('Otro', 'Otro'),
     ]
 
+    CONCEPTOS = [
+        ('Matrícula', 'Matrícula'),
+        ('Mensualidad', 'Mensualidad'),
+        ('Uniformes', 'Uniformes'),
+        ('Daños a la propiedad', 'Daños a la propiedad'),
+        ('Torneos', 'Torneos'),
+        ('Implementos deportivos', 'Implementos deportivos'),
+        ('Transporte', 'Transporte'),
+        ('Otros', 'Otros'),
+    ]
+
     concepto_pago = models.CharField(max_length=100)
     fecha_pago = models.DateField()
     metodo_pago = models.CharField(max_length=20, choices=METODOS)

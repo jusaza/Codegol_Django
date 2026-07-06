@@ -25,11 +25,15 @@ def lista_pagos(request):
 
         pagos = Pago.objects.filter(
             id_matricula__id_jugador__id_usuario=usuario_id
+        ).select_related(
+            'id_matricula__id_jugador'
         )
 
     else:
 
-        pagos = Pago.objects.all()
+        pagos = Pago.objects.all().select_related(
+            'id_matricula__id_jugador'
+        )
 
     if query:
 
@@ -98,6 +102,7 @@ def crear_pago(request):
 
     return render(request, 'pago/formulario.html', {
         'metodos': Pago.METODOS,
+        'conceptos': Pago.CONCEPTOS,
         'matriculas': matriculas_finales
     })
 
@@ -131,6 +136,7 @@ def editar_pago(request, id):
     return render(request, 'pago/formulario.html', {
         'pago': pago,
         'metodos': Pago.METODOS,
+        'conceptos': Pago.CONCEPTOS,
         'matriculas': matriculas_finales
     })
 

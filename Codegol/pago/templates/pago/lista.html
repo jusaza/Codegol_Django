@@ -49,6 +49,8 @@
     <thead>
       <tr>
         <th>ID</th>
+        <th>Jugador</th>
+        <th>Matrícula</th>
         <th>Concepto</th>
         <th>Fecha</th>
         <th>Método</th>
@@ -66,6 +68,8 @@
       <tr>
 
         <td>{{ pago.id }}</td>
+        <td>{{ pago.id_matricula.id_jugador.nombre_completo }}</td>
+        <td>{{ pago.id_matricula.id }}</td>
         <td>{{ pago.concepto_pago }}</td>
         <td>{{ pago.fecha_pago }}</td>
         <td>{{ pago.metodo_pago }}</td>
@@ -135,7 +139,7 @@
       {% empty %}
 
       <tr>
-        <td colspan="6">
+        <td colspan="8">
           No hay pagos registrados
         </td>
       </tr>

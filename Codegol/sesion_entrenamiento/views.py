@@ -6,6 +6,7 @@ from usuario.models import Usuario
 from categoria.models import Categoria
 from matricula.models import HistorialCategoria, Matricula
 from asistencia.models import Asistencia
+from rendimiento.models import Rendimiento
 from sesion_categoria.models import SesionCategoria
 from entrenamiento_actividad.models import EntrenamientoActividad
 from sesion_actividad.models import SesionActividad
@@ -119,6 +120,19 @@ def lista_sesiones(request, id_entrenamiento):
             ).exists()
 
             categoria.asistencia_completa = not pendientes
+
+        sesion.tiene_registros = (
+            Asistencia.objects.filter(
+                id_sesion=sesion
+            ).exclude(
+                Q(tipo_asistencia__isnull=True) |
+                Q(tipo_asistencia="")
+            ).exists() or
+            Rendimiento.objects.filter(
+                sesion=sesion,
+                valor__isnull=False
+            ).exists()
+        )
 
     return render(
         request,
