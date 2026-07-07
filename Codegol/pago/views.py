@@ -275,114 +275,189 @@ def _formatear_moneda(valor):
 
 def _calcular_estado_cuenta(jugador):
     # Obtener matrículas activas del jugador
-    matriculas = Matricula.objects.filter(id_jugador=jugador, estado=True).order_by('-fecha_inicio')
-    
-    # Obtener valores configurados de los conceptos
-    concepto_m = ConceptoPago.objects.filter(nombre=ConceptoPago.NOMBRE_MATRICULA).first()
-    concepto_mens = ConceptoPago.objects.filter(nombre=ConceptoPago.NOMBRE_MENSUALIDAD).first()
-    concepto_u = ConceptoPago.objects.filter(nombre=ConceptoPago.NOMBRE_UNIFORME).first()
-    
+    matriculas = Matricula.objects.filter(
+        id_jugador=jugador,
+        estado=True
+    ).order_by('-fecha_inicio')
+
+    # Obtener valores configurados
+    concepto_m = ConceptoPago.objects.filter(
+        nombre=ConceptoPago.NOMBRE_MATRICULA
+    ).first()
+
+    concepto_mens = ConceptoPago.objects.filter(
+        nombre=ConceptoPago.NOMBRE_MENSUALIDAD
+    ).first()
+
+    concepto_u = ConceptoPago.objects.filter(
+        nombre=ConceptoPago.NOMBRE_UNIFORME
+    ).first()
+
     val_m = concepto_m.valor if concepto_m else 0.0
     val_mens = concepto_mens.valor if concepto_mens else 0.0
     val_u = concepto_u.valor if concepto_u else 0.0
-    
+
     total_facturado_matricula = 0.0
     total_facturado_mensualidad = 0.0
     total_facturado_uniforme = 0.0
     total_facturado_otro = 0.0
-    
+
     detalles_matriculas = []
-    
+
+    MESES = [
+        "",
+        "Enero", "Febrero", "Marzo", "Abril",
+        "Mayo", "Junio", "Julio", "Agosto",
+        "Septiembre", "Octubre", "Noviembre", "Diciembre"
+    ]
+
+    def sumar_meses(fecha, cantidad):
+        mes = fecha.month + cantidad
+        while mes > 12:
+            mes -= 12
+        return MESES[mes]
+
     for m in matriculas:
         inicio = m.fecha_inicio
         fin = m.fecha_fin
-        
-        # Calcular meses inclusivos
+
         num_meses = (fin.year - inicio.year) * 12 + (fin.month - inicio.month) + 1
+
         if num_meses < 1:
             num_meses = 1
-            
+
         fact_m = val_m
         fact_mens = num_meses * val_mens
         fact_u = val_u
-        
+
         total_facturado_matricula += fact_m
         total_facturado_mensualidad += fact_mens
         total_facturado_uniforme += fact_u
-        
+
         detalles_matriculas.append({
-            'matricula': m,
-            'meses': num_meses,
-            'facturado_matricula': fact_m,
-            'facturado_mensualidad': fact_mens,
-            'facturado_uniforme': fact_u,
-            'total': fact_m + fact_mens + fact_u
+            "matricula": m,
+            "meses": num_meses,
+            "facturado_matricula": fact_m,
+            "facturado_mensualidad": fact_mens,
+            "facturado_uniforme": fact_u,
+            "total": fact_m + fact_mens + fact_u
         })
-        
-    # Obtener todos los pagos aprobados de estas matrículas
-    pagos = Pago.objects.filter(id_matricula__in=matriculas, cancelado=False).order_by('-fecha_pago')
-    
+
+    pagos = Pago.objects.filter(
+        id_matricula__in=matriculas,
+        cancelado=False
+    ).select_related(
+        "id_matricula"
+    ).order_by("-fecha_pago")
+
     total_pagado_matricula = 0.0
     total_pagado_mensualidad = 0.0
     total_pagado_uniforme = 0.0
     total_pagado_otro = 0.0
-    
+
+    # Agregar descripción amigable para mostrar en el estado de cuenta
     for p in pagos:
+
+        concepto = p.concepto_pago
+
+        if p.id_matricula:
+
+            # Mes de la matrícula
+            mes_matricula = f"{MESES[p.id_matricula.fecha_inicio.month]} {p.id_matricula.fecha_inicio.year}"
+
+            # Mes en el que realmente se realizó el pago
+            mes_pago = f"{MESES[p.fecha_pago.month]} {p.fecha_pago.year}"
+
+            if concepto == ConceptoPago.NOMBRE_MATRICULA:
+                p.concepto_mostrar = f"Matrícula {mes_matricula}"
+
+            elif concepto == ConceptoPago.NOMBRE_MENSUALIDAD:
+                p.concepto_mostrar = f"Mensualidad {mes_pago}"
+
+            elif concepto == ConceptoPago.NOMBRE_UNIFORME:
+                p.concepto_mostrar = f"Uniforme {mes_pago}"
+
+            else:
+                p.concepto_mostrar = concepto
+
+        else:
+            p.concepto_mostrar = concepto
+
         val = p.valor_total
-        concept = p.concepto_pago
-        if concept == ConceptoPago.NOMBRE_MATRICULA:
+
+        if concepto == ConceptoPago.NOMBRE_MATRICULA:
             total_pagado_matricula += val
-        elif concept == ConceptoPago.NOMBRE_MENSUALIDAD:
+
+        elif concepto == ConceptoPago.NOMBRE_MENSUALIDAD:
             total_pagado_mensualidad += val
-        elif concept == ConceptoPago.NOMBRE_UNIFORME:
+
+        elif concepto == ConceptoPago.NOMBRE_UNIFORME:
             total_pagado_uniforme += val
+
         else:
             total_pagado_otro += val
-            # Para otros conceptos se asume que el valor facturado es igual al pagado
             total_facturado_otro += val
-            
-    # Resumen por concepto
+
     resumen = [
         {
-            'concepto': 'Matrícula',
-            'facturado': total_facturado_matricula,
-            'pagado': total_pagado_matricula,
-            'pendiente': max(0.0, total_facturado_matricula - total_pagado_matricula)
+            "concepto": "Matrícula",
+            "facturado": total_facturado_matricula,
+            "pagado": total_pagado_matricula,
+            "pendiente": max(0.0, total_facturado_matricula - total_pagado_matricula)
         },
         {
-            'concepto': 'Mensualidades',
-            'facturado': total_facturado_mensualidad,
-            'pagado': total_pagado_mensualidad,
-            'pendiente': max(0.0, total_facturado_mensualidad - total_pagado_mensualidad)
+            "concepto": "Mensualidades",
+            "facturado": total_facturado_mensualidad,
+            "pagado": total_pagado_mensualidad,
+            "pendiente": max(0.0, total_facturado_mensualidad - total_pagado_mensualidad)
         },
         {
-            'concepto': 'Uniformes',
-            'facturado': total_facturado_uniforme,
-            'pagado': total_pagado_uniforme,
-            'pendiente': max(0.0, total_facturado_uniforme - total_pagado_uniforme)
+            "concepto": "Uniformes",
+            "facturado": total_facturado_uniforme,
+            "pagado": total_pagado_uniforme,
+            "pendiente": max(0.0, total_facturado_uniforme - total_pagado_uniforme)
         },
         {
-            'concepto': 'Otros Conceptos',
-            'facturado': total_facturado_otro,
-            'pagado': total_pagado_otro,
-            'pendiente': max(0.0, total_facturado_otro - total_pagado_otro)
+            "concepto": "Otros Conceptos",
+            "facturado": total_facturado_otro,
+            "pagado": total_pagado_otro,
+            "pendiente": max(0.0, total_facturado_otro - total_pagado_otro)
         }
     ]
-    
-    grand_total_facturado = total_facturado_matricula + total_facturado_mensualidad + total_facturado_uniforme + total_facturado_otro
-    grand_total_pagado = total_pagado_matricula + total_pagado_mensualidad + total_pagado_uniforme + total_pagado_otro
-    grand_saldo_pendiente = max(0.0, grand_total_facturado - grand_total_pagado)
-    
-    estado_paz_salvo = "Paz y Salvo" if grand_saldo_pendiente <= 0.0 else "Saldo Pendiente"
-    
+
+    grand_total_facturado = (
+        total_facturado_matricula +
+        total_facturado_mensualidad +
+        total_facturado_uniforme +
+        total_facturado_otro
+    )
+
+    grand_total_pagado = (
+        total_pagado_matricula +
+        total_pagado_mensualidad +
+        total_pagado_uniforme +
+        total_pagado_otro
+    )
+
+    grand_saldo_pendiente = max(
+        0.0,
+        grand_total_facturado - grand_total_pagado
+    )
+
+    estado_paz_salvo = (
+        "Paz y Salvo"
+        if grand_saldo_pendiente <= 0
+        else "Saldo Pendiente"
+    )
+
     return {
-        'matriculas': detalles_matriculas,
-        'pagos': pagos,
-        'resumen': resumen,
-        'total_facturado': grand_total_facturado,
-        'total_pagado': grand_total_pagado,
-        'saldo_pendiente': grand_saldo_pendiente,
-        'estado_paz_salvo': estado_paz_salvo,
+        "matriculas": detalles_matriculas,
+        "pagos": pagos,
+        "resumen": resumen,
+        "total_facturado": grand_total_facturado,
+        "total_pagado": grand_total_pagado,
+        "saldo_pendiente": grand_saldo_pendiente,
+        "estado_paz_salvo": estado_paz_salvo,
     }
 
 
@@ -439,7 +514,7 @@ def estado_cuenta_jugador(request, usuario_id):
     for p in datos['pagos']:
         pagos_fmt.append({
             'id': p.id,
-            'concepto_pago': p.concepto_pago,
+            'concepto_pago': p.concepto_mostrar,
             'fecha_pago': p.fecha_pago,
             'metodo_pago': p.metodo_pago,
             'observaciones': p.observaciones or 'N/A',
