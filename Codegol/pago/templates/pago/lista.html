@@ -7,15 +7,7 @@
 
 {% block content %}
 
-{% if messages %}
-<div class="contenido" style="padding-bottom:0;">
-  {% for message in messages %}
-  <div class="alert alert-{{ message.tags|default:'info' }} mb-0" role="alert">
-    {{ message }}
-  </div>
-  {% endfor %}
-</div>
-{% endif %}
+
 
 <div class="contenido">
 
@@ -72,6 +64,15 @@
   </div>
 
   <div class="tabla-scroll">
+    {% if messages %}
+<div class="container py-5" style="padding-bottom:0;">
+  {% for message in messages %}
+  <div class="alert alert-{{ message.tags|default:'info' }} mb-0" role="alert">
+    {{ message }}
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
   <table>
 
     <thead>
