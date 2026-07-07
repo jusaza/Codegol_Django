@@ -2,6 +2,8 @@ import csv
 from django.contrib import messages
 
 from django.shortcuts import render, get_object_or_404, redirect
+
+from pago.models import Pago
 from .models import Matricula, HistorialCategoria
 from usuario.models import Usuario, DetallesUsuarioRol
 from categoria.models import Categoria
@@ -429,6 +431,37 @@ def crear_matricula(request):
             fecha_fin__gte=fecha_inicio
         ).exists()
 
+        tiene_pagos_pendientes = Pago.objects.filter(
+            id_matricula__id_jugador=jugador,
+            cancelado=False
+        ).exists()
+
+        if tiene_pagos_pendientes:
+
+            contexto = {
+                'usuarios': usuarios,
+                'posiciones': posiciones,
+                'categorias': categorias,
+                'error': (
+                    'No es posible registrar una nueva matrícula porque '
+                    'el jugador tiene pagos pendientes. '
+                    'Debe cancelar todos los pagos antes de renovar la matrícula.'
+                )
+            }
+
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return render(
+                    request,
+                    'matricula/form.html',
+                    contexto,
+                )
+
+            return render(
+                request,
+                'matricula/form.html',
+                contexto,
+            )
+        
         if existe_solapamiento:
 
             return render(
