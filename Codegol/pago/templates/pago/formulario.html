@@ -56,6 +56,16 @@
             {% endif %}
         </div>
 
+        <!-- MES MENSUALIDAD (condicional) -->
+        <div id="campoMesMensualidad"
+             style="display:none; flex-direction:column;">
+            <label class="fw-bold">Mes a pagar</label>
+            {{ form.mes_mensualidad }}
+            {% if form.mes_mensualidad.errors %}
+                <div class="text-danger small">{{ form.mes_mensualidad.errors.0 }}</div>
+            {% endif %}
+        </div>
+
         <!-- FECHA -->
         <div style="display:flex; flex-direction:column;">
             <label class="fw-bold">Fecha de Pago</label>
@@ -155,6 +165,10 @@
     const campoValorOtro = document.getElementById('campoValorOtro');
     const inputValorOtro = document.getElementById('id_valor_otro');
     const inputNombreOtro = document.getElementById('id_nombre_otro');
+    const campoMesMensualidad = document.getElementById('campoMesMensualidad');
+    const selectMesMensualidad = document.getElementById('id_mes_mensualidad');
+    const selectMatricula = document.getElementById('id_id_matricula');
+    
     const esEdicion = {% if pago %}true{% else %}false{% endif %};
     if (esEdicion) {
     selectConcepto.disabled = true;
@@ -164,6 +178,9 @@
     document.getElementById('id_id_matricula').disabled = true;
 }
     const valorGuardado = {% if pago %}{{ pago.valor_total }}{% else %}null{% endif %};
+    const pagoId = {% if pago %}{{ pago.id }}{% else %}null{% endif %};
+    
+    let valorMesInicial = selectMesMensualidad ? selectMesMensualidad.value : '';
 
     if (!selectConcepto) return;
 
@@ -172,6 +189,7 @@
     document.getElementById('id_metodo_pago').classList.add('form-control');
     document.getElementById('id_observaciones').classList.add('form-control');
     document.getElementById('id_id_matricula').classList.add('form-control');
+    if (selectMesMensualidad) selectMesMensualidad.classList.add('form-control');
 
     if (inputNombreOtro) inputNombreOtro.classList.add('form-control');
     if (inputValorOtro) inputValorOtro.classList.add('form-control');
@@ -207,9 +225,65 @@
                 valorConcepto.value = '';
             }
         }
+        
+        cargarMesesPendientes();
+    }
+
+    function cargarMesesPendientes() {
+        if (!selectMesMensualidad || !selectMatricula || !selectConcepto) return;
+
+        const concepto = obtenerConcepto(selectConcepto.value);
+        const esMensualidad = concepto && concepto.nombre === 'Mensualidad';
+        const matriculaId = selectMatricula.value;
+
+        if (esMensualidad && matriculaId) {
+            campoMesMensualidad.style.display = 'flex';
+            selectMesMensualidad.required = true;
+
+            const mesSeleccionado = selectMesMensualidad.value || valorMesInicial;
+
+            fetch(`/pagos/obtener-meses-pendientes/?matricula_id=${matriculaId}&pago_id=${pagoId}`)
+                .then(r => r.json())
+                .then(data => {
+                    selectMesMensualidad.innerHTML = '';
+                    
+                    if (data.meses.length === 0) {
+                        const opt = document.createElement('option');
+                        opt.value = '';
+                        opt.textContent = 'Sin mensualidades pendientes';
+                        selectMesMensualidad.appendChild(opt);
+                        return;
+                    }
+
+                    const defOpt = document.createElement('option');
+                    defOpt.value = '';
+                    defOpt.textContent = 'Seleccione el mes';
+                    selectMesMensualidad.appendChild(defOpt);
+
+                    if (mesSeleccionado && !data.meses.includes(mesSeleccionado)) {
+                        data.meses.push(mesSeleccionado);
+                    }
+
+                    data.meses.forEach(mes => {
+                        const opt = document.createElement('option');
+                        opt.value = mes;
+                        opt.textContent = mes;
+                        if (mes === mesSeleccionado) {
+                            opt.selected = true;
+                        }
+                        selectMesMensualidad.appendChild(opt);
+                    });
+                });
+        } else {
+            campoMesMensualidad.style.display = 'none';
+            selectMesMensualidad.required = false;
+            selectMesMensualidad.innerHTML = '';
+        }
     }
 
     selectConcepto.addEventListener('change', actualizarCamposConcepto);
+    selectMatricula.addEventListener('change', cargarMesesPendientes);
+    
     actualizarCamposConcepto();
 })();
 </script>

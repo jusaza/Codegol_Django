@@ -34,7 +34,7 @@ def validar_matricula_vigente(matricula):
         raise ValidationError('El jugador asociado a la matrícula no está activo.')
 
 
-def validar_pago_duplicado(concepto, matricula, fecha_pago, pago_excluir=None):
+def validar_pago_duplicado(concepto, matricula, fecha_pago, pago_excluir=None, concepto_pago_desc=None):
     pagos = Pago.objects.filter(
         id_matricula=matricula,
         cancelado=False,
@@ -51,12 +51,18 @@ def validar_pago_duplicado(concepto, matricula, fecha_pago, pago_excluir=None):
             )
 
     elif concepto.nombre == ConceptoPago.NOMBRE_MENSUALIDAD:
-        if pagos.filter(
-            id_concepto__nombre=ConceptoPago.NOMBRE_MENSUALIDAD,
-            fecha_pago__year=fecha_pago.year,
-            fecha_pago__month=fecha_pago.month,
-        ).exists():
-            raise ValidationError(
-                f'Ya existe una mensualidad registrada para '
-                f'{fecha_pago.strftime("%B %Y")} en esta matrícula.'
-            )
+        if concepto_pago_desc:
+            if pagos.filter(concepto_pago__iexact=concepto_pago_desc).exists():
+                raise ValidationError(
+                    f'Ya existe una mensualidad registrada para el mes seleccionado ({concepto_pago_desc.replace("Mensualidad - ", "")}) en esta matrícula.'
+                )
+        else:
+            if pagos.filter(
+                id_concepto__nombre=ConceptoPago.NOMBRE_MENSUALIDAD,
+                fecha_pago__year=fecha_pago.year,
+                fecha_pago__month=fecha_pago.month,
+            ).exists():
+                raise ValidationError(
+                    f'Ya existe una mensualidad registrada para '
+                    f'{fecha_pago.strftime("%B %Y")} en esta matrícula.'
+                )

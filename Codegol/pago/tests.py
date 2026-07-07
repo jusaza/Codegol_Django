@@ -349,8 +349,20 @@ class PagoViewsTest(TestCase):
     def test_editar_pago_post_actualiza_registro(self):
         self.login_admin()
 
+        # Crear un pago con concepto 'Otro' para poder editar sus campos específicos
+        pago_otro_concepto = Pago.objects.create(
+            id_concepto=self.concepto_otro,
+            concepto_pago='Otro concepto inicial',
+            fecha_pago=date(2026, 1, 15),
+            metodo_pago='Efectivo',
+            observaciones='Obs',
+            valor_total=30000.0,
+            cancelado=False,
+            id_matricula=self.matricula_jugador,
+        )
+
         response = self.client.post(
-            reverse('editar_pago', args=[self.pago_jugador.id]),
+            reverse('editar_pago', args=[pago_otro_concepto.id]),
             {
                 'id_concepto': self.concepto_otro.id,
                 'nombre_otro': 'Implemento especial',
@@ -362,12 +374,13 @@ class PagoViewsTest(TestCase):
             },
         )
 
-        self.pago_jugador.refresh_from_db()
+        pago_otro_concepto.refresh_from_db()
 
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(self.pago_jugador.concepto_pago, 'Implemento especial')
-        self.assertEqual(self.pago_jugador.metodo_pago, 'Transferencia')
-        self.assertEqual(self.pago_jugador.valor_total, 45000.0)
+        self.assertEqual(pago_otro_concepto.concepto_pago, 'Implemento especial')
+        self.assertEqual(pago_otro_concepto.metodo_pago, 'Transferencia')
+        self.assertEqual(pago_otro_concepto.valor_total, 45000.0)
+        self.assertEqual(pago_otro_concepto.observaciones, 'Correccion')
 
     def test_cancelar_pago_cambia_estado(self):
         self.login_admin()
@@ -430,3 +443,94 @@ class PagoViewsTest(TestCase):
         self.assertEqual(self.concepto_matricula.valor, 250000)
         self.assertEqual(self.concepto_mensualidad.valor, 95000)
         self.assertEqual(self.concepto_uniforme.valor, 70000)
+
+    def test_estado_cuenta_jugador_html_admin_acceso(self):
+        self.login_admin()
+        response = self.client.get(
+            reverse('estado_cuenta_jugador', args=[self.jugador.id_usuario]),
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'pago/estado_cuenta.html')
+        self.assertEqual(response.context['jugador'], self.jugador)
+        self.assertIn('total_facturado', response.context)
+        self.assertIn('total_pagado', response.context)
+        self.assertIn('saldo_pendiente', response.context)
+
+    def test_estado_cuenta_jugador_html_jugador_acceso(self):
+        session = self.client.session
+        session['usuario_id'] = self.jugador.id_usuario
+        session['roles'] = ['Jugador']
+        session.save()
+
+        # Acceder a su propio estado de cuenta -> OK
+        response = self.client.get(
+            reverse('estado_cuenta_jugador', args=[self.jugador.id_usuario]),
+        )
+        self.assertEqual(response.status_code, 200)
+
+        # Intentar acceder al de otro jugador -> Forbidden
+        response = self.client.get(
+            reverse('estado_cuenta_jugador', args=[self.otro_jugador.id_usuario]),
+        )
+        self.assertEqual(response.status_code, 403)
+
+    def test_estado_cuenta_pdf_acceso(self):
+        self.login_admin()
+        response = self.client.get(
+            reverse('estado_cuenta_pdf', args=[self.jugador.id_usuario]),
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Content-Type'], 'application/pdf')
+        contenido = response.content
+        self.assertTrue(contenido.startswith(b'%PDF'))
+        self.assertIn(b'%%EOF', contenido)
+
+    def test_obtener_meses_pendientes_ajax(self):
+        self.login_admin()
+        
+        # Consultar meses pendientes inicialmente
+        response = self.client.get(
+            reverse('obtener_meses_pendientes'),
+            {'matricula_id': self.matricula_jugador.id}
+        )
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertIn('meses', data)
+        self.assertEqual(len(data['meses']), 24)
+        self.assertEqual(data['meses'][0], 'Enero 2025')
+        self.assertEqual(data['meses'][-1], 'Diciembre 2026')
+
+        # Registrar un pago de mensualidad para Enero 2026
+        Pago.objects.create(
+            id_concepto=self.concepto_mensualidad,
+            concepto_pago='Mensualidad - Enero 2026',
+            fecha_pago=date(2026, 1, 15),
+            metodo_pago='Efectivo',
+            valor_total=150000.0,
+            cancelado=False,
+            id_matricula=self.matricula_jugador
+        )
+
+        # Volver a consultar. Enero 2026 no debe aparecer en los meses pendientes.
+        response = self.client.get(
+            reverse('obtener_meses_pendientes'),
+            {'matricula_id': self.matricula_jugador.id}
+        )
+        data = response.json()
+        self.assertEqual(len(data['meses']), 23)
+        self.assertNotIn('Enero 2026', data['meses'])
+
+        # Si consultamos excluyendo el pago recién creado, Enero 2026 debe reaparecer
+        pago_reciente = Pago.objects.filter(concepto_pago='Mensualidad - Enero 2026').first()
+        response = self.client.get(
+            reverse('obtener_meses_pendientes'),
+            {
+                'matricula_id': self.matricula_jugador.id,
+                'pago_id': pago_reciente.id
+            }
+        )
+        data = response.json()
+        self.assertEqual(len(data['meses']), 24)
+        self.assertIn('Enero 2026', data['meses'])
+
+

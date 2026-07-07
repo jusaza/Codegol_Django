@@ -58,6 +58,15 @@
     </a>
 
     {% endif %}
+
+    {% if "Jugador" in request.session.roles %}
+    <a href="{% url 'estado_cuenta_jugador' request.session.usuario_id %}"
+       target="_blank"
+       class="boton-registrar"
+       style="background-color: #007bff;">
+      Mi Estado de Cuenta
+    </a>
+    {% endif %}
     </div>
 
   </div>
@@ -75,9 +84,7 @@
         <th>Método</th>
         <th>Valor Total</th>
 
-        {% if "Administrador" in request.session.roles %}
         <th>Acciones</th>
-        {% endif %}
       </tr>
     </thead>
 
@@ -94,9 +101,9 @@
         <td>{{ pago.metodo_pago }}</td>
         <td>{{ pago.valor_total }}</td>
 
-        {% if "Administrador" in request.session.roles %}
         <td class="acciones">
 
+          {% if "Administrador" in request.session.roles %}
           <button class="actualizar">
 
             <a onclick="abrirModalPago('{% url 'editar_pago' pago.id %}')"
@@ -148,10 +155,19 @@
 
 {% endif %}
 
-          
+{% endif %}
+
+          <button class="ver" style="background-color: #007bff; border-color: #007bff;">
+            <a href="{% url 'estado_cuenta_jugador' pago.id_matricula.id_jugador.id_usuario %}"
+               target="_blank"
+               style="text-decoration:none;
+                      color:white;
+                      cursor:pointer;">
+              Estado Cuenta
+            </a>
+          </button>
 
         </td>
-        {% endif %}
 
       </tr>
 
