@@ -16,28 +16,32 @@ def obtener_matriculas_vigentes():
     ).select_related('id_jugador').order_by('-fecha_matricula')
 
 
-def validar_matricula_vigente(matricula):
-    hoy = date.today()
-
+def validar_matricula_vigente(matricula, fecha_pago):
     if matricula is None:
         raise ValidationError('Debe seleccionar una matrícula.')
 
     if not matricula.estado:
         raise ValidationError('La matrícula seleccionada no está activa.')
 
-    if matricula.fecha_fin < hoy:
+    if not matricula.id_jugador.estado:
         raise ValidationError(
-            'La matrícula seleccionada ha vencido y no puede recibir pagos.'
+            'El jugador asociado a la matrícula no está activo.'
         )
 
-    if not matricula.id_jugador.estado:
-        raise ValidationError('El jugador asociado a la matrícula no está activo.')
+    if fecha_pago < matricula.fecha_inicio:
+        raise ValidationError(
+            'La fecha del pago no puede ser anterior al inicio de la matrícula.'
+        )
+
+    if fecha_pago > matricula.fecha_fin:
+        raise ValidationError(
+            'La fecha del pago no puede ser posterior al fin de la matrícula.'
+        )
 
 
 def validar_pago_duplicado(concepto, matricula, fecha_pago, pago_excluir=None, concepto_pago_desc=None):
     pagos = Pago.objects.filter(
         id_matricula=matricula,
-        cancelado=False,
     )
 
     if pago_excluir is not None:
@@ -66,3 +70,6 @@ def validar_pago_duplicado(concepto, matricula, fecha_pago, pago_excluir=None, c
                     f'Ya existe una mensualidad registrada para '
                     f'{fecha_pago.strftime("%B %Y")} en esta matrícula.'
                 )
+            
+
+    

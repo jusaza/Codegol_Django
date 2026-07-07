@@ -83,10 +83,9 @@ class PagoForm(forms.ModelForm):
         fecha_pago = cleaned.get('fecha_pago')
         nombre_otro = (cleaned.get('nombre_otro') or '').strip()
         valor_otro = cleaned.get('valor_otro')
-        mes_mensualidad = (cleaned.get('mes_mensualidad') or '').strip()
 
-        if matricula is not None:
-            validar_matricula_vigente(matricula)
+        if matricula is not None and fecha_pago is not None:
+            validar_matricula_vigente(matricula, fecha_pago)
 
         if concepto is None or fecha_pago is None or matricula is None:
             return cleaned
@@ -104,12 +103,6 @@ class PagoForm(forms.ModelForm):
                 )
             elif valor_otro < 0:
                 self.add_error('valor_otro', 'El valor no puede ser negativo.')
-        elif concepto.nombre == ConceptoPago.NOMBRE_MENSUALIDAD:
-            if not mes_mensualidad:
-                self.add_error(
-                    'mes_mensualidad',
-                    'Debe indicar el mes que se está pagando.',
-                )
         else:
             if concepto.valor < 0:
                 raise ValidationError(
@@ -117,16 +110,11 @@ class PagoForm(forms.ModelForm):
                 )
 
         try:
-            concepto_pago_desc = None
-            if concepto.nombre == ConceptoPago.NOMBRE_MENSUALIDAD and mes_mensualidad:
-                concepto_pago_desc = f"Mensualidad - {mes_mensualidad}"
-
             validar_pago_duplicado(
                 concepto,
                 matricula,
                 fecha_pago,
                 pago_excluir=self.instance if self.instance.pk else None,
-                concepto_pago_desc=concepto_pago_desc
             )
         except ValidationError as exc:
             raise ValidationError(exc.messages) from exc
@@ -147,10 +135,6 @@ class PagoForm(forms.ModelForm):
         if concepto.es_otro:
             pago.concepto_pago = self.cleaned_data['nombre_otro'].strip()
             pago.valor_total = self.cleaned_data['valor_otro']
-        elif concepto.nombre == ConceptoPago.NOMBRE_MENSUALIDAD:
-            pago.concepto_pago = f"Mensualidad - {self.cleaned_data['mes_mensualidad'].strip()}"
-            if not self.instance.pk:
-                pago.valor_total = concepto.valor
         else:
             pago.concepto_pago = concepto.nombre
             if not self.instance.pk:

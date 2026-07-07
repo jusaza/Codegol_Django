@@ -164,7 +164,8 @@ def editar_pago(request, id):
 
     if pago.id_matricula_id and not matriculas.filter(pk=pago.id_matricula_id).exists():
         matriculas = Matricula.objects.filter(
-            Q(pk__in=matriculas.values_list('pk', flat=True)) | Q(pk=pago.id_matricula_id),
+            Q(pk__in=matriculas.values_list('pk', flat=True)) |
+            Q(pk=pago.id_matricula_id),
         ).select_related('id_jugador').order_by('-fecha_matricula')
 
     if request.method == 'POST':
@@ -173,21 +174,43 @@ def editar_pago(request, id):
             instance=pago,
             matriculas_queryset=matriculas,
         )
+
         if form.is_valid():
             form.save()
-            return redirect('lista_pagos')
 
+            # Si el formulario fue enviado desde el modal (AJAX)
+            if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+                return JsonResponse({
+                    "success": True,
+                    "redirect_url": reverse("lista_pagos"),
+                })
+
+            return redirect("lista_pagos")
+
+        # Si hay errores y viene desde el modal
+        if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+            return render(
+                request,
+                "pago/formulario.html",
+                _contexto_formulario_pago(form, matriculas) | {"pago": pago},
+            )
+
+        # Si no es AJAX
         return render(
             request,
-            'pago/formulario.html',
-            _contexto_formulario_pago(form, matriculas) | {'pago': pago},
+            "pago/formulario.html",
+            _contexto_formulario_pago(form, matriculas) | {"pago": pago},
         )
 
-    form = PagoForm(instance=pago, matriculas_queryset=matriculas)
+    form = PagoForm(
+        instance=pago,
+        matriculas_queryset=matriculas,
+    )
+
     return render(
         request,
-        'pago/formulario.html',
-        _contexto_formulario_pago(form, matriculas) | {'pago': pago},
+        "pago/formulario.html",
+        _contexto_formulario_pago(form, matriculas) | {"pago": pago},
     )
 
 
@@ -210,12 +233,12 @@ def reporte_pagos_pdf(request):
     p.setFont('Helvetica', 10)
     p.drawString(50, 780, f'Fecha: {datetime.now().strftime("%Y-%m-%d")}')
 
-    total = Pago.objects.filter(cancelado=False).aggregate(
+    total = Pago.objects.aggregate(
         Sum('valor_total'),
     )['valor_total__sum'] or 0
     p.drawString(50, 760, f'Total recaudado: ${total}')
 
-    pagos = Pago.objects.filter(cancelado=False)
+    pagos = Pago.objects.all()
 
     y = 730
 

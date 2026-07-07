@@ -129,7 +129,7 @@
             color:white;
             cursor:pointer;">
 
-    Aprobar
+    Pagado
 
   </a>
 
@@ -137,7 +137,7 @@
 
 {% else %}
 
-<button style="background-color: red;">
+<button style="background-color: orangered;">
 
   <a onclick="confirmarPago(
         '{% url 'cancelar_pago' pago.id %}',
@@ -147,7 +147,7 @@
             color:white;
             cursor:pointer;">
 
-    Cancelar
+    Pendiente
 
   </a>
 
@@ -574,13 +574,13 @@ function confirmarPago(url, accion){
             'Cancelar pago';
 
         mensaje.innerHTML =
-            '¿Deseas cancelar este pago?';
+            '¿Deseas marcar como pagado?';
 
         texto.innerHTML =
-            'El pago cambiará a estado cancelado.';
+            'El pago cambiará a estado pagado.';
 
         boton.innerHTML =
-            'Sí, cancelar';
+            'Sí, pagado';
 
         boton.className =
             'btn btn-danger';
@@ -591,13 +591,13 @@ function confirmarPago(url, accion){
             'Aprobar pago';
 
         mensaje.innerHTML =
-            '¿Deseas aprobar este pago?';
+            '¿Deseas desmarcar el pagado?';
 
         texto.innerHTML =
-            'El pago volverá a estado aprobado.';
+            'El pago volverá a estado pendiente.';
 
         boton.innerHTML =
-            'Sí, aprobar';
+            'Sí, desmarcar';
 
         boton.className =
             'btn btn-success';
