@@ -2,13 +2,17 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from django.http import HttpResponse
 from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, KeepTogether
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib import colors
 from datetime import datetime
 from django.db.models import Sum, Q
 from django.core.paginator import Paginator
 import json
 
 from matricula.models import Matricula
-from usuario.models import DetallesUsuarioRol
+from usuario.models import DetallesUsuarioRol, Usuario
 from .models import ConceptoPago, Pago
 from .forms import PagoForm, ConceptoPagoValorForm
 from .validators import obtener_matriculas_vigentes
@@ -239,4 +243,402 @@ def reporte_pagos_pdf(request):
             y = 800
 
     p.save()
+    return response
+
+
+def _formatear_moneda(valor):
+    return f"${valor:,.0f}".replace(",", ".")
+
+
+def _calcular_estado_cuenta(jugador):
+    # Obtener matrículas activas del jugador
+    matriculas = Matricula.objects.filter(id_jugador=jugador, estado=True).order_by('-fecha_inicio')
+    
+    # Obtener valores configurados de los conceptos
+    concepto_m = ConceptoPago.objects.filter(nombre=ConceptoPago.NOMBRE_MATRICULA).first()
+    concepto_mens = ConceptoPago.objects.filter(nombre=ConceptoPago.NOMBRE_MENSUALIDAD).first()
+    concepto_u = ConceptoPago.objects.filter(nombre=ConceptoPago.NOMBRE_UNIFORME).first()
+    
+    val_m = concepto_m.valor if concepto_m else 0.0
+    val_mens = concepto_mens.valor if concepto_mens else 0.0
+    val_u = concepto_u.valor if concepto_u else 0.0
+    
+    total_facturado_matricula = 0.0
+    total_facturado_mensualidad = 0.0
+    total_facturado_uniforme = 0.0
+    total_facturado_otro = 0.0
+    
+    detalles_matriculas = []
+    
+    for m in matriculas:
+        inicio = m.fecha_inicio
+        fin = m.fecha_fin
+        
+        # Calcular meses inclusivos
+        num_meses = (fin.year - inicio.year) * 12 + (fin.month - inicio.month) + 1
+        if num_meses < 1:
+            num_meses = 1
+            
+        fact_m = val_m
+        fact_mens = num_meses * val_mens
+        fact_u = val_u
+        
+        total_facturado_matricula += fact_m
+        total_facturado_mensualidad += fact_mens
+        total_facturado_uniforme += fact_u
+        
+        detalles_matriculas.append({
+            'matricula': m,
+            'meses': num_meses,
+            'facturado_matricula': fact_m,
+            'facturado_mensualidad': fact_mens,
+            'facturado_uniforme': fact_u,
+            'total': fact_m + fact_mens + fact_u
+        })
+        
+    # Obtener todos los pagos aprobados de estas matrículas
+    pagos = Pago.objects.filter(id_matricula__in=matriculas, cancelado=False).order_by('-fecha_pago')
+    
+    total_pagado_matricula = 0.0
+    total_pagado_mensualidad = 0.0
+    total_pagado_uniforme = 0.0
+    total_pagado_otro = 0.0
+    
+    for p in pagos:
+        val = p.valor_total
+        concept = p.concepto_pago
+        if concept == ConceptoPago.NOMBRE_MATRICULA:
+            total_pagado_matricula += val
+        elif concept == ConceptoPago.NOMBRE_MENSUALIDAD:
+            total_pagado_mensualidad += val
+        elif concept == ConceptoPago.NOMBRE_UNIFORME:
+            total_pagado_uniforme += val
+        else:
+            total_pagado_otro += val
+            # Para otros conceptos se asume que el valor facturado es igual al pagado
+            total_facturado_otro += val
+            
+    # Resumen por concepto
+    resumen = [
+        {
+            'concepto': 'Matrícula',
+            'facturado': total_facturado_matricula,
+            'pagado': total_pagado_matricula,
+            'pendiente': max(0.0, total_facturado_matricula - total_pagado_matricula)
+        },
+        {
+            'concepto': 'Mensualidades',
+            'facturado': total_facturado_mensualidad,
+            'pagado': total_pagado_mensualidad,
+            'pendiente': max(0.0, total_facturado_mensualidad - total_pagado_mensualidad)
+        },
+        {
+            'concepto': 'Uniformes',
+            'facturado': total_facturado_uniforme,
+            'pagado': total_pagado_uniforme,
+            'pendiente': max(0.0, total_facturado_uniforme - total_pagado_uniforme)
+        },
+        {
+            'concepto': 'Otros Conceptos',
+            'facturado': total_facturado_otro,
+            'pagado': total_pagado_otro,
+            'pendiente': max(0.0, total_facturado_otro - total_pagado_otro)
+        }
+    ]
+    
+    grand_total_facturado = total_facturado_matricula + total_facturado_mensualidad + total_facturado_uniforme + total_facturado_otro
+    grand_total_pagado = total_pagado_matricula + total_pagado_mensualidad + total_pagado_uniforme + total_pagado_otro
+    grand_saldo_pendiente = max(0.0, grand_total_facturado - grand_total_pagado)
+    
+    estado_paz_salvo = "Paz y Salvo" if grand_saldo_pendiente <= 0.0 else "Saldo Pendiente"
+    
+    return {
+        'matriculas': detalles_matriculas,
+        'pagos': pagos,
+        'resumen': resumen,
+        'total_facturado': grand_total_facturado,
+        'total_pagado': grand_total_pagado,
+        'saldo_pendiente': grand_saldo_pendiente,
+        'estado_paz_salvo': estado_paz_salvo,
+    }
+
+
+def estado_cuenta_jugador(request, usuario_id):
+    # Validar permisos
+    logged_in_uid = request.session.get('usuario_id')
+    roles = request.session.get('roles', [])
+    es_admin = 'Administrador' in roles
+    
+    if not logged_in_uid:
+        return redirect('login')
+        
+    if not es_admin and int(usuario_id) != int(logged_in_uid):
+        return HttpResponse("No tiene permisos para acceder a esta información.", status=403)
+        
+    jugador = get_object_or_404(Usuario, pk=usuario_id)
+    
+    # Verificar que el usuario tenga rol de Jugador (o si es admin, permitir ver igual)
+    es_jugador = DetallesUsuarioRol.objects.filter(
+        id_usuario=jugador,
+        id_rol__rol_usuario__iexact='Jugador'
+    ).exists()
+    
+    if not es_jugador and not es_admin:
+        return HttpResponse("El usuario especificado no es un jugador.", status=400)
+        
+    datos = _calcular_estado_cuenta(jugador)
+    
+    # Formatear datos para la plantilla HTML
+    resumen_fmt = []
+    for item in datos['resumen']:
+        resumen_fmt.append({
+            'concepto': item['concepto'],
+            'facturado': _formatear_moneda(item['facturado']),
+            'pagado': _formatear_moneda(item['pagado']),
+            'pendiente': _formatear_moneda(item['pendiente']),
+        })
+        
+    matriculas_fmt = []
+    for dm in datos['matriculas']:
+        matriculas_fmt.append({
+            'id': dm['matricula'].id,
+            'fecha_inicio': dm['matricula'].fecha_inicio,
+            'fecha_fin': dm['matricula'].fecha_fin,
+            'nivel': dm['matricula'].nivel,
+            'meses': dm['meses'],
+            'facturado_matricula': _formatear_moneda(dm['facturado_matricula']),
+            'facturado_mensualidad': _formatear_moneda(dm['facturado_mensualidad']),
+            'facturado_uniforme': _formatear_moneda(dm['facturado_uniforme']),
+            'total': _formatear_moneda(dm['total']),
+        })
+        
+    pagos_fmt = []
+    for p in datos['pagos']:
+        pagos_fmt.append({
+            'id': p.id,
+            'concepto_pago': p.concepto_pago,
+            'fecha_pago': p.fecha_pago,
+            'metodo_pago': p.metodo_pago,
+            'observaciones': p.observaciones or 'N/A',
+            'valor_total': _formatear_moneda(p.valor_total),
+        })
+        
+    contexto = {
+        'jugador': jugador,
+        'matriculas': matriculas_fmt,
+        'pagos': pagos_fmt,
+        'resumen': resumen_fmt,
+        'total_facturado': _formatear_moneda(datos['total_facturado']),
+        'total_pagado': _formatear_moneda(datos['total_pagado']),
+        'saldo_pendiente': _formatear_moneda(datos['saldo_pendiente']),
+        'estado_paz_salvo': datos['estado_paz_salvo'],
+        'fecha_hoy': datetime.now().strftime("%Y-%m-%d"),
+    }
+    
+    return render(request, 'pago/estado_cuenta.html', contexto)
+
+
+def estado_cuenta_pdf(request, usuario_id):
+    # Validar permisos
+    logged_in_uid = request.session.get('usuario_id')
+    roles = request.session.get('roles', [])
+    es_admin = 'Administrador' in roles
+    
+    if not logged_in_uid:
+        return redirect('login')
+        
+    if not es_admin and int(usuario_id) != int(logged_in_uid):
+        return HttpResponse("No tiene permisos para acceder a esta información.", status=403)
+        
+    jugador = get_object_or_404(Usuario, pk=usuario_id)
+    
+    # Calcular estado de cuenta
+    datos = _calcular_estado_cuenta(jugador)
+    
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'inline; filename="estado_cuenta_{jugador.num_identificacion}.pdf"'
+    
+    doc = SimpleDocTemplate(
+        response,
+        pagesize=letter,
+        rightMargin=36,
+        leftMargin=36,
+        topMargin=36,
+        bottomMargin=36
+    )
+    
+    styles = getSampleStyleSheet()
+    
+    style_title = ParagraphStyle(
+        name='TitleStyle',
+        parent=styles['Heading1'],
+        fontName='Helvetica-Bold',
+        fontSize=20,
+        textColor=colors.HexColor('#001f3f'),
+        spaceAfter=5,
+        alignment=1
+    )
+    
+    style_subtitle = ParagraphStyle(
+        name='SubTitleStyle',
+        parent=styles['Normal'],
+        fontName='Helvetica-Bold',
+        fontSize=12,
+        textColor=colors.HexColor('#001f3f'),
+        spaceBefore=15,
+        spaceAfter=8
+    )
+    
+    style_normal = ParagraphStyle(
+        name='CustomNormal',
+        parent=styles['Normal'],
+        fontName='Helvetica',
+        fontSize=9,
+        textColor=colors.HexColor('#333333'),
+        leading=12
+    )
+    
+    story = []
+    
+    story.append(Paragraph("ESCUELA DE FÚTBOL CODEGOL", style_title))
+    story.append(Paragraph("REPORTE - ESTADO DE CUENTA JUGADOR", ParagraphStyle('Sub', parent=style_title, fontSize=12, spaceAfter=20)))
+    story.append(Spacer(1, 10))
+    
+    # Tabla información jugador
+    status_text = datos['estado_paz_salvo'].upper()
+    status_color = '#28a745' if datos['saldo_pendiente'] <= 0 else '#dc3545'
+    
+    info_data = [
+        [Paragraph("<b>Nombre Completo:</b>", style_normal), Paragraph(jugador.nombre_completo, style_normal),
+         Paragraph("<b>Identificación:</b>", style_normal), Paragraph(f"{jugador.get_tipo_documento_display() or jugador.tipo_documento.upper()} {jugador.num_identificacion}", style_normal)],
+        [Paragraph("<b>Correo Electrónico:</b>", style_normal), Paragraph(jugador.correo, style_normal),
+         Paragraph("<b>Teléfono:</b>", style_normal), Paragraph(jugador.telefono_1, style_normal)],
+        [Paragraph("<b>Fecha de Emisión:</b>", style_normal), Paragraph(datetime.now().strftime("%Y-%m-%d %I:%M %p"), style_normal),
+         Paragraph("<b>Estado Financiero:</b>", style_normal), Paragraph(f"<font color='{status_color}'><b>{status_text}</b></font>", style_normal)]
+    ]
+    
+    info_table = Table(info_data, colWidths=[110, 160, 110, 160])
+    info_table.setStyle(TableStyle([
+        ('ALIGN', (0,0), (-1,-1), 'LEFT'),
+        ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 5),
+        ('TOPPADDING', (0,0), (-1,-1), 5),
+        ('LINEBELOW', (0,0), (-1,-1), 0.5, colors.HexColor('#dddddd')),
+    ]))
+    story.append(info_table)
+    story.append(Spacer(1, 15))
+    
+    # Resumen de Saldos
+    story.append(Paragraph("Resumen de Saldos", style_subtitle))
+    
+    summary_headers = ["Concepto", "Facturado (Billed)", "Pagado (Paid)", "Saldo Pendiente (Balance)"]
+    summary_rows = []
+    
+    for item in datos['resumen']:
+        summary_rows.append([
+            item['concepto'],
+            _formatear_moneda(item['facturado']),
+            _formatear_moneda(item['pagado']),
+            _formatear_moneda(item['pendiente'])
+        ])
+        
+    summary_rows.append([
+        "TOTAL",
+        _formatear_moneda(datos['total_facturado']),
+        _formatear_moneda(datos['total_pagado']),
+        _formatear_moneda(datos['saldo_pendiente'])
+    ])
+    
+    summary_table = Table([summary_headers] + summary_rows, colWidths=[150, 130, 130, 130])
+    summary_table.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#001f3f')),
+        ('TEXTCOLOR', (0,0), (-1,0), colors.white),
+        ('ALIGN', (0,0), (-1,-1), 'CENTER'),
+        ('ALIGN', (0,0), (0,-1), 'LEFT'),
+        ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0,0), (-1,0), 9),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 6),
+        ('TOPPADDING', (0,0), (-1,-1), 6),
+        ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor('#cccccc')),
+        ('FONTNAME', (0,-1), (-1,-1), 'Helvetica-Bold'),
+        ('BACKGROUND', (0,-1), (-1,-1), colors.HexColor('#f8f9fa')),
+        ('TEXTCOLOR', (0,-1), (-1,-1), colors.black),
+    ]))
+    story.append(summary_table)
+    story.append(Spacer(1, 15))
+    
+    # Historial de Matrículas
+    if datos['matriculas']:
+        story.append(Paragraph("Detalle de Matrículas Vigentes e Historial", style_subtitle))
+        mat_headers = ["ID", "Fecha Inicio", "Fecha Fin", "Nivel", "Meses", "Billed Total"]
+        mat_rows = []
+        for dm in datos['matriculas']:
+            mat_rows.append([
+                str(dm['matricula'].id),
+                str(dm['matricula'].fecha_inicio),
+                str(dm['matricula'].fecha_fin),
+                dm['matricula'].nivel,
+                str(dm['meses']),
+                _formatear_moneda(dm['total'])
+            ])
+        mat_table = Table([mat_headers] + mat_rows, colWidths=[40, 100, 100, 90, 70, 140])
+        mat_table.setStyle(TableStyle([
+            ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#0a192f')),
+            ('TEXTCOLOR', (0,0), (-1,0), colors.white),
+            ('ALIGN', (0,0), (-1,-1), 'CENTER'),
+            ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0,0), (-1,0), 9),
+            ('BOTTOMPADDING', (0,0), (-1,-1), 5),
+            ('TOPPADDING', (0,0), (-1,-1), 5),
+            ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor('#dddddd')),
+        ]))
+        story.append(mat_table)
+        story.append(Spacer(1, 15))
+        
+    # Historial de Pagos
+    story.append(Paragraph("Historial de Pagos Recibidos", style_subtitle))
+    if datos['pagos'].exists():
+        pago_headers = ["ID", "Concepto", "Fecha Pago", "Método", "Valor Pagado"]
+        pago_rows = []
+        for p in datos['pagos']:
+            pago_rows.append([
+                str(p.id),
+                p.concepto_pago,
+                str(p.fecha_pago),
+                p.metodo_pago,
+                _formatear_moneda(p.valor_total)
+            ])
+        pago_table = Table([pago_headers] + pago_rows, colWidths=[50, 150, 110, 110, 120])
+        pago_table.setStyle(TableStyle([
+            ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#4a5568')),
+            ('TEXTCOLOR', (0,0), (-1,0), colors.white),
+            ('ALIGN', (0,0), (-1,-1), 'CENTER'),
+            ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0,0), (-1,0), 9),
+            ('BOTTOMPADDING', (0,0), (-1,-1), 5),
+            ('TOPPADDING', (0,0), (-1,-1), 5),
+            ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor('#dddddd')),
+        ]))
+        story.append(pago_table)
+    else:
+        story.append(Paragraph("No se registran pagos aprobados para este jugador.", style_normal))
+        
+    story.append(Spacer(1, 40))
+    
+    # Firmas
+    sig_data = [
+        [Paragraph("___________________________________", style_normal), Paragraph("___________________________________", style_normal)],
+        [Paragraph("<b>Firma del Administrador / Cajero</b>", style_normal), Paragraph("<b>Firma del Padre de Familia / Jugador</b>", style_normal)],
+        [Paragraph("Escuela de Fútbol Codegol", style_normal), Paragraph("Aceptación de Saldo y Compromiso", style_normal)]
+    ]
+    sig_table = Table(sig_data, colWidths=[270, 270])
+    sig_table.setStyle(TableStyle([
+        ('ALIGN', (0,0), (-1,-1), 'CENTER'),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 2),
+        ('TOPPADDING', (0,0), (-1,-1), 2),
+    ]))
+    
+    story.append(KeepTogether(sig_table))
+    
+    doc.build(story)
     return response

@@ -8,4 +8,6 @@ urlpatterns = [
     path('cancelar/<int:id>/', views.cancelar_pago, name='cancelar_pago'),
     path('conceptos/valores/', views.actualizar_valores_conceptos, name='actualizar_valores_conceptos'),
     path('reporte/pagos/pdf/', views.reporte_pagos_pdf, name='reporte_pagos_pdf'),
+    path('estado-cuenta/<int:usuario_id>/', views.estado_cuenta_jugador, name='estado_cuenta_jugador'),
+    path('estado-cuenta/<int:usuario_id>/pdf/', views.estado_cuenta_pdf, name='estado_cuenta_pdf'),
 ]
