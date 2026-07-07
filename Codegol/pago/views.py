@@ -44,9 +44,12 @@ def _contexto_formulario_pago(form, matriculas):
         'sin_matriculas_vigentes': not matriculas.exists(),
     }
 
+from django.db.models import Exists, OuterRef
+from django.core.paginator import Paginator
 
 def lista_pagos(request):
     query = request.GET.get('q')
+    concepto = request.GET.get('concepto')
     usuario_id = request.session.get('usuario_id')
 
     es_jugador = DetallesUsuarioRol.objects.filter(
@@ -57,33 +60,83 @@ def lista_pagos(request):
     if es_jugador:
         pagos = Pago.objects.filter(
             id_matricula__id_jugador__id_usuario=usuario_id,
-        ).select_related('id_matricula__id_jugador', 'id_concepto')
+        ).select_related(
+            'id_matricula__id_jugador',
+            'id_concepto'
+        )
     else:
         pagos = Pago.objects.all().select_related(
             'id_matricula__id_jugador',
             'id_concepto',
         )
 
+    # ----------- TU FILTRO ORIGINAL -----------
     if query:
-        pagos = pagos.filter(concepto_pago__icontains=query)
+        pagos = pagos.filter(
+            concepto_pago__icontains=query
+        )
 
-    paginator = Paginator(pagos.order_by('-id'), 10)
+    # ----------- NUEVO FILTRO POR CONCEPTO -----------
+    jugadores_pendientes = None
+
+    if concepto:
+
+        pagos_concepto = Pago.objects.filter(
+            id_matricula=OuterRef('pk'),
+            id_concepto__nombre=concepto,
+        )
+
+        matriculas = obtener_matriculas_vigentes()
+
+        if es_jugador:
+            matriculas = matriculas.filter(
+                id_jugador__id_usuario=usuario_id
+            )
+
+        jugadores_pendientes = (
+            matriculas
+            .annotate(
+                tiene_pago=Exists(pagos_concepto)
+            )
+            .filter(
+                tiene_pago=False
+            )
+            .select_related('id_jugador')
+        )
+
+    paginator = Paginator(
+        pagos.order_by('-id'),
+        10
+    )
+
     page_number = request.GET.get('page')
     pagos = paginator.get_page(page_number)
 
     contexto = {
         'pagos': pagos,
         'query': query,
+        'concepto': concepto,
+        'jugadores_pendientes': jugadores_pendientes,
     }
 
     if _es_administrador(request):
-        conceptos = ConceptoPago.objects.filter(activo=True).exclude(
+        conceptos = ConceptoPago.objects.filter(
+            activo=True
+        ).exclude(
             nombre=ConceptoPago.NOMBRE_OTRO,
         )
-        contexto['conceptos_config'] = conceptos
-        contexto['form_conceptos'] = ConceptoPagoValorForm(conceptos=conceptos)
 
-    return render(request, 'pago/lista.html', contexto)
+        contexto['conceptos'] = conceptos
+        contexto['conceptos_config'] = conceptos
+        contexto['form_conceptos'] = ConceptoPagoValorForm(
+            conceptos=conceptos
+        )
+
+    return render(
+        request,
+        'pago/lista.html',
+        contexto,
+    )
 
 
 def actualizar_valores_conceptos(request):
@@ -665,3 +718,5 @@ def estado_cuenta_pdf(request, usuario_id):
     
     doc.build(story)
     return response
+
+

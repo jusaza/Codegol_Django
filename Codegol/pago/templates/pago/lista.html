@@ -14,12 +14,32 @@
   <div class="barra-top">
 
     <div class="barra-busqueda">
-      <form method="get">
-        <input type="text"
-               name="q"
-               placeholder="Buscar pago..."
-               value="{{ query|default:'' }}">
-      </form>
+      <form method="GET" class="mb-3">
+
+    <input type="text"
+           name="q"
+           placeholder="Buscar pago..."
+           value="{{ query|default:'' }}">
+
+    <select name="concepto">
+
+        <option value="">Todos los conceptos</option>
+
+        {% for c in conceptos %}
+        <option value="{{ c.nombre }}"
+            {% if concepto == c.nombre %}selected{% endif %}>
+            {{ c.nombre }}
+        </option>
+        {% endfor %}
+
+    </select>
+
+    <button type="submit">
+        Filtrar
+    </button>
+
+</form>
+
     </div>
 
     <div class="barra-acciones">
@@ -90,97 +110,169 @@
     </thead>
 
     <tbody>
+{% if concepto %}
 
-      {% for pago in pagos %}
-      <tr>
+    {% for pago in jugadores_pendientes %}
 
-        <td>{{ pago.id }}</td>
-        <td>{{ pago.id_matricula.id_jugador.nombre_completo }}</td>
-        <td>{{ pago.id_matricula.id }}</td>
-        <td>{{ pago.concepto_pago }}</td>
-        <td>{{ pago.fecha_pago }}</td>
-        <td>{{ pago.metodo_pago }}</td>
-        <td>{{ pago.valor_total }}</td>
+        <tr>
 
-        <td class="acciones">
+            <td>-</td>
+            <td>{{ pago.id_jugador.nombre_completo }}</td>
+            <td>{{ pago.id }}</td>
+            <td>{{ concepto }}</td>
+            <td>Pendiente</td>
+            <td>-</td>
+            <td>-</td>
 
-          {% if "Administrador" in request.session.roles %}
-          <button class="actualizar">
+            <td class="acciones">
 
-            <a onclick="abrirModalPago('{% url 'editar_pago' pago.id %}')"
-               style="text-decoration:none;
-                      color:white;
-                      cursor:pointer;">
+                {% if "Administrador" in request.session.roles %}
 
-              Actualizar
+                <button class="actualizar">
 
-            </a>
+                    <a onclick="abrirModalPago('{% url 'crear_pago' %}?matricula={{ pago.id }}&concepto={{ concepto }}')"
+                       style="text-decoration:none;
+                              color:white;
+                              cursor:pointer;">
 
-          </button>
+                        Registrar pago
 
-          {% if pago.cancelado %}
+                    </a>
 
-<button style="background-color: green;">
+                </button>
 
-  <a onclick="confirmarPago(
-        '{% url 'cancelar_pago' pago.id %}',
-        'aprobar'
-     )"
-     style="text-decoration:none;
-            color:white;
-            cursor:pointer;">
+                {% endif %}
 
-    Pagado
+                <button class="ver"
+                        style="background-color:#007bff;border-color:#007bff;">
 
-  </a>
+                    <a href="{% url 'estado_cuenta_jugador' pago.id_jugador.id_usuario %}"
+                       target="_blank"
+                       style="text-decoration:none;
+                              color:white;
+                              cursor:pointer;">
 
-</button>
+                        Estado Cuenta
+
+                    </a>
+
+                </button>
+
+            </td>
+
+        </tr>
+
+    {% empty %}
+
+        <tr>
+            <td colspan="8">
+                Todos los jugadores ya pagaron este concepto.
+            </td>
+        </tr>
+
+    {% endfor %}
 
 {% else %}
 
-<button style="background-color: orangered;">
+    {% for pago in pagos %}
 
-  <a onclick="confirmarPago(
-        '{% url 'cancelar_pago' pago.id %}',
-        'cancelar'
-     )"
-     style="text-decoration:none;
-            color:white;
-            cursor:pointer;">
+        <tr>
 
-    Pendiente
+            <td>{{ pago.id }}</td>
+            <td>{{ pago.id_matricula.id_jugador.nombre_completo }}</td>
+            <td>{{ pago.id_matricula.id }}</td>
+            <td>{{ pago.concepto_pago }}</td>
+            <td>{{ pago.fecha_pago }}</td>
+            <td>{{ pago.metodo_pago }}</td>
+            <td>{{ pago.valor_total }}</td>
 
-  </a>
+            <td class="acciones">
 
-</button>
+                {% if "Administrador" in request.session.roles %}
+
+                <button class="actualizar">
+
+                    <a onclick="abrirModalPago('{% url 'editar_pago' pago.id %}')"
+                       style="text-decoration:none;
+                              color:white;
+                              cursor:pointer;">
+
+                        Actualizar
+
+                    </a>
+
+                </button>
+
+                {% if pago.cancelado %}
+
+                <button style="background-color: green;">
+
+                    <a onclick="confirmarPago(
+                            '{% url 'cancelar_pago' pago.id %}',
+                            'aprobar'
+                         )"
+                       style="text-decoration:none;
+                              color:white;
+                              cursor:pointer;">
+
+                        Pagado
+
+                    </a>
+
+                </button>
+
+                {% else %}
+
+                <button style="background-color: orangered;">
+
+                    <a onclick="confirmarPago(
+                            '{% url 'cancelar_pago' pago.id %}',
+                            'cancelar'
+                         )"
+                       style="text-decoration:none;
+                              color:white;
+                              cursor:pointer;">
+
+                        Pendiente
+
+                    </a>
+
+                </button>
+
+                {% endif %}
+
+                {% endif %}
+
+                <button class="ver"
+                        style="background-color:#007bff;border-color:#007bff;">
+
+                    <a href="{% url 'estado_cuenta_jugador' pago.id_matricula.id_jugador.id_usuario %}"
+                       target="_blank"
+                       style="text-decoration:none;
+                              color:white;
+                              cursor:pointer;">
+
+                        Estado Cuenta
+
+                    </a>
+
+                </button>
+
+            </td>
+
+        </tr>
+
+    {% empty %}
+
+        <tr>
+            <td colspan="8">
+                No hay pagos registrados.
+            </td>
+        </tr>
+
+    {% endfor %}
 
 {% endif %}
-
-{% endif %}
-
-          <button class="ver" style="background-color: #007bff; border-color: #007bff;">
-            <a href="{% url 'estado_cuenta_jugador' pago.id_matricula.id_jugador.id_usuario %}"
-               target="_blank"
-               style="text-decoration:none;
-                      color:white;
-                      cursor:pointer;">
-              Estado Cuenta
-            </a>
-          </button>
-
-        </td>
-
-      </tr>
-
-      {% empty %}
-
-      <tr>
-        <td colspan="8">
-          No hay pagos registrados
-        </td>
-      </tr>
-
-      {% endfor %}
 
     </tbody>
 
