@@ -328,17 +328,159 @@ function abrirModalPago(url){
 
     .then(html => {
 
-        document.getElementById(
-            'contenidoModalPago'
-        ).innerHTML = html;
+        const contenedor = document.getElementById("contenidoModalPago");
+
+        contenedor.innerHTML = html;
+
+        // Ejecutar nuevamente los scripts del formulario cargado
+        contenedor.querySelectorAll("script").forEach(script => {
+
+            const nuevo = document.createElement("script");
+
+            if(script.src){
+                nuevo.src = script.src;
+            }else{
+                nuevo.textContent = script.textContent;
+            }
+
+            document.body.appendChild(nuevo);
+            document.body.removeChild(nuevo);
+
+        });
 
         let modal = new bootstrap.Modal(
-            document.getElementById('modalPago')
+            document.getElementById("modalPago")
         );
 
         modal.show();
 
         activarBusquedaUsuario();
+
+        activarFormularioPago();
+
+    });
+
+}
+
+function activarFormularioPago(){
+
+    const form = document.getElementById("formPago");
+
+    if(!form) return;
+
+    form.addEventListener("submit", function(e){
+
+        e.preventDefault();
+
+        fetch(form.action,{
+
+            method:"POST",
+
+            body:new FormData(form),
+
+            headers:{
+                "X-Requested-With":"XMLHttpRequest"
+            }
+
+        })
+
+        .then(async response=>{
+
+            const tipo = response.headers.get("content-type");
+
+            if(tipo && tipo.includes("application/json")){
+
+                return {
+                    esJson:true,
+                    json:await response.json()
+                };
+
+            }
+
+            return {
+                esJson:false,
+                html:await response.text()
+            };
+
+        })
+
+        .then(data=>{
+
+            if(data.esJson){
+
+                if(data.json.success){
+
+                    window.location.href = data.json.redirect_url;
+
+                }
+
+            }else{
+
+                const contenedor = document.getElementById("contenidoModalPago");
+
+                contenedor.innerHTML = data.html;
+
+                // Ejecutar nuevamente los scripts del formulario
+                contenedor.querySelectorAll("script").forEach(script => {
+
+                    const nuevo = document.createElement("script");
+
+                    if(script.src){
+                        nuevo.src = script.src;
+                    }else{
+                        nuevo.textContent = script.textContent;
+                    }
+
+                    document.body.appendChild(nuevo);
+                    document.body.removeChild(nuevo);
+
+                });
+
+                activarBusquedaUsuario();
+
+                activarFormularioPago();
+
+            }
+
+        });
+
+    });
+
+}
+
+function activarBusquedaUsuario(){
+
+    const buscar =
+        document.getElementById('buscarUsuario');
+
+    const select =
+        document.querySelector(
+            'select[name="id_matricula"]'
+        );
+
+    if(!buscar || !select) return;
+
+    buscar.addEventListener('keyup', function(){
+
+        let filtro =
+            this.value.toLowerCase();
+
+        let opciones =
+            select.querySelectorAll('option');
+
+        opciones.forEach(op => {
+
+            if(op.text.toLowerCase().includes(filtro)){
+
+                op.style.display='';
+
+            }else{
+
+                op.style.display='none';
+
+            }
+
+        });
 
     });
 

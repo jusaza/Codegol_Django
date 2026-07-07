@@ -102,6 +102,11 @@ def actualizar_valores_conceptos(request):
     return redirect('lista_pagos')
 
 
+from django.http import JsonResponse
+from django.shortcuts import redirect, render
+from django.urls import reverse
+
+
 def crear_pago(request):
     matriculas = obtener_matriculas_vigentes()
 
@@ -110,17 +115,38 @@ def crear_pago(request):
             request.POST,
             matriculas_queryset=matriculas,
         )
+
         if form.is_valid():
             form.save()
+
+            # Si el formulario fue enviado desde el modal mediante fetch()
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': True,
+                    'redirect_url': reverse('lista_pagos'),
+                })
+
             return redirect('lista_pagos')
 
+        # Si hay errores y viene del modal, devolver nuevamente el formulario
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return render(
+                request,
+                'pago/formulario.html',
+                _contexto_formulario_pago(form, matriculas),
+            )
+
+        # Si no es AJAX, mostrar el formulario normalmente
         return render(
             request,
             'pago/formulario.html',
             _contexto_formulario_pago(form, matriculas),
         )
 
-    form = PagoForm(matriculas_queryset=matriculas)
+    form = PagoForm(
+        matriculas_queryset=matriculas,
+    )
+
     return render(
         request,
         'pago/formulario.html',

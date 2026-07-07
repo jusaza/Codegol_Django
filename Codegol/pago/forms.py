@@ -45,9 +45,24 @@ class PagoForm(forms.ModelForm):
         self.fields['valor_otro'].widget.attrs.update({**widget_class, 'step': '0.01'})
 
         if matriculas_queryset is not None:
-            self.fields['id_matricula'].queryset = matriculas_queryset
+            self.fields['id_matricula'].queryset = (
+                matriculas_queryset.select_related('id_jugador')
+            )
+
         self.fields['id_matricula'].empty_label = 'Seleccione una matrícula'
         self.fields['id_matricula'].widget.attrs.update(widget_class)
+
+        self.fields['id_matricula'].label_from_instance = (
+            lambda obj: (
+                f"Matrícula #{obj.id} - "
+                f"{obj.id_jugador.nombre_completo} - "
+                f"CC: {obj.id_jugador.num_identificacion}"
+            )
+        )
+        
+        if self.instance.pk:
+            self.fields['id_matricula'].disabled = True
+            self.fields['id_concepto'].disabled = True
 
         if self.instance.pk and self.instance.id_concepto_id:
             concepto = self.instance.id_concepto
@@ -102,7 +117,13 @@ class PagoForm(forms.ModelForm):
 
     def save(self, commit=True):
         pago = super().save(commit=False)
-        concepto = self.cleaned_data['id_concepto']
+
+        if self.instance.pk:
+            # Mantener la matrícula y el concepto originales
+            pago.id_matricula = self.instance.id_matricula
+            pago.id_concepto = self.instance.id_concepto
+
+        concepto = pago.id_concepto
 
         if concepto.es_otro:
             pago.concepto_pago = self.cleaned_data['nombre_otro'].strip()
