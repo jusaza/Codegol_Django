@@ -156,6 +156,13 @@
     const inputValorOtro = document.getElementById('id_valor_otro');
     const inputNombreOtro = document.getElementById('id_nombre_otro');
     const esEdicion = {% if pago %}true{% else %}false{% endif %};
+    if (esEdicion) {
+    selectConcepto.disabled = true;
+
+    document.getElementById('id_fecha_pago').disabled = true;
+
+    document.getElementById('id_id_matricula').disabled = true;
+}
     const valorGuardado = {% if pago %}{{ pago.valor_total }}{% else %}null{% endif %};
 
     if (!selectConcepto) return;

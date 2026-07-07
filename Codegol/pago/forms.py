@@ -37,8 +37,13 @@ class PagoForm(forms.ModelForm):
         self.fields['id_concepto'].widget.attrs.update(widget_class)
 
         self.fields['fecha_pago'].widget = forms.DateInput(
-            attrs={**widget_class, 'type': 'date'},
+            format='%Y-%m-%d',
+            attrs={
+                **widget_class,
+                'type': 'date',
+            },
         )
+        self.fields['fecha_pago'].input_formats = ['%Y-%m-%d']
         self.fields['metodo_pago'].widget.attrs.update(widget_class)
         self.fields['observaciones'].widget.attrs.update(widget_class)
         self.fields['nombre_otro'].widget.attrs.update(widget_class)
@@ -63,6 +68,7 @@ class PagoForm(forms.ModelForm):
         if self.instance.pk:
             self.fields['id_matricula'].disabled = True
             self.fields['id_concepto'].disabled = True
+            self.fields['fecha_pago'].disabled = True
 
         if self.instance.pk and self.instance.id_concepto_id:
             concepto = self.instance.id_concepto
@@ -119,9 +125,10 @@ class PagoForm(forms.ModelForm):
         pago = super().save(commit=False)
 
         if self.instance.pk:
-            # Mantener la matrícula y el concepto originales
+            # Mantener la matrícula, el concepto y la fecha originales
             pago.id_matricula = self.instance.id_matricula
             pago.id_concepto = self.instance.id_concepto
+            pago.fecha_pago = self.instance.fecha_pago
 
         concepto = pago.id_concepto
 
